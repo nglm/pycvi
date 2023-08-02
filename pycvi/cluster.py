@@ -81,6 +81,7 @@ def align_to_barycenter(
         # match the midpoint of the barycenter
         aligned_X.append(np.mean([ts[i] for i in ind], axis=0))
     aligned_X = np.array(aligned_X)
+    return aligned_X
 
 def compute_cluster_params(
     cluster: np.ndarray,
