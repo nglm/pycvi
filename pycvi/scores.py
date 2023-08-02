@@ -76,10 +76,14 @@ def f_intra(
     if len(dims) == 3:
         barycenter = np.expand_dims(cluster_info["barycenter"], 0)
         # Option 1: Pairwise distances on the entire window using DTW
-        score = pdist_soft_dtw(
-            cluster,
-            gamma=0.1
-        )
+        Ni = len(cluster)
+        score = np.zeros(Ni)
+        for m in range(1, Ni):
+            score[m-1, :Ni-m] = cdist_soft_dtw(
+                cluster[m:],
+                cluster[m-1],
+                gamma=0.1
+            )
 
         # Option 2: Pairwise distances between the midpoint of the barycenter
         # and the corresponding time step for each member in the cluster
