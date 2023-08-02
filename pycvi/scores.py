@@ -136,7 +136,11 @@ def f_inertia(
     # somehow doesn't!
     return np.sum(score)
 
-def f_generalized_var(cluster: np.ndarray, cluster_info: dict = None) -> float:
+def f_generalized_var(
+    cluster: np.ndarray,
+    cluster_info: dict = None,
+    dist_kwargs: dict = {}
+) -> float:
     """
     Compute the sample generalized variance of ONE cluster
 
@@ -155,7 +159,11 @@ def f_generalized_var(cluster: np.ndarray, cluster_info: dict = None) -> float:
         else:
             return sample_cov
 
-def f_med_dev_mean(cluster: np.ndarray, cluster_info: dict = None) -> float:
+def f_med_dev_mean(
+    cluster: np.ndarray,
+    cluster_info: dict = None,
+    dist_kwargs: dict = {}
+) -> float:
     """
     Compute the median deviation around the mean
 
@@ -183,7 +191,11 @@ def f_med_dev_mean(cluster: np.ndarray, cluster_info: dict = None) -> float:
                 gamma=0.1
             ))
 
-def f_mean_dev_med(cluster: np.ndarray, cluster_info: dict = None) -> float:
+def f_mean_dev_med(
+    cluster: np.ndarray,
+    cluster_info: dict = None,
+    dist_kwargs: dict = {}
+) -> float:
     """
     Compute the mean deviation around the median
 
@@ -211,7 +223,11 @@ def f_mean_dev_med(cluster: np.ndarray, cluster_info: dict = None) -> float:
                 gamma=0.1
             ))
 
-def f_med_dev_med(cluster: np.ndarray, cluster_info: dict = None) -> float:
+def f_med_dev_med(
+    cluster: np.ndarray,
+    cluster_info: dict = None,
+    dist_kwargs: dict = {}
+) -> float:
     """
     Compute the median deviation around the median
 

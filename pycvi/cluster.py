@@ -13,12 +13,10 @@ def compute_asym_std(X, center):
     return np.sqrt( np.sum((X - center)**2) / n)
 
 def compute_disp(X, center):
-    print(center.shape)
-
     (d, ) = center.shape                      # shape: (d)
     disp_inf = np.zeros(d)                  # shape: (d)
     disp_sup = np.zeros(d)                  # shape: (d)
-    disp = np.std(X, axis=0).reshape(-1)    # shape: (d)
+    disp = np.std(X).reshape(-1)    # shape: (d)
     for i in range(d):
         # Get the members below/above the average
         X_inf = [m for m in X[:, i] if m <= center[i]]
