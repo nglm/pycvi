@@ -8,3 +8,7 @@
 # We do that to skip the cvi file and access the functions directly)
 from .cvi import gap_statistics
 from .scores import SCORES
+
+from . import scores
+from . import cvi
+from . import cluster
