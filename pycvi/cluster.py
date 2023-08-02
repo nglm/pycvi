@@ -16,8 +16,7 @@ def compute_disp(X, center):
     (d, ) = center.shape                      # shape: (d)
     disp_inf = np.zeros(d)                  # shape: (d)
     disp_sup = np.zeros(d)                  # shape: (d)
-    print(X.shape)
-    disp = np.std(X).reshape(-1)    # shape: (d)
+    disp = np.std(X, axis=0).reshape(-1)    # shape: (d)
     for i in range(d):
         # Get the members below/above the average
         X_inf = [m for m in X[:, i] if m <= center[i]]
