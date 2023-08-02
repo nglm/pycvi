@@ -15,7 +15,7 @@ def compute_asym_std(X, center):
 def compute_disp(X, center):
     print(center.shape)
 
-    (d) = center.shape                      # shape: (d)
+    (d, ) = center.shape                      # shape: (d)
     disp_inf = np.zeros(d)                  # shape: (d)
     disp_sup = np.zeros(d)                  # shape: (d)
     disp = np.std(X, axis=0).reshape(-1)    # shape: (d)
