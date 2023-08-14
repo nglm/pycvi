@@ -4,6 +4,8 @@ from scipy.spatial.distance import cdist, pdist
 from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
+from .utils import match_dims
+
 SCORES = [
         'inertia',
         'mean_inertia',  # mean inertia and distortion are the same thing
@@ -40,18 +42,129 @@ DEFAULT_DIST_KWARGS = {
     "metric" : 'sqeuclidean',
 }
 
+def f_reduction(
+    dist: np.ndarray,
+    reduction: str = None,
+) -> Union[float, np.ndarray]:
+    if reduction is not None:
+        if reduction == "average":
+            dist = np.mean(dist)
+        elif reduction == "min":
+            dist = np.amin(dist)
+        elif reduction == "max":
+            dist = np.amax(dist)
+        elif reduction == "median":
+            dist = np.median(dist)
+    return dist
+
+def f_centroid(
+    cluster: np.ndarray,
+    cluster_info: dict = None,
+) -> np.ndarray:
+    """
+    The "n_sample" dimension is included in the output
+
+    :param cluster: (N_c, d) array, representing a cluster of size N_c,
+        or (N_c, w, d) if DTW is used
+    :type cluster: np.ndarray
+    :param cluster_info: info on the center, barycenter, etc. of
+        the cluster
+    :type cluster_info: dict
+    :return: centroid of the cluster
+    :rtype: np.ndarray
+    """
+    dims = cluster.shape
+    if len(dims) == 2:
+        centroid = cluster_info['center'].reshape(1, -1)
+    else:
+        centroid = np.expand_dims(cluster_info["barycenter"], 0)
+    return centroid
+
+def f_pdist(
+    cluster: np.ndarray,
+    dist_kwargs: dict = {}
+) -> float:
+    """
+    Compute the pairwise distance within a group of elements
+
+    :param cluster: (N_c, d) array, representing a cluster of size N_c,
+        or (N_c, w, d) if DTW is used
+    :type cluster: np.ndarray
+    :param dist_kwargs: kwargs for pdist, cdist, etc.
+    :type dist_kwargs: dict
+    :return: pairwise distance within the cluster
+    :rtype: float
+    """
+    dims = cluster.shape
+    if len(dims) == 2:
+        dist = pdist(
+            cluster,
+            **dist_kwargs
+        )
+    if len(dims) == 3:
+        # Option 1: Pairwise distances on the entire window using DTW
+        (N_c, w_t, d)  = cluster.shape
+        dist = np.zeros(N_c)
+        for m in range(1, N_c):
+            dist[m-1, :N_c-m] = cdist_soft_dtw(
+                cluster[m:],
+                np.expand_dims(cluster[m-1], 0),
+                gamma=1
+            )
+
+        # Option 2: Pairwise distances between the midpoint of the barycenter
+        # and the corresponding time step for each member in the cluster
+        # TODO
+    return dist
+
+def f_cdist(
+    clusterA: np.ndarray,
+    clusterB: np.ndarray,
+    dist_kwargs: dict = {},
+) -> float:
+    """
+    Compute the distance between two (group of) elements.
+
+    :param clusterA: (NA, d) array, representing a cluster of size NA,
+        or (NA, w_t, d) if DTW is used
+    :type clusterA: np.ndarray
+    :param clusterB: (NB, d) array, representing a cluster of size NB,
+        or (NB, w_t, d) if DTW is used
+    :param dist_kwargs: kwargs for pdist, cdist, etc.
+    :type dist_kwargs: dict
+    :return: pairwise distance within the cluster
+    :rtype: float
+    """
+    clusterA, clusterB = match_dims(clusterA, clusterB)
+    dims = clusterA.shape
+    if len(dims) == 2:
+        dist = cdist(
+            clusterA,
+            clusterA,
+            **dist_kwargs
+        )
+    if len(dims) == 3:
+        # Option 1: Pairwise distances on the entire window using DTW
+        dist = cdist_soft_dtw(
+            clusterA,
+            clusterB,
+            gamma=1
+        )
+
+        # Option 2: Pairwise distances between the midpoint of the barycenter
+        # and the corresponding time step for each member in the cluster
+        # TODO
+        # Note cdist_soft_dtw_normalized should return positive values but
+        # somehow doesn't!
+    return dist
+
 def f_intra(
     cluster: np.ndarray,
     cluster_info: dict = None,
     dist_kwargs: dict = {}
 ) -> float:
     """
-    Compute the pairwise distance within ONE cluster.
-
-    Remember that pdist returns a condensed distance matrix Y. For each
-    i and j (where i<j<m), where m is the number of original
-    observations. The metric dist(u=X[i], v=X[j]) is computed and stored
-    in entry `m * i + j - ((i + 2) * (i + 1)) // 2`.
+    Compute the sum of pairwise distance within a group of elements
 
     :param cluster: (N_c, d) array, representing a cluster of size N_c,
         or (N_c, w, d) if DTW is used
@@ -64,32 +177,7 @@ def f_intra(
     :return: pairwise distance within the cluster
     :rtype: float
     """
-    dist_kwargs = {
-        **DEFAULT_DIST_KWARGS, **dist_kwargs
-    }
-    dims = cluster.shape
-    if len(dims) == 2:
-        score = pdist(
-            cluster,
-            **dist_kwargs
-        )
-    if len(dims) == 3:
-        barycenter = np.expand_dims(cluster_info["barycenter"], 0)
-        # Option 1: Pairwise distances on the entire window using DTW
-        Ni = len(cluster)
-        score = np.zeros(Ni)
-        for m in range(1, Ni):
-            score[m-1, :Ni-m] = cdist_soft_dtw(
-                cluster[m:],
-                cluster[m-1],
-                gamma=0.1
-            )
-
-        # Option 2: Pairwise distances between the midpoint of the barycenter
-        # and the corresponding time step for each member in the cluster
-        # TODO
-    return np.sum(score)
-
+    return sum(f_pdist(cluster, dist_kwargs))
 
 def f_inertia(
     cluster: np.ndarray,
@@ -97,44 +185,22 @@ def f_inertia(
     dist_kwargs: dict = {}
 ) -> float:
     """
-    Compute the inertia of ONE cluster
+    Compute the inertia within a group of elements
 
-    :param cluster: (N_c, d) array, representing a cluster of size N_c, or (N_c, w, d) if DTW is used
+    :param cluster: (N_c, d) array, representing a cluster of size N_c,
+        or (N_c, w, d) if DTW is used
     :type cluster: np.ndarray
     :param cluster_info: info on the center, barycenter, etc. of
         the cluster
     :type cluster_info: dict
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
-    :return: inertia of that cluster
+    :return: pairwise distance within the cluster
     :rtype: float
     """
-    dist_kwargs = {
-        **DEFAULT_DIST_KWARGS, "metric" : 'sqeuclidean',
-        **dist_kwargs
-    }
-    dims = cluster.shape
-    if len(dims) == 2:
-        score = cdist(
-            cluster,
-            cluster_info['center'].reshape(1, -1),
-            **dist_kwargs
-        )
-    if len(dims) == 3:
-        barycenter = np.expand_dims(cluster_info["barycenter"], 0)
-        # Option 1: Pairwise distances on the entire window using DTW
-        score = cdist_soft_dtw(
-            cluster,
-            barycenter,
-            gamma=0.1
-        )
-
-        # Option 2: Pairwise distances between the midpoint of the barycenter
-        # and the corresponding time step for each member in the cluster
-        # TODO
-    # Note cdist_soft_dtw_normalized should return positive values but
-    # somehow doesn't!
-    return np.sum(score)
+    centroid = f_centroid(cluster, cluster_info)
+    dist = f_cdist(cluster, centroid, **dist_kwargs )
+    return sum(dist)
 
 def f_generalized_var(
     cluster: np.ndarray,
@@ -277,6 +343,7 @@ def compute_subscores(
     main_score: str,
     f_score,
     dist_kwargs : dict = {},
+    reduction: str = None,
 ) -> float:
     """
     Compute the main score of a clustering and its associated subscores
@@ -289,13 +356,15 @@ def compute_subscores(
     :type clusters_data: List[Tuple(List[int], Dict)]
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
+    :param reduction: Type of reduction when computing scores if any
+    :type reduction: str
     :return: Score of the given clustering
     :rtype: float
     """
     N = len(X)
     prefixes = ["", "sum_", "mean_", "weighted_"]
     score_tmp = [
-            f_score(X[members], info, dist_kwargs)
+            f_reduction(f_score(X[members], info, dist_kwargs), reduction)
             for members, info in clusters_data
         ]
     if (score_type in [p + main_score for p in prefixes] ):
