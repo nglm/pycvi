@@ -30,6 +30,10 @@ def compute_disp(X, center):
 def compute_center(
     cluster: np.ndarray,
 ):
+    """
+    Compute the center of a cluster depending on whether DTW is used.
+    The "n_samples" dimension is not included in the result.
+    """
     dims = cluster.shape
 
     # Regular case
