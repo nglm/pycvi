@@ -42,22 +42,27 @@ DEFAULT_DIST_KWARGS = {
     "metric" : 'sqeuclidean',
 }
 
-def f_reduction(
+def reduce(
     dist: np.ndarray,
-    reduction: str = None,
+    reduction: Union[str, callable] = None,
 ) -> Union[float, np.ndarray]:
     if reduction is not None:
-        if reduction == "average":
+        if reduction == "sum":
+            dist = np.sum(dist)
+        elif reduction == "average" or reduction == "mean":
             dist = np.mean(dist)
+        elif reduction == "median":
+            dist = np.median(dist)
         elif reduction == "min":
             dist = np.amin(dist)
         elif reduction == "max":
             dist = np.amax(dist)
-        elif reduction == "median":
-            dist = np.median(dist)
+        else:
+            # Else, assume reduction is a callable
+            dist = reduction(dist)
     return dist
 
-def f_centroid(
+def get_centroid(
     cluster: np.ndarray,
     cluster_info: dict = None,
 ) -> np.ndarray:
@@ -198,7 +203,7 @@ def f_inertia(
     :return: pairwise distance within the cluster
     :rtype: float
     """
-    centroid = f_centroid(cluster, cluster_info)
+    centroid = get_centroid(cluster, cluster_info)
     dist = f_cdist(cluster, centroid, **dist_kwargs )
     return sum(dist)
 
@@ -344,7 +349,7 @@ def compute_subscores(
     f_score,
     dist_kwargs : dict = {},
     reduction: str = None,
-) -> float:
+) -> Union[float, List[float]]:
     """
     Compute the main score of a clustering and its associated subscores
 
@@ -359,12 +364,12 @@ def compute_subscores(
     :param reduction: Type of reduction when computing scores if any
     :type reduction: str
     :return: Score of the given clustering
-    :rtype: float
+    :rtype: Union[float, List[float]]
     """
     N = len(X)
     prefixes = ["", "sum_", "mean_", "weighted_"]
     score_tmp = [
-            f_reduction(f_score(X[members], info, dist_kwargs), reduction)
+            reduce(f_score(X[members], info, dist_kwargs), reduction)
             for members, info in clusters_data
         ]
     if (score_type in [p + main_score for p in prefixes] ):

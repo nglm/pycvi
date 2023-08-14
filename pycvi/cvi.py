@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 
 from .scores import (
-    compute_score, f_inertia, f_pdist, f_centroid, f_reduction, f_cdist,
+    compute_score, f_inertia, f_pdist, get_centroid, reduce, f_cdist,
 )
 from .cluster import compute_cluster_params, compute_center
 from .utils import check_dims
@@ -36,15 +36,44 @@ def _clusters_data_from_uniform(X, n_clusters, midpoint_w):
 
     return cluster_data
 
-def _compute_Wk(X, clusters_data):
+def _compute_Wk(
+    X: np.ndarray,
+    clusters_data: List[Tuple[List[int], Dict]],
+    dist_kwargs: dict = {},
+):
     """
-    Helper function for "compute_gap_statistics"
+    Helper function for some scores (gap, hartigan, CH, etc.)
+
+    Pooled within-cluster sum of squares around the cluster means (WCSS)
     """
+    dist_kwargs.setdefault("metric", "sqeuclidean")
     # Compute the log of the within-cluster dispersion of the clustering
     nis = [len(cluster) for (cluster, info) in clusters_data]
-    d_intra = compute_score("list_intra", X, clusters_data)
-    Wk = sum([ni*intra for (ni, intra) in zip(nis, d_intra)])
+    d_intra = compute_score("list_intra", X, clusters_data, dist_kwargs)
+    Wk = sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
     return Wk
+
+def _dist_between_centroids(
+    X: np.ndarray,
+    clusters_data: List[Tuple[List[int], Dict]],
+    dist_kwargs: dict = {},
+) -> List[float]:
+    """
+    Helper function for some scores (CH, score function, etc.)
+
+    List of distances between cluster centroids and global centroid
+    """
+    global_center = np.expand_dims(compute_center(X), 0)
+    dist = [
+        # Distance between the centroids and the global centroid
+        f_pdist(
+            get_centroid(X[cluster], info),
+            global_center,
+            dist_kwargs
+        )
+        for (cluster, info) in clusters_data
+    ]
+    return dist
 
 def gap_statistics(
     X : np.ndarray,
@@ -101,18 +130,13 @@ def score_function(
     """
     N = len(X)
     k = len(clusters_data)
-    global_center = np.expand_dims(compute_center(X), 0)
     dist_kwargs = {"metric" : 'euclidean'}
 
-    bdc = 1/(N*k) * sum([
-        # Distance between the centroids and the global centroid
-        len(cluster) * f_pdist(
-            f_centroid(cluster, info),
-            global_center,
-            dist_kwargs
-        )
-        for (cluster, info) in clusters_data
-    ])
+    nis = [len(cluster) for (cluster, info) in clusters_data]
+
+    bdc = 1/(N*k) * sum(
+        np.multiply(nis, _dist_between_centroids(X, clusters_data, dist_kwargs))
+    )
 
     wdc = sum([
         f_inertia(cluster, info, dist_kwargs) / len(cluster)
@@ -158,31 +182,65 @@ def silhouette(
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
     :param clusters_data: List of (members, info) tuples
     :type clusters_data: List[Tuple(List[int], Dict)]
-    :return:The silhouette score
+    :return: The silhouette score
     :rtype: float
     """
 
-    S_i = []
+    S_i1 = []
+    nis = [len(cluster) for (cluster, _) in clusters_data]
 
-    for i, (c1, info1) in enumerate(clusters_data):
+    for i1, (c1, _) in enumerate(clusters_data):
+        ni = len(c1)
 
-        # Compute a for all x in c1
-        a = [f_reduction(f_cdist(c1, x, "average")) for x in c1]
+        # Compute 'a' for all x (=X[m]) in c1 (excluding x in c1)
+        a = [(1/nis[i1]) * reduce(f_cdist(X[c1], X[m]), "sum") for m in c1]
 
-        # Compute b for all x in c1
+        # Compute 'b' for all x (=X[m]) in c1
         b = [np.min([
-                f_reduction(f_cdist(c2, x), "average")
-                for j, (c2, _) in enumerate(clusters_data) if i !=j
-            ]) for x in c1]
+                reduce(f_cdist(X[c2], X[m]), "mean")
+                for i2, (c2, _) in enumerate(clusters_data) if i1 != i2
+            ]) for m in c1]
 
         # Silhouette score for cluster c1
         # The usual formula is written a sum divided by the number of x,
         # which is the mean
-        S_i.append(np.mean(
+        S_i1.append(np.mean(
             [(b_x - a_x) / (max(b_x, a_x)) for (a_x, b_x) in zip(a, b)]
         ))
 
     # Silhouette score of the clustering
     # The usual formula is written a sum divided by k, which is the mean
-    S = np.mean(S_i)
+    S = np.mean(S_i1)
     return S
+
+def CH(
+    X : np.ndarray,
+    clusters_data: List[Tuple[List[int], Dict]],
+    dist_kwargs: dict = {},
+) -> float:
+    """
+    Compute the Calinski–Harabasz (CH) index  for a given clustering
+
+    :param X: Values of all members
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters_data: List of (members, info) tuples
+    :type clusters_data: List[Tuple(List[int], Dict)]
+    :return: The CH index
+    :rtype: float
+    """
+    N = len(X)
+    k = len(clusters_data)
+
+    dist_kwargs.setdefault("metric", "sqeuclidean")
+    nis = [len(cluster) for (cluster, info) in clusters_data]
+
+    sep = sum(
+        np.multiply(nis, _dist_between_centroids(X, clusters_data, dist_kwargs))
+    )
+
+    comp = sum([
+        f_inertia(X[c], info, dist_kwargs) for (c, info) in clusters_data
+    ])
+
+    CH = (N-k) / (k-1) * (sep / comp)
+    return CH
