@@ -143,3 +143,173 @@ def compute_cluster_params(
     cluster_params['disp_inf'] = disp_inf
     cluster_params['disp_sup'] = disp_sup
     return cluster_params
+
+def generate_uniform(X: np.ndarray, zero_type: str = "bounds"):
+    """
+    Set members_zero, zero_type
+
+    Generate member values to emulate the case k=0
+
+    :param pg: PersistentGraph
+    :type pg: PersistentGraph
+    """
+    # Determines how to measure the score of the 0th component
+    if zero_type == 'variance':
+        raise NotImplementedError("Only 'bounds' is implemented as `zero_type`")
+        # Get the parameters of the uniform distrib using mean and variance
+        var = np.var(X, axis=0)
+        mean = np.mean(X, axis=0)
+
+        mins = (2*mean - np.sqrt(12*var)) / 2
+        maxs = (2*mean + np.sqrt(12*var)) / 2
+
+    # Get the parameters of the uniform distrib using min and max
+    # We keep all the dims except the first one (Hence the 0) because
+    # The number of members dimension will be added in members_0 in the
+    # List comprehension
+    # X of shape (N, d, T) even if d and T were initially omitted
+    # mins and max of shape (d, T) (the [0] is to get rid of the N dim)
+    mins = np.amin(X, axis=0, keepdims=True)[0]
+    maxs = np.amax(X, axis=0, keepdims=True)[0]
+
+    # Generate a perfect uniform distribution
+    N = len(X)
+    steps = (maxs-mins) / (N-1)
+    X_0 = np.array([mins + i*steps for i in range(N)])
+
+def data_to_cluster(
+    X: np.ndarray,
+    window: dict,
+    transform_data: bool = True,
+    squared_radius: bool = True,
+) -> List[np.ndarray]:
+    """
+    Data to be used for cluster scores and params, using sliding window.
+
+    The index that should be used to compute cluster params
+    of clustering that were computed using `X_clus` is called
+    "midpoint_w" in the window dictionary
+
+    :param X: data of shape (N, d, T)
+    :type X: np.ndarray
+    :param window: _description_
+    :type window: dict
+    :param transform_data: _description_, defaults to True
+    :type transform_data: bool, optional
+    :return: The data that will be clustered as a list of (N, w_t, d)
+    arrays
+    :rtype: List[np.ndarray]
+    """
+    # We keep the time dimension if we use DTW
+    X_clus = []
+    (N, d, T) = X.shape
+
+    if squared_radius and transform_data:
+        # r = sqrt(RMM1**2 + RMM2**2)
+        # r of shape (N, 1, T)
+        r = np.sqrt(np.sum(np.square(X), axis=1, keepdims=True))
+        # r*X gives the same angle but a squared radius
+        X_trans = r*X
+    else:
+        X_trans = np.copy(X)
+
+    for t in range(T):
+        # X_clus: List of (N, w_t, d) arrays
+        ind = window["origin"][t]
+        X_clus.append(np.swapaxes(X_trans[:,:,ind], 1, 2))
+    return X_clus
+
+def sliding_window(T: int, w: int) -> dict:
+    """
+    Assuming that we consider an array of length `T`, and with indices
+    `[0, ..., T-1]`.
+
+    Windows extracted are shorter when considering the beginning and the
+    end of the array. Which means that a padding is implicitly included.
+
+    When the time window `w` is an *even* number, favor future time steps, i.e.,
+    when extracting a time window around the datapoint t, the time window
+    indices are [t - (w-1)//2, ... t, ..., t + w/2].
+    When `w` is odd then the window is [t - (w-1)/2, ... t, ..., t + (w-1)/2]
+
+    Which means that the padding is as follows:
+
+    - beginning: (w-1)//2
+    - end: w//2
+
+    And that the original indices are as follows:
+
+    - [0, ..., t + w//2], until t = (w-1)//2
+    - [t - (w-1)//2, ..., t, ..., t + w//2] for datapoints in
+    [(w-1)//2, ..., T-1 - w//2]
+    - [t - (w-1)//2, ..., T-1] from t = T-1 - w//2
+    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas apply.
+    - Note also that the left side of the end case is the same as the left
+    side of the base case
+
+    Window sizes:
+
+    - (1 + w//2) at t=0, then t + (1 + w//2) until t = (w-1)//2
+    - All datapoints from [(w-1)//2, ..., T-1 - w//2] have a normal
+    window size.
+    - (w+1)//2 at t=T-1, then T-1-t + (w+1)//2 from t = T-1 - w//2
+    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas apply
+
+    Consider an extracted time window of length w_real (with w_real <= w,
+    if the window was extracted at the beginning or the end of the array).
+    The midpoint of the extracted window (i.e. the index in that window
+    that corresponds to the datapoint around which the time window was
+    extracted in the original array is:
+
+    - 0 at t=0, then t, until t = pad_left, i.e. t = (w-1)//2
+    - For all datapoints between, [(w-1)//2, ..., (T-1 - w//2)], the
+    midpoint is (w-1)//2 (so it is the same as the base case)
+    - w_real-1 at t=T-1, then w_real - (T-t), from t=T-1-pad_right, i.e.
+    from t = (T-1 - w//2)
+    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas apply.
+
+    The midpoint in the original array is actually simply t
+    """
+    # Boundaries between regular cases and extreme ones
+    ind_start = (w-1)//2
+    ind_end = T-1 - w//2
+    pad_l = (w-1)//2
+    pad_r = (w//2)
+    window = {}
+    window["padding_left"] = pad_l
+    window["padding_right"] = pad_r
+
+    # For each t in [0, ..., T-1]...
+    # ------- Real length of the time window -------
+    window["length"] = [w for t in range(T)]
+    window["length"][:ind_start] = [
+        t + (1 + w//2)
+        for t in range(0, ind_start)
+    ]
+    window["length"][ind_end:] = [
+        T-1-t + (w+1)//2
+        for t in range(ind_end, T)
+    ]
+    # ------- Midpoint in the window reference -------
+    # Note that the end case is the same as the base case
+    window["midpoint_w"] = [(w-1)//2 for t in range(T)]
+    window["midpoint_w"][:ind_start]  = [ t for t in range(0, ind_start) ]
+    # ------- Midpoint in the origin reference -------
+    window["midpoint_o"] = [t for t in range(T)]
+    # ------- Original indices -------
+    window["origin"] = [
+        # add a +1 to the range to include last original index
+        list(range( (t - (w-1)//2),  (t + w//2) + 1))
+        for t in range(T)
+    ]
+    window["origin"][:ind_start]  = [
+        # add a +1 to the range to include last original index
+        list(range(0, (t + w//2) + 1))
+        for t in range(0, ind_start)
+    ]
+    window["origin"][ind_end:] = [
+        # Note that the left side is the same as the base case
+        list(range( (t - (w-1)//2),  (T-1) + 1 ))
+        for t in range(ind_end, T)
+    ]
+    return window

@@ -6,12 +6,12 @@ import numpy as np
 from .scores import (
     compute_score, f_inertia, f_pdist, get_centroid, reduce, f_cdist,
 )
-from .cluster import compute_cluster_params, compute_center
+from .cluster import compute_center, generate_uniform, compute_cluster_params
 from .utils import check_dims
 
-def _clusters_data_from_uniform(X, n_clusters, midpoint_w):
+def _clusters_data_from_uniform(X, n_clusters):
     """
-    Helper function for "compute_gap_statistics"
+    Helper function for "compute_gap_statistic"
     """
     N = len(X)
 
@@ -29,10 +29,7 @@ def _clusters_data_from_uniform(X, n_clusters, midpoint_w):
         if members == []:
             raise ValueError('No members in cluster')
 
-        # cluster info
-        cluster_info = compute_cluster_params(X[members], midpoint_w)
-
-        cluster_data.append((members, cluster_info))
+        cluster_data.append((members, {}))
 
     return cluster_data
 
@@ -45,11 +42,13 @@ def _compute_Wk(
     Helper function for some scores (gap, hartigan, CH, etc.)
 
     Pooled within-cluster sum of squares around the cluster means (WCSS)
+    There are two ways to compute it, using distance to centroid or
+    pairwise, we use pairwise, to avoid using barycenters.
     """
     dist_kwargs.setdefault("metric", "sqeuclidean")
     # Compute the log of the within-cluster dispersion of the clustering
-    nis = [len(cluster) for (cluster, info) in clusters_data]
-    d_intra = compute_score("list_intra", X, clusters_data, dist_kwargs)
+    nis = [len(c) for (c, _) in clusters_data]
+    d_intra = [f_pdist(X[c], dist_kwargs) for (c, _) in clusters_data]
     Wk = sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
     return Wk
 
@@ -75,10 +74,9 @@ def _dist_between_centroids(
     ]
     return dist
 
-def gap_statistics(
+def gap_statistic(
     X : np.ndarray,
     clusters_data: List[Tuple[List[int], Dict]],
-    midpoint_w: int = None,
     B: int = 10
 ) -> float:
     """
@@ -107,7 +105,7 @@ def gap_statistics(
     # Compute the log of the within-cluster dispersion for each random dataset
     wcss_rand = []
     for X_rand in random_datasets:
-        clusters_data_rand = _clusters_data_from_uniform(X_rand, k, midpoint_w)
+        clusters_data_rand = _clusters_data_from_uniform(X_rand, k)
         wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_data_rand)))
 
     # Compute the gap statistic for the current clustering
@@ -164,10 +162,13 @@ def hartigan(
     """
     N = len(X)
     k = len(clusters_datak1)
-    Wk1 = _compute_Wk(X, clusters_datak1)
-    Wk2 = _compute_Wk(X, clusters_datak2)
+    if k == N:
+        hartigan = 0
+    else:
+        Wk1 = _compute_Wk(X, clusters_datak1)
+        Wk2 = _compute_Wk(X, clusters_datak2)
 
-    hartigan = (Wk1/Wk2 - 1)*(N-k-1)
+        hartigan = (Wk1/Wk2 - 1)*(N-k-1)
 
     return hartigan
 
@@ -217,6 +218,7 @@ def CH(
     X : np.ndarray,
     clusters_data: List[Tuple[List[int], Dict]],
     dist_kwargs: dict = {},
+    score_kwargs: dict = {},
 ) -> float:
     """
     Compute the Calinski–Harabasz (CH) index  for a given clustering
@@ -230,17 +232,50 @@ def CH(
     """
     N = len(X)
     k = len(clusters_data)
-
     dist_kwargs.setdefault("metric", "sqeuclidean")
-    nis = [len(cluster) for (cluster, info) in clusters_data]
 
-    sep = sum(
-        np.multiply(nis, _dist_between_centroids(X, clusters_data, dist_kwargs))
-    )
+    # If we forget about the (N-k) / (k-1) factor, CH is defined and
+    # is equal to 0
+    if k == 1:
+        CH = 0
+    # Very special case for the case k=0
+    elif k == 0:
 
-    comp = sum([
-        f_inertia(X[c], info, dist_kwargs) for (c, info) in clusters_data
-    ])
+        X0 = score_kwargs.get("X0", generate_uniform(X))
+        #
+        # Option 1: use the centroid of the uniform distribution
+        # clusters_data0 = score_kwargs.get(
+        #     "clusters_data0",
+        #     [compute_cluster_params(X0, score_kwargs.get("midpoint_w", 0))]
+        # )
+        #
+        # Option 2: use the original centroid
+        #
+        # The numerator can be seen as the distance between the global
+        # centroid and N singletons uniformly distributed
+        # Which can be seen as d(C0, c)
+        sep = f_cdist(X0, np.expand_dims(compute_center(X), 0), dist_kwargs)
 
-    CH = (N-k) / (k-1) * (sep / comp)
+        # The denominator can be seen as the distance between the
+        # original data and its centroid, which would correspond to the
+        # denominator or the case k=1 (which is not used because CH(1) =
+        # 0)
+        # Note that the list has actually only one element
+        comp = sum([
+            f_inertia(X[c], info, dist_kwargs) for (c, info) in clusters_data
+        ])
+        CH = - N * (sep / comp)
+
+    # Normal case
+    else:
+        nis = [len(cluster) for (cluster, _) in clusters_data]
+        sep = sum(
+            np.multiply(nis, _dist_between_centroids(X, clusters_data, dist_kwargs))
+        )
+
+        comp = sum([
+            f_inertia(X[c], info, dist_kwargs) for (c, info) in clusters_data
+        ])
+
+        CH = (N-k) / (k-1) * (sep / comp)
     return CH

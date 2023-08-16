@@ -5,6 +5,7 @@ from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .utils import match_dims
+from .cvi import gap_statistic, silhouette, score_function, CH, hartigan
 
 SCORES = [
         'inertia',
@@ -37,6 +38,29 @@ MAIN_SCORES_TO_MAXIMIZE = []
 
 SCORES_TO_MINIMIZE = [p+s for s in MAIN_SCORES_TO_MINIMIZE for p in SUBSCORES]
 SCORES_TO_MAXIMIZE = [p+s for s in MAIN_SCORES_TO_MAXIMIZE for p in SUBSCORES]
+
+SCORES_TO_MINIMIZE += []
+SCORES_TO_MAXIMIZE += ["gap_statistic", "CH", "silhouette", "score_function"]
+
+SCORES_MONOTONOUS = [
+    "CH", "gap_statistic"
+]
+
+SCORES_ABSOLUTE = [
+    "silhouette", "score_function"
+]
+
+# For monotonous scores only: "does the score increase with croissant number
+# of clusters?""
+SCORES_INCREASE = [
+    "CH", "gap_statistic"
+]
+
+# For monotonous scores only: "does the score improve with croissant number
+# of clusters?""
+SCORES_IMPROVE = [
+    "inertia", "mean_inertia", "max_inertia",  "gap_statistic", "CH"
+]
 
 DEFAULT_DIST_KWARGS = {
     "metric" : 'sqeuclidean',
@@ -407,21 +431,24 @@ def compute_subscores(
     return score
 
 def compute_score(
-    score_type: str,
+    score_type: Union[str, callable],
     X: np.ndarray = None,
     clusters_data: List[List[int]] = None,
     dist_kwargs: dict = {},
+    score_kwargs: dict = {},
 ) -> float :
     """
     Compute the score of a given clustering
 
     :param score_type: type of score
-    :type score_type: str
+    :type score_type: Union[str, callable]
     :param X: Values of all members, defaults to None
     :type X: np.ndarray, shape: (N, d*w) optional
     :param clusters_data: List of (members, info) tuples, defaults to None
     :type clusters_data: List[Tuple(List[int], Dict)]
     :param dist_kwargs: kwargs for pdist, cdist, etc.
+    :type dist_kwargs: dict
+    :param dist_kwargs: kwargs for the CVI.
     :type dist_kwargs: dict
     :raises ValueError: [description]
     :return: Score of the given clustering
@@ -429,64 +456,80 @@ def compute_score(
     """
 
     # TODO: add weights for scores that requires global bounds
-
     # ------------------------------------------------------------------
-    # Inertia-based scores
-    if (score_type.endswith("inertia")):
-        score = compute_subscores(
-            score_type, X, clusters_data, "inertia", f_inertia,
-            dist_kwargs,
+    # callable CVI
+    if not (type(score_type) == str):
+        score = score_type(
+            X, clusters_data, dist_kwargs, score_kwargs
         )
-    # within distance-based scores
-    elif (score_type.endswith("intra")):
-        score = compute_subscores(
-            score_type, X, clusters_data, "intra", f_intra,
-            dist_kwargs
-        )
-    # ------------------------------------------------------------------
-    # Variance based scores
-    # Shouldn't be used: use inertia or distortion instead
-    # Don't confuse generalized variance and total variation
-    # Here it's generalized variance
-    elif score_type.endswith("variance"):
-        score = compute_subscores(
-            score_type, X, clusters_data, "variance", f_generalized_var,
-            dist_kwargs
-        )
-    # ------------------------------------------------------------------
-    # Median around mean based scores
-    elif score_type.endswith("MedDevMean"):
-        score = compute_subscores(
-            score_type, X, clusters_data, "MedDevMean", f_med_dev_mean,
-            dist_kwargs
-        )
-    # Median around mean based scores
-    elif score_type.endswith("MeanDevMed"):
-        score = compute_subscores(
-            score_type, X, clusters_data, "MeanDevMed", f_mean_dev_med,
-            dist_kwargs
-        )
-    # Median around median based scores
-    # Shouldn't be used, see f_med_dev_med
-    elif score_type.endswith("MedDevMed"):
-        score = compute_subscores(
-            score_type, X, clusters_data, "MedDevMed", f_med_dev_med,
-            dist_kwargs
-        )
-    # ------------------------------------------------------------------
-    elif score_type.endswith("diameter"):
-        score = compute_subscores(
-            score_type, X, clusters_data, "diameter", f_diameter,
-            dist_kwargs
-        )
-    # ------------------------------------------------------------------
     else:
-        raise ValueError(
-                score_type
-                + " is invalid. Please choose a valid score_type: "
-                + str(SCORES_TO_MAXIMIZE + SCORES_TO_MINIMIZE)
+        # --------------------------------------------------------------
+        # Implemented CVI
+        if score_type == "gap_statistic":
+            score = gap_statistic(X, clusters_data)
+        elif score_type == "score_function":
+            score = score_function(X, clusters_data)
+        elif score_type == "silhouette":
+            score = silhouette(X, clusters_data)
+        elif score_type == "CH":
+            score = CH(X, clusters_data)
+        # --------------------------------------------------------------
+        # Inertia-based scores
+        elif (score_type.endswith("inertia")):
+            score = compute_subscores(
+                score_type, X, clusters_data, "inertia", f_inertia,
+                dist_kwargs,
             )
-    return score
+        # within distance-based scores
+        elif (score_type.endswith("intra")):
+            score = compute_subscores(
+                score_type, X, clusters_data, "intra", f_intra,
+                dist_kwargs
+            )
+        # --------------------------------------------------------------
+        # Variance based scores
+        # Shouldn't be used: use inertia or distortion instead
+        # Don't confuse generalized variance and total variation
+        # Here it's generalized variance
+        elif score_type.endswith("variance"):
+            score = compute_subscores(
+                score_type, X, clusters_data, "variance", f_generalized_var,
+                dist_kwargs
+            )
+        # --------------------------------------------------------------
+        # Median around mean based scores
+        elif score_type.endswith("MedDevMean"):
+            score = compute_subscores(
+                score_type, X, clusters_data, "MedDevMean", f_med_dev_mean,
+                dist_kwargs
+            )
+        # Median around mean based scores
+        elif score_type.endswith("MeanDevMed"):
+            score = compute_subscores(
+                score_type, X, clusters_data, "MeanDevMed", f_mean_dev_med,
+                dist_kwargs
+            )
+        # Median around median based scores
+        # Shouldn't be used, see f_med_dev_med
+        elif score_type.endswith("MedDevMed"):
+            score = compute_subscores(
+                score_type, X, clusters_data, "MedDevMed", f_med_dev_med,
+                dist_kwargs
+            )
+        # --------------------------------------------------------------
+        elif score_type.endswith("diameter"):
+            score = compute_subscores(
+                score_type, X, clusters_data, "diameter", f_diameter,
+                dist_kwargs
+            )
+        # --------------------------------------------------------------
+        else:
+            raise ValueError(
+                    score_type
+                    + " is invalid. Please choose a valid score_type: "
+                    + str(SCORES_TO_MAXIMIZE + SCORES_TO_MINIMIZE)
+                )
+        return score
 
 def better_score(
     score1: float,
@@ -567,3 +610,121 @@ def worst_score(
     Returns worst score
     """
     return [score1, score2][argworst(score1, score2, maximize)]
+
+
+class Score():
+
+    def __init__(
+        self,
+        score_function: callable = None,
+        maximise: bool = True,
+        improve: bool = True,
+        score_type: str = "monotonous",
+        k_condition: callable = None,
+    ) -> None:
+        self.function = score_function
+        self.maximise = maximise
+        self.score_type = score_type
+        self.k_condition = k_condition
+
+    def __call__(
+        self,
+        X: np.ndarray,
+        clusters_data: List[Tuple[List[int], Dict]],
+        dist_kwargs: dict = {},
+        *args: Any, **kwds: Any,
+    ) -> Any:
+        return self.function(X, clusters_data, dist_kwargs, )
+
+    def is_relevant(self, score, k, score_prev, k_prev) -> bool:
+        # A score is always relevant when it is absolute
+        if self.score_type == "absolute":
+            return True
+        else:
+            # When relative:
+            if self.improve:
+                # better "and" greater or worse and lesser
+                return (
+                    self.better_score(score, score_prev) == k > k_prev
+                )
+            else:
+                # worse "and" greater or better and lesser
+                return (
+                    self.better_score(score_prev, score) == k_prev > k
+                )
+
+    def better_score(
+        self,
+        score1: float,
+        score2: float,
+        or_equal: bool = False
+    ) -> bool:
+        return better_score(score1, score2, self.maximise, or_equal)
+
+    def argbest(
+        self,
+        score1: float,
+        score2: float,
+    ) -> int:
+        return argbest(score1, score2, self.maximise)
+
+    def best_score(
+        self,
+        score1: float,
+        score2: float,
+    ) -> float:
+
+        return best_score(score1, score2, self.maximize)
+
+    def argworst(
+        self,
+        score1: float,
+        score2: float,
+    ) -> int:
+        return argworst(score1, score2, self.maximize)
+
+    def worst_score(
+        self,
+        score1: float,
+        score2: float,
+    ) -> float:
+        """
+        Returns worst score
+        """
+        return worst_score(score1, score2, self.maximize)
+
+class Hartigan(Score):
+
+    def __init__(
+        self,
+        score_type: str = "monotonous"
+    ) -> None:
+
+        super().__init__(
+            score_function=hartigan,
+            maximise=False,
+            improve=True,
+            score_type=score_type,
+            k_condition= lambda k: (k>=0 and k<N)
+        )
+
+class CalinskiHarabasz(Score):
+
+    def __init__(
+        self,
+        score_type: str = "monotonous"
+    ) -> None:
+
+        # Note that the case k=1 for the absolute version will always
+        # give CH=0
+        k_condition = lambda k: (
+            k>=0 if score_type == "monotonous" else k>=1
+        )
+
+        super().__init__(
+            score_function=CH,
+            maximise=True,
+            improve=True,
+            score_type=score_type,
+            k_condition = k_condition,
+        )
