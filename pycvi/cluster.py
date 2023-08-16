@@ -176,6 +176,7 @@ def generate_uniform(X: np.ndarray, zero_type: str = "bounds"):
     N = len(X)
     steps = (maxs-mins) / (N-1)
     X_0 = np.array([mins + i*steps for i in range(N)])
+    return X_0
 
 def data_to_cluster(
     X: np.ndarray,
