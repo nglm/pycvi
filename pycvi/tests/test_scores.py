@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..scores import (
+from ..compute_scores import (
     better_score, argbest, best_score, argworst, worst_score,
 )
 

@@ -7,7 +7,7 @@
 
 # We do that to skip the cvi file and access the functions directly)
 from .cvi import gap_statistic
-from .scores import SCORES
+from .compute_scores import SCORES
 
 from . import scores
 from . import cvi

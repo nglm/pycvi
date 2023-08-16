@@ -3,7 +3,7 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
 import numpy as np
 
-from .scores import (
+from .compute_scores import (
     compute_score, f_inertia, f_pdist, get_centroid, reduce, f_cdist,
 )
 from .cluster import compute_center, generate_uniform, compute_cluster_params
