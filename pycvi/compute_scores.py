@@ -5,8 +5,6 @@ from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .utils import match_dims
-from .cvi import gap_statistic, silhouette, score_function, CH, hartigan
-
 
 SCORES = [
         'inertia',
@@ -466,17 +464,17 @@ def compute_score(
     else:
         # --------------------------------------------------------------
         # Implemented CVI
-        if score_type == "gap_statistic":
-            score = gap_statistic(X, clusters_data)
-        elif score_type == "score_function":
-            score = score_function(X, clusters_data)
-        elif score_type == "silhouette":
-            score = silhouette(X, clusters_data)
-        elif score_type == "CH":
-            score = CH(X, clusters_data)
+        # if score_type == "gap_statistic":
+        #     score = gap_statistic(X, clusters_data)
+        # elif score_type == "score_function":
+        #     score = score_function(X, clusters_data)
+        # elif score_type == "silhouette":
+        #     score = silhouette(X, clusters_data)
+        # elif score_type == "CH":
+        #     score = CH(X, clusters_data)
         # --------------------------------------------------------------
         # Inertia-based scores
-        elif (score_type.endswith("inertia")):
+        if (score_type.endswith("inertia")):
             score = compute_subscores(
                 score_type, X, clusters_data, "inertia", f_inertia,
                 dist_kwargs,
