@@ -1,11 +1,13 @@
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
+from sklearn.preprocessing import StandardScaler
 from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
+from ._configuration import set_data_shape
 from .utils import match_dims
-from .cluster import compute_center
+from .cluster import compute_center, prepare_data, sliding_window
 
 SCORES = [
         'inertia',
@@ -510,6 +512,75 @@ def compute_score(
                     + str(SCORES_TO_MAXIMIZE + SCORES_TO_MINIMIZE)
                 )
         return score
+
+def compute_all_scores(
+    score,
+    data: np.ndarray,
+    clusterings: List[List[List[int]]],
+    transformer = None,
+    scaler = StandardScaler(),
+    DTW: bool = True,
+    time_window: int = None,
+    dist_kwargs: dict = {},
+    score_kwargs: dict = {},
+    verbose: bool = False,
+) -> List[List[float]]:
+    """
+    Compute and return all scores
+
+    :rtype: List[float]
+    """
+
+    # --------------------------------------------------------------
+    # -------- Compute score, cluster params, etc. -----------------
+    # --------------------------------------------------------------
+
+    data_copy = set_data_shape(data)
+    (N, T, d) = data_copy.shape
+
+    if time_window is not None:
+        wind = sliding_window(T, time_window)
+    else:
+        wind = None
+
+    # list of T (if sliding window) or 1 array(s) of shape:
+    # (N, T|w_t, d) if DTW
+    # (N, (T|w_t)*d) if not DTW
+    data_clus = prepare_data(data_copy, DTW, wind, transformer, scaler)
+    n_windows = len(data_clus)
+
+    # temporary variable to help remember scores
+    # scores_t_n[t_w][k] is the score for the clustering assuming k
+    # clusters for the extracted time window t_w
+    scores_t_n = [{} for _ in range(n_windows)]
+
+    for t_w in n_windows:
+
+        for n_clusters in clusterings.keys():
+            # Take the data used for clustering while taking into account the
+            # difference between time step indices with/without sliding window
+            X_clus = data_clus[t_w]
+
+            # Find cluster membership of each member
+            clusters = clusterings[t_w][n_clusters]
+
+            # ------------ Score corresponding to 'n_clusters' ---------
+            score = compute_score(
+                score,
+                X=X_clus,
+                clusters=clusters,
+                dist_kwargs=dist_kwargs,
+                score_kwargs=score_kwargs
+            )
+
+            if verbose:
+                print(" ========= {t_w} ========= ")
+                msg = "n_clusters: {n_clusters}  ||   score: {score}"
+                print(msg)
+
+            scores_t_n[t_w][n_clusters] = score
+
+    return scores_t_n
 
 def better_score(
     score1: float,
