@@ -5,6 +5,7 @@ from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .utils import match_dims
+from .cluster import compute_center
 
 SCORES = [
         'inertia',
@@ -17,9 +18,9 @@ SCORES = [
         #"diameter",     #TODO: Outdated since DTW
         #"max_diameter", #TODO: Outdated since DTW
         # ----------
-        'MedDevMean',
-        'mean_MedDevMean',
-        'max_MedDevMean',
+        'MedDevCentroid',
+        'mean_MedDevCentroid',
+        'max_MedDevCentroid',
 ]
 
 SUBSCORES = ["", "mean_", "median_", "weighted_", "min_", "max_"]
@@ -27,7 +28,7 @@ SUBSCORES = ["", "mean_", "median_", "weighted_", "min_", "max_"]
 MAIN_SCORES_TO_MINIMIZE = [
     "inertia",
     #"variance",            #TODO: Outdated since DTW
-    "MedDevMean",
+    "MedDevCentroid",
     #"MeanDevMed",          #TODO: Outdated since DTW
     #"MedDevMed",           #TODO: Outdated since DTW
     #'diameter',            #TODO: Outdated since DTW
@@ -188,8 +189,8 @@ def f_cdist(
 
 def f_intra(
     cluster: np.ndarray,
-    cluster_info: dict = None,
-    dist_kwargs: dict = {}
+    dist_kwargs: dict = {},
+    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the sum of pairwise distance within a group of elements
@@ -197,8 +198,8 @@ def f_intra(
     :param cluster: (N_c, d) array, representing a cluster of size N_c,
         or (N_c, w, d) if DTW is used
     :type cluster: np.ndarray
-    :param cluster_info: info on the center, barycenter, etc. of
-        the cluster
+    :param score_kwargs: kwargs specific for the score.
+    :type score_kwargs: dict
     :type cluster_info: dict
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
@@ -209,8 +210,8 @@ def f_intra(
 
 def f_inertia(
     cluster: np.ndarray,
-    cluster_info: dict = None,
-    dist_kwargs: dict = {}
+    dist_kwargs: dict = {},
+    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the inertia within a group of elements
@@ -218,22 +219,21 @@ def f_inertia(
     :param cluster: (N_c, d) array, representing a cluster of size N_c,
         or (N_c, w, d) if DTW is used
     :type cluster: np.ndarray
-    :param cluster_info: info on the center, barycenter, etc. of
-        the cluster
-    :type cluster_info: dict
+    :param score_kwargs: kwargs specific for the score.
+    :type score_kwargs: dict
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
     :return: pairwise distance within the cluster
     :rtype: float
     """
-    centroid = get_centroid(cluster, cluster_info)
+    centroid = np.expand_dims(compute_center(cluster), 0)
     dist = f_cdist(cluster, centroid, **dist_kwargs )
     return sum(dist)
 
 def f_generalized_var(
     cluster: np.ndarray,
-    cluster_info: dict = None,
-    dist_kwargs: dict = {}
+    dist_kwargs: dict = {},
+    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the sample generalized variance of ONE cluster
@@ -253,13 +253,13 @@ def f_generalized_var(
         else:
             return sample_cov
 
-def f_med_dev_mean(
+def f_med_dev_centroid(
     cluster: np.ndarray,
-    cluster_info: dict = None,
-    dist_kwargs: dict = {}
+    dist_kwargs: dict = {},
+    score_kwargs: dict = None,
 ) -> float:
     """
-    Compute the median deviation around the mean
+    Compute the median deviation around the centroid
 
     The variance can be seen as the mean deviation around the mean
 
@@ -271,24 +271,14 @@ def f_med_dev_mean(
     if len(cluster) == 1:
         return 0
     else:
-        dims = cluster.shape
-        if len(dims) == 2:
-            return np.median(cdist(
-                cluster,
-                cluster_info['center'].reshape(1, -1),
-                metric='sqeuclidean'
-            ))
-        if len(dims) == 3:
-            return np.median(cdist_soft_dtw(
-                cluster,
-                cluster_info["barycenter"],
-                gamma=0.1
-            ))
+        centroid = np.expand_dims(compute_center(cluster), 0)
+        dist = f_cdist(cluster, centroid, **dist_kwargs )
+        return np.median(dist)
 
 def f_mean_dev_med(
     cluster: np.ndarray,
-    cluster_info: dict = None,
-    dist_kwargs: dict = {}
+    dist_kwargs: dict = {},
+    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the mean deviation around the median
@@ -303,24 +293,14 @@ def f_mean_dev_med(
     if len(cluster) == 1:
         return 0
     else:
-        dims = cluster.shape
-        if len(dims) == 2:
-            return np.mean(cdist(
-                cluster,
-                cluster_info['center'].reshape(1, -1),
-                metric='sqeuclidean'
-            ))
-        if len(dims) == 3:
-            return np.mean(cdist_soft_dtw(
-                cluster,
-                cluster_info["barycenter"],
-                gamma=0.1
-            ))
+        centroid = np.expand_dims(compute_center(cluster), 0)
+        dist = f_cdist(cluster, centroid, **dist_kwargs )
+        return np.mean(dist)
 
 def f_med_dev_med(
     cluster: np.ndarray,
-    cluster_info: dict = None,
-    dist_kwargs: dict = {}
+    dist_kwargs: dict = {},
+    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the median deviation around the median
@@ -345,8 +325,8 @@ def f_med_dev_med(
 
 def f_diameter(
     cluster: np.ndarray,
-    cluster_info: dict = None,
     dist_kwargs: dict = {},
+    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the diameter of the given cluster
@@ -361,16 +341,17 @@ def f_diameter(
     if len(cluster) == 1:
         return 0
     else:
-        intra = f_intra(cluster, cluster_info, dist_kwargs)
+        intra = f_intra(cluster, dist_kwargs)
         return np.amax(intra)
 
 def compute_subscores(
     score_type: str,
     X : np.ndarray,
-    clusters_data: List[Tuple[List[int], Dict]],
+    clusters: List[List[int]],
     main_score: str,
     f_score,
     dist_kwargs : dict = {},
+    score_kwargs : dict = {},
     reduction: str = None,
 ) -> Union[float, List[float]]:
     """
@@ -380,10 +361,12 @@ def compute_subscores(
     :type score_type: str
     :param X: Values of all members
     :type X: np.ndarray, shape: (N, d)
-    :param clusters_data: List of (members, info) tuples, defaults to None
-    :type clusters_data: List[Tuple(List[int], Dict)]
+    :param clusters: List of members, defaults to None
+    :type clusters: List[List[int]]
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
+    :param score_kwargs: kwargs specific to the score
+    :type score_kwargs: dict
     :param reduction: Type of reduction when computing scores if any
     :type reduction: str
     :return: Score of the given clustering
@@ -392,18 +375,18 @@ def compute_subscores(
     N = len(X)
     prefixes = ["", "sum_", "mean_", "weighted_"]
     score_tmp = [
-            reduce(f_score(X[members], info, dist_kwargs), reduction)
-            for members, info in clusters_data
+            reduce(f_score(X[members], dist_kwargs, score_kwargs), reduction)
+            for members in clusters
         ]
     if (score_type in [p + main_score for p in prefixes] ):
         # Take the sum
         score = sum(score_tmp)
         # Take the mean score by cluster
         if score_type  == "mean_" + main_score:
-            score /= len(clusters_data)
+            score /= len(clusters)
         # Take a weighted mean score by cluster
         elif score_type == "weighted_" + main_score:
-            score /= (len(clusters_data) / N)
+            score /= (len(clusters) / N)
     # ------------------------------------------------------------------
     # Return a list of values for each cluster in the clustering
     elif score_type == 'list_' + main_score:
@@ -432,7 +415,7 @@ def compute_subscores(
 def compute_score(
     score_type: Union[str, callable],
     X: np.ndarray = None,
-    clusters_data: List[List[int]] = None,
+    clusters: List[List[int]] = None,
     dist_kwargs: dict = {},
     score_kwargs: dict = {},
 ) -> float :
@@ -447,8 +430,8 @@ def compute_score(
     :type clusters_data: List[Tuple(List[int], Dict)]
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
-    :param dist_kwargs: kwargs for the CVI.
-    :type dist_kwargs: dict
+    :param score_kwargs: kwargs for the CVI.
+    :type score_kwargs: dict
     :raises ValueError: [description]
     :return: Score of the given clustering
     :rtype: float
@@ -458,9 +441,7 @@ def compute_score(
     # ------------------------------------------------------------------
     # callable CVI
     if not (type(score_type) == str):
-        score = score_type(
-            X, clusters_data, dist_kwargs, score_kwargs
-        )
+        score = score_type(X, clusters, dist_kwargs, score_kwargs)
     else:
         # --------------------------------------------------------------
         # Implemented CVI
@@ -476,14 +457,14 @@ def compute_score(
         # Inertia-based scores
         if (score_type.endswith("inertia")):
             score = compute_subscores(
-                score_type, X, clusters_data, "inertia", f_inertia,
-                dist_kwargs,
+                score_type, X, clusters, "inertia", f_inertia,
+                dist_kwargs, score_kwargs
             )
         # within distance-based scores
         elif (score_type.endswith("intra")):
             score = compute_subscores(
-                score_type, X, clusters_data, "intra", f_intra,
-                dist_kwargs
+                score_type, X, clusters, "intra", f_intra,
+                dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
         # Variance based scores
@@ -492,34 +473,34 @@ def compute_score(
         # Here it's generalized variance
         elif score_type.endswith("variance"):
             score = compute_subscores(
-                score_type, X, clusters_data, "variance", f_generalized_var,
-                dist_kwargs
+                score_type, X, clusters, "variance", f_generalized_var,
+                dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
         # Median around mean based scores
-        elif score_type.endswith("MedDevMean"):
+        elif score_type.endswith("MedDevCentroid"):
             score = compute_subscores(
-                score_type, X, clusters_data, "MedDevMean", f_med_dev_mean,
-                dist_kwargs
+                score_type, X, clusters, "MedDevCentroid", f_med_dev_centroid,
+                dist_kwargs, score_kwargs
             )
         # Median around mean based scores
         elif score_type.endswith("MeanDevMed"):
             score = compute_subscores(
-                score_type, X, clusters_data, "MeanDevMed", f_mean_dev_med,
-                dist_kwargs
+                score_type, X, clusters, "MeanDevMed", f_mean_dev_med,
+                dist_kwargs, score_kwargs
             )
         # Median around median based scores
         # Shouldn't be used, see f_med_dev_med
         elif score_type.endswith("MedDevMed"):
             score = compute_subscores(
-                score_type, X, clusters_data, "MedDevMed", f_med_dev_med,
-                dist_kwargs
+                score_type, X, clusters, "MedDevMed", f_med_dev_med,
+                dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
         elif score_type.endswith("diameter"):
             score = compute_subscores(
-                score_type, X, clusters_data, "diameter", f_diameter,
-                dist_kwargs
+                score_type, X, clusters, "diameter", f_diameter,
+                dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
         else:

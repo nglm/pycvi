@@ -3,6 +3,7 @@ from numpy.testing import assert_array_equal
 
 from ..compute_scores import (
     better_score, argbest, best_score, argworst, worst_score,
+    compute_score
 )
 
 def test_comparisons():
@@ -39,3 +40,6 @@ def test_comparisons():
         out = best_score(s1, s2, maximize)
         msg = "best_score was wrong,      i: {} | s1: {} | s2 {}".format(i, s1, s2)
         assert out == out_exp_score, msg
+
+def test_compute_score():
+    

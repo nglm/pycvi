@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 from tslearn.metrics import dtw_path
 from tslearn.barycenters import softdtw_barycenter
 from typing import List, Sequence, Union, Any, Dict
@@ -31,7 +32,7 @@ def compute_center(
     cluster: np.ndarray,
 ):
     """
-    Compute the center of a cluster depending on whether DTW is used.
+    Compute the center of a cluster (mean or barycenter if using DTW)
     The "n_samples" dimension is not included in the result.
     """
     dims = cluster.shape
@@ -125,6 +126,8 @@ def compute_cluster_params(
     # DTW case
     else:
         (N_clus, w_t, d) = dims
+        if midpoint_w is None:
+            midpoint_w = w_t // 2
         # Take the barycenter as reference
         barycenter = compute_center(cluster)
         center = barycenter[midpoint_w]
@@ -144,14 +147,14 @@ def compute_cluster_params(
     cluster_params['disp_sup'] = disp_sup
     return cluster_params
 
-def generate_uniform(X: np.ndarray, zero_type: str = "bounds"):
+def generate_uniform(
+    X: np.ndarray,
+    zero_type: str = "bounds",
+) -> np.ndarray:
     """
-    Set members_zero, zero_type
+    Generate a uniform distribution with the same bounds as X
 
-    Generate member values to emulate the case k=0
-
-    :param pg: PersistentGraph
-    :type pg: PersistentGraph
+    X and X0 of shape (N, d, T)
     """
     # Determines how to measure the score of the 0th component
     if zero_type == 'variance':
@@ -175,49 +178,75 @@ def generate_uniform(X: np.ndarray, zero_type: str = "bounds"):
     # Generate a perfect uniform distribution
     N = len(X)
     steps = (maxs-mins) / (N-1)
-    X_0 = np.array([mins + i*steps for i in range(N)])
-    return X_0
+    X0 = np.array([mins + i*steps for i in range(N)])
+    return X0
 
-def data_to_cluster(
+def prepare_data(
     X: np.ndarray,
-    window: dict,
-    transform_data: bool = True,
-    squared_radius: bool = True,
-) -> List[np.ndarray]:
+    DTW: bool = False,
+    window: dict = None,
+    transformer: callable = None,
+    scaler = StandardScaler(),
+) -> Union[List[np.ndarray], np.ndarray]:
     """
-    Data to be used for cluster scores and params, using sliding window.
+    Data to be used for cluster, scores and params
 
     The index that should be used to compute cluster params
     of clustering that were computed using `X_clus` is called
     "midpoint_w" in the window dictionary
 
-    :param X: data of shape (N, d, T)
+    X_clus is:
+    - a list of T (N, w_t, d) arrays if sliding window and DTW was used
+    - a list of T (N, w_t*d) arrays if sliding window was used but not DTW
+    - a list of 1 (N, T, d) array  if DTW is used but not sliding window
+    - a list of 1 (N, T*d) array if DTW and sliding window were not used
+
+    :param X: data of shape (N, T, d)
     :type X: np.ndarray
     :param window: _description_
     :type window: dict
-    :param transform_data: _description_, defaults to True
-    :type transform_data: bool, optional
-    :return: The data that will be clustered as a list of (N, w_t, d)
-    arrays
-    :rtype: List[np.ndarray]
+    :return: The prepared data
+    :rtype: Union[List[np.ndarray], np.ndarray]
     """
-    # We keep the time dimension if we use DTW
-    X_clus = []
-    (N, d, T) = X.shape
 
-    if squared_radius and transform_data:
-        # r = sqrt(RMM1**2 + RMM2**2)
-        # r of shape (N, 1, T)
-        r = np.sqrt(np.sum(np.square(X), axis=1, keepdims=True))
-        # r*X gives the same angle but a squared radius
-        X_trans = r*X
+    (N, T, d) = X.shape
+    X_clus = []
+
+    if transformer is not None:
+        X_trans = transformer(X)
     else:
         X_trans = np.copy(X)
 
-    for t in range(T):
-        # X_clus: List of (N, w_t, d) arrays
-        ind = window["origin"][t]
-        X_clus.append(np.swapaxes(X_trans[:,:,ind], 1, 2))
+    # Scaling for each variable and not time step wise
+    if scaler is not None:
+        X_trans = scaler.fit_transform(X_trans.reshape(N, -1)).reshape(N, T, d)
+
+    # If we use sliding windows, we return a list of extracted windows
+    if window is not None:
+
+        for t in range(T):
+            ind = window["origin"][t]
+            extracted_window = X_trans[:,ind,:]
+            if DTW:
+                # List of (N, w_t, d) arrays
+                X_clus.append(extracted_window)
+            else:
+                # List of (N, w_t*d) arrays
+                X_clus.append(extracted_window.reshape(N, -1))
+    # Otherwise we return an array
+    else:
+        if DTW:
+            # array of shape (N, T, d)
+            X_clus = [X_trans]
+        else:
+            # array of shape (N, T*d)
+            X_clus = [X_trans.reshape(N, -1)]
+
+    # X_clus is:
+    # - a list of T (N, w_t, d) arrays if sliding window and DTW was used
+    # - a list of T (N, w_t*d) arrays if sliding window was used but not DTW
+    # - a list of 1 (N, T, d) array  if DTW is used but not sliding window
+    # - a list of 1 (N, T*d) array if DTW and sliding window were not used
     return X_clus
 
 def sliding_window(T: int, w: int) -> dict:
@@ -314,3 +343,39 @@ def sliding_window(T: int, w: int) -> dict:
         for t in range(ind_end, T)
     ]
     return window
+
+def get_clusters(
+    model,
+    model_kw : Dict = {},
+    fit_predict_kw : Dict = {},
+    model_class_kw : Dict = {},
+) -> List[List[int]]:
+    """
+    Generate a clustering instance with the given model/fit parameters
+
+    :param fit_predict_kw: Dict of kw for the fit_predict method,
+    defaults to {}
+    :type fit_predict_kw: dict, optional
+    :param model_class_kw: To know how X and n_clusters args are called in this
+    model class, defaults to {}
+    :type model_class_kw: dict, optional
+    :return: Members affiliation to the generated clustering
+    :rtype: List[List[int]]
+    """
+    n_clusters = model_kw[model_class_kw.get("k_arg_name", "n_clusters")]
+    X = fit_predict_kw[model_class_kw.get("X_arg_name", "X")]
+    N = len(X)
+
+    # ====================== Fit & predict part =======================
+    labels = model(**model_kw).fit_predict(**fit_predict_kw)
+
+    # ==================== clusters ======================
+    clusters = [ [] for _ in range(n_clusters)]
+    for label_i in range(n_clusters):
+        # Members belonging to that clusters
+        members = [m for m in range(N) if labels[m] == label_i]
+        clusters[label_i] = members
+        if members == []:
+            raise ValueError('No members in cluster')
+
+    return clusters

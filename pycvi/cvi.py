@@ -6,10 +6,14 @@ import numpy as np
 from .compute_scores import (
     compute_score, f_inertia, f_pdist, get_centroid, reduce, f_cdist,
 )
-from .cluster import compute_center, generate_uniform, compute_cluster_params
+from .cluster import (
+    compute_center, generate_uniform, compute_cluster_params, prepare_data,
+    get_clusters
+)
+from ._configuration import set_data_shape, get_model_parameters
 from .utils import check_dims
 
-def _clusters_data_from_uniform(X, n_clusters):
+def _clusters_from_uniform(X, n_clusters):
     """
     Helper function for "compute_gap_statistic"
     """
@@ -21,7 +25,7 @@ def _clusters_data_from_uniform(X, n_clusters):
 
     # Sort members into the different clusters and compute their
     # cluster info
-    cluster_data = []
+    clusters = []
     for label_i in range(n_clusters):
 
         # Members belonging to that clusters
@@ -29,13 +33,13 @@ def _clusters_data_from_uniform(X, n_clusters):
         if members == []:
             raise ValueError('No members in cluster')
 
-        cluster_data.append((members, {}))
+        clusters.append(members)
 
-    return cluster_data
+    return clusters
 
 def _compute_Wk(
     X: np.ndarray,
-    clusters_data: List[Tuple[List[int], Dict]],
+    clusters: List[List[int]],
     dist_kwargs: dict = {},
 ):
     """
@@ -47,14 +51,14 @@ def _compute_Wk(
     """
     dist_kwargs.setdefault("metric", "sqeuclidean")
     # Compute the log of the within-cluster dispersion of the clustering
-    nis = [len(c) for (c, _) in clusters_data]
-    d_intra = [f_pdist(X[c], dist_kwargs) for (c, _) in clusters_data]
+    nis = [len(c) for c in clusters]
+    d_intra = [f_pdist(X[c], dist_kwargs) for c in clusters]
     Wk = sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
     return Wk
 
 def _dist_between_centroids(
     X: np.ndarray,
-    clusters_data: List[Tuple[List[int], Dict]],
+    clusters: List[List[int]],
     dist_kwargs: dict = {},
 ) -> List[float]:
     """
@@ -66,17 +70,17 @@ def _dist_between_centroids(
     dist = [
         # Distance between the centroids and the global centroid
         f_pdist(
-            get_centroid(X[cluster], info),
+            np.expand_dims(compute_center(X[c]), 0),
             global_center,
             dist_kwargs
         )
-        for (cluster, info) in clusters_data
+        for c in clusters
     ]
     return dist
 
 def gap_statistic(
     X : np.ndarray,
-    clusters_data: List[Tuple[List[int], Dict]],
+    clusters: List[List[int]],
     B: int = 10
 ) -> float:
     """
@@ -84,8 +88,8 @@ def gap_statistic(
 
     :param X: Values of all members
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters_data: List of (members, info) tuples
-    :type clusters_data: List[Tuple(List[int], Dict)]
+    :param clusters: List of (members, info) tuples
+    :type clusters: List[Tuple(List[int], Dict)]
     :param midpoint_w: center point of the time window w_t, used as
     reference in case of DTW, defaults to None.
     :type midpoint_w: int, optional
@@ -94,10 +98,10 @@ def gap_statistic(
     :return: The gap statistics
     :rtype: float
     """
-    k = len(clusters_data)
+    k = len(clusters)
 
     # Compute the log of the within-cluster dispersion of the clustering
-    wcss = np.log(_compute_Wk(X, clusters_data))
+    wcss = np.log(_compute_Wk(X, clusters))
 
     # Generate B random datasets with the same shape as the input data
     random_datasets = [np.random.rand(X.shape) for _ in range(B)]
@@ -105,8 +109,8 @@ def gap_statistic(
     # Compute the log of the within-cluster dispersion for each random dataset
     wcss_rand = []
     for X_rand in random_datasets:
-        clusters_data_rand = _clusters_data_from_uniform(X_rand, k)
-        wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_data_rand)))
+        clusters_rand = _clusters_from_uniform(X_rand, k)
+        wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand)))
 
     # Compute the gap statistic for the current clustering
     gap = np.mean(wcss_rand) - wcss
@@ -114,31 +118,31 @@ def gap_statistic(
 
 def score_function(
     X : np.ndarray,
-    clusters_data: List[Tuple[List[int], Dict]],
+    clusters: List[List[int]],
 ) -> float:
     """
     Compute the score function for a given clustering
 
     :param X: Values of all members
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters_data: List of (members, info) tuples
-    :type clusters_data: List[Tuple(List[int], Dict)]
+    :param clusters: List of members
+    :type clusters: List[Tuple(List[int], Dict)]
     :return: The score function index
     :rtype: float
     """
     N = len(X)
-    k = len(clusters_data)
+    k = len(clusters)
     dist_kwargs = {"metric" : 'euclidean'}
 
-    nis = [len(cluster) for (cluster, info) in clusters_data]
+    nis = [len(c) for c in clusters]
 
     bdc = 1/(N*k) * sum(
-        np.multiply(nis, _dist_between_centroids(X, clusters_data, dist_kwargs))
+        np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
     )
 
     wdc = sum([
-        f_inertia(cluster, info, dist_kwargs) / len(cluster)
-        for (cluster, info) in clusters_data
+        f_inertia(c, dist_kwargs) / len(c)
+        for c in clusters
     ])
 
     sf = 1 - (1 / (np.exp(np.exp(bdc - wdc))))
@@ -147,26 +151,26 @@ def score_function(
 
 def hartigan(
     X : np.ndarray,
-    clusters_datak1: List[Tuple[List[int], Dict]],
-    clusters_datak2: List[Tuple[List[int], Dict]],
+    clustersk1: List[Tuple[List[int], Dict]],
+    clustersk2: List[Tuple[List[int], Dict]],
 ) -> float:
     """
     Compute the hartigan index for a given clustering
 
     :param X: Values of all members
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters_data: List of (members, info) tuples
-    :type clusters_data: List[Tuple(List[int], Dict)]
+    :param clusters: List of (members, info) tuples
+    :type clusters: List[Tuple(List[int], Dict)]
     :return: The hartigan index
     :rtype: float
     """
     N = len(X)
-    k = len(clusters_datak1)
+    k = len(clustersk1)
     if k == N:
         hartigan = 0
     else:
-        Wk1 = _compute_Wk(X, clusters_datak1)
-        Wk2 = _compute_Wk(X, clusters_datak2)
+        Wk1 = _compute_Wk(X, clustersk1)
+        Wk2 = _compute_Wk(X, clustersk2)
 
         hartigan = (Wk1/Wk2 - 1)*(N-k-1)
 
@@ -174,23 +178,23 @@ def hartigan(
 
 def silhouette(
     X : np.ndarray,
-    clusters_data: List[Tuple[List[int], Dict]],
+    clusters: List[List[int]],
 ) -> float:
     """
     Compute the silhouette score for a given clustering
 
     :param X: Values of all members
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters_data: List of (members, info) tuples
-    :type clusters_data: List[Tuple(List[int], Dict)]
+    :param clusters: List of (members, info) tuples
+    :type clusters: List[Tuple(List[int], Dict)]
     :return: The silhouette score
     :rtype: float
     """
 
     S_i1 = []
-    nis = [len(cluster) for (cluster, _) in clusters_data]
+    nis = [len(c) for c in clusters]
 
-    for i1, (c1, _) in enumerate(clusters_data):
+    for i1, (c1, _) in enumerate(clusters):
         ni = len(c1)
 
         # Compute 'a' for all x (=X[m]) in c1 (excluding x in c1)
@@ -199,7 +203,7 @@ def silhouette(
         # Compute 'b' for all x (=X[m]) in c1
         b = [np.min([
                 reduce(f_cdist(X[c2], X[m]), "mean")
-                for i2, (c2, _) in enumerate(clusters_data) if i1 != i2
+                for i2, (c2, _) in enumerate(clusters) if i1 != i2
             ]) for m in c1]
 
         # Silhouette score for cluster c1
@@ -216,7 +220,7 @@ def silhouette(
 
 def CH(
     X : np.ndarray,
-    clusters_data: List[Tuple[List[int], Dict]],
+    clusters: List[List[int]],
     dist_kwargs: dict = {},
     score_kwargs: dict = {},
 ) -> float:
@@ -225,13 +229,13 @@ def CH(
 
     :param X: Values of all members
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters_data: List of (members, info) tuples
-    :type clusters_data: List[Tuple(List[int], Dict)]
+    :param clusters: List of (members, info) tuples
+    :type clusters: List[Tuple(List[int], Dict)]
     :return: The CH index
     :rtype: float
     """
     N = len(X)
-    k = len(clusters_data)
+    k = len(clusters)
     dist_kwargs.setdefault("metric", "sqeuclidean")
 
     # If we forget about the (N-k) / (k-1) factor, CH is defined and
@@ -244,8 +248,8 @@ def CH(
         X0 = score_kwargs.get("X0", generate_uniform(X))
         #
         # Option 1: use the centroid of the uniform distribution
-        # clusters_data0 = score_kwargs.get(
-        #     "clusters_data0",
+        # clusters0 = score_kwargs.get(
+        #     "clusters0",
         #     [compute_cluster_params(X0, score_kwargs.get("midpoint_w", 0))]
         # )
         #
@@ -262,20 +266,241 @@ def CH(
         # 0)
         # Note that the list has actually only one element
         comp = sum([
-            f_inertia(X[c], info, dist_kwargs) for (c, info) in clusters_data
+            f_inertia(X[c], dist_kwargs) for c in clusters
         ])
         CH = - N * (sep / comp)
 
     # Normal case
     else:
-        nis = [len(cluster) for (cluster, _) in clusters_data]
+        nis = [len(c) for c in clusters]
         sep = sum(
-            np.multiply(nis, _dist_between_centroids(X, clusters_data, dist_kwargs))
+            np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
         )
 
         comp = sum([
-            f_inertia(X[c], info, dist_kwargs) for (c, info) in clusters_data
+            f_inertia(X[c], dist_kwargs) for c in clusters
         ])
 
         CH = (N-k) / (k-1) * (sep / comp)
     return CH
+
+
+def generate_all_clusterings(
+    data: np.ndarray,
+    model_class,
+    n_clusters_range: Sequence = None,
+    DTW: bool = True,
+    model_kw: dict = {},
+    fit_predict_kw: dict = {},
+    model_class_kw: dict = {},
+    quiet: bool = True,
+) -> List[List[int]]:
+    """
+    Generate and return all clusterings
+
+    :rtype: List[List[int]]
+    """
+    # --------------------------------------------------------------
+    # --------------------- Preliminary ----------------------------
+    # --------------------------------------------------------------
+
+    data_copy = set_data_shape(data)
+    (N, T, d) = data_copy.shape
+
+    if n_clusters_range is None:
+        n_clusters_range = range(N)
+
+    if not DTW:
+        # X: (N, d*T)
+        data_copy = data_copy.reshape(N, d*T)
+
+    # list of T (if sliding window) or 1 array(s) of shape:
+    # (N, T|w_t, d) if DTW
+    # (N, (T|w_t)*d) if not DTW
+    data_clus = prepare_data(data_copy)[0]
+
+    # --------------------------------------------------------------
+    # --------------------- Find clusters --------------------------
+    # --------------------------------------------------------------
+
+    # temporary variable to help remember clusters before merging
+    # clusters_n[k][i] is a list of members indices contained in cluster i
+    # for the clustering assuming k cluster
+    clusters_n = {}
+
+    # ---- clustering method specific parameters --------
+
+    # Get clustering model parameters required by the
+    # clustering model
+    model_kw, fit_predict_kw, model_class_kw = get_model_parameters(
+        model_class,
+        model_kw = model_kw,
+        fit_predict_kw = fit_predict_kw,
+        model_class_kw = model_class_kw,
+    )
+    # Update fit_predict_kw with the data
+    fit_predict_kw[model_class_kw["X_arg_name"]] = data_clus
+
+    for n_clusters in n_clusters_range:
+
+        # All members in the same cluster. Go to next iteration
+        if n_clusters <= 1:
+            clusters_n[n_clusters] = [[i for i in range(N)]]
+        # General case
+        else:
+
+            # Update model_kw with the number of clusters
+            model_kw[model_class_kw["k_arg_name"]] = n_clusters
+
+            # ---------- Fit & predict using clustering model-------
+            try :
+                clusters = get_clusters(
+                    model_class,
+                    model_kw = model_kw,
+                    fit_predict_kw = fit_predict_kw,
+                    model_class_kw = model_class_kw,
+                )
+            except ValueError as ve:
+                if not quiet:
+                    print(str(ve))
+                clusters_n[n_clusters] = None
+                continue
+
+            clusters_n[n_clusters] = clusters
+
+    return clusters_n
+
+def compute_all_clustering_params(
+    data: np.ndarray,
+    model_class,
+    n_clusters_range: Sequence = None,
+    DTW: bool = True,
+    model_kw: dict = {},
+    fit_predict_kw: dict = {},
+    model_class_kw: dict = {},
+    quiet: bool = True,
+) -> List[Tuple[List[int], dict]]:
+    """
+    Compute and return all scores
+
+    :rtype: List[Tuple[List[int], dict]]
+    """
+
+def compute_all_scores(
+    data: np.ndarray,
+    clusterings: List[List[int]],
+    DTW: bool = True,
+    quiet: bool = True,
+) -> List[float]:
+    """
+    Compute and return all scores
+
+    :rtype: List[float]
+    """
+
+    # --------------------------------------------------------------
+    # -------- Compute score, cluster params, etc. -----------------
+    # --------------------------------------------------------------
+
+    data_copy = set_data_shape(data)
+    (N, T, d) = data_copy.shape
+    data0 = generate_uniform(data_copy)
+
+    if not DTW:
+        # X: (N, d*T)
+        data_copy = data_copy.reshape(N, d*T)
+        data0 = data0.reshape(N, d*T)
+
+    # Use default scaler and transformer
+    # TODO: allow for a sliding window
+    data_clus = prepare_data(data_copy)
+    data_clus0 = prepare_data(data0)
+
+    for n_clusters in clusterings.keys():
+        # Take the data used for clustering while taking into account the
+        # difference between time step indices with/without sliding window
+        if n_clusters == 0:
+
+            # X_clus: list of length T of arrays of shape (N, w_t, d)
+            # X: (N, w_t, d)
+            X_clus = data_clus0
+        else:
+            X_clus = data_clus
+
+        if not DTW:
+            # We take the entire time window into consideration for the
+            # scores of the clusters
+            # X: (N, d*T)
+            X = X.reshape(N, T*d)
+            # We take only the midpoint into consideration for the
+            # parameters of the clusters
+            # X_params: (N, d)
+            X_params = X_params[:, midpoint_w, :]
+
+        # Find cluster membership of each member
+        clusters = clusters_n[n_clusters]
+
+        # Go to next iteration if the model didn't converge
+        if clusters is None:
+            continue
+
+        # -------- Cluster infos for each cluster ---------
+
+        clusters = [
+            (
+                c,
+                {
+                    **{"k": [n_clusters]},
+                    **compute_cluster_params(X_params[c], midpoint_w)
+                }
+            ) for c in clusters
+        ]
+        clusters_score = [
+            (c, compute_cluster_params(X[c], midpoint_w))
+            for c in clusters
+        ]
+
+        # ------------ Score corresponding to 'n_clusters' ---------
+        score = compute_score(
+            pg._score,
+            X = X,
+            clusters = clusters_score,
+        )
+        if n_clusters == 0:
+            pg._zero_scores[t] = score
+            # don't insert the case k=0 in cluster_data
+            # nor in local_steps, go straight to the next iteration
+        elif pg._score_type == "monotonous" and score :
+            pass
+        else:
+            step_info = {"score" : score}
+
+            # ---------------- Finalize local step -----------------
+            # Find where should we insert this future local step
+            idx = sort_fc(local_scores[t], score)
+            local_scores[t].insert(idx, score)
+            cluster_data[t].insert(idx, clusters)
+            pg._local_steps[t].insert(
+                idx,
+                {**{'param' : {"k" : n_clusters}},
+                    **step_info
+                }
+            )
+            pg._nb_steps += 1
+            pg._nb_local_steps[t] += 1
+
+            if pg._verbose:
+                print(" ========= ", t, " ========= ")
+                msg = "n_clusters: " + str(n_clusters)
+                for (key,item) in step_info.items():
+                    msg += '  ||  ' + key + ":  " + str(item)
+                print(msg)
+
+    return cluster_data
+
+def cvi(
+    X: np.ndarray,
+    cvi: Union[str, callable],
+    clustering_model,
+    k_range: Sequence = None,
+) -> List[float]:
