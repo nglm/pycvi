@@ -1,6 +1,7 @@
 
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 from .compute_scores import (
@@ -8,7 +9,7 @@ from .compute_scores import (
 )
 from .cluster import (
     compute_center, generate_uniform, compute_cluster_params, prepare_data,
-    get_clusters
+    get_clusters, sliding_window
 )
 from ._configuration import set_data_shape, get_model_parameters
 from .utils import check_dims
@@ -290,15 +291,22 @@ def generate_all_clusterings(
     model_class,
     n_clusters_range: Sequence = None,
     DTW: bool = True,
+    time_window: int = None,
+    transformer = None,
+    scaler = StandardScaler(),
     model_kw: dict = {},
     fit_predict_kw: dict = {},
     model_class_kw: dict = {},
     quiet: bool = True,
-) -> List[List[int]]:
+) -> List[List[List[int]]]:
     """
-    Generate and return all clusterings
+    Generate and return all clusterings.
 
-    :rtype: List[List[int]]
+    `clusters_t_n[t_w][k][i]` is a list of members indices contained in
+    cluster i for the clustering assuming k clusters for the extracted
+    time window t_w.
+
+    :rtype: List[List[List[int]]]
     """
     # --------------------------------------------------------------
     # --------------------- Preliminary ----------------------------
@@ -310,6 +318,11 @@ def generate_all_clusterings(
     if n_clusters_range is None:
         n_clusters_range = range(N)
 
+    if time_window is not None:
+        wind = sliding_window(T, time_window)
+    else:
+        wind = None
+
     if not DTW:
         # X: (N, d*T)
         data_copy = data_copy.reshape(N, d*T)
@@ -317,58 +330,64 @@ def generate_all_clusterings(
     # list of T (if sliding window) or 1 array(s) of shape:
     # (N, T|w_t, d) if DTW
     # (N, (T|w_t)*d) if not DTW
-    data_clus = prepare_data(data_copy)[0]
+    data_clus = prepare_data(data_copy, DTW, wind, transformer, scaler)
+    n_windows = len(data_clus)
 
     # --------------------------------------------------------------
     # --------------------- Find clusters --------------------------
     # --------------------------------------------------------------
 
     # temporary variable to help remember clusters before merging
-    # clusters_n[k][i] is a list of members indices contained in cluster i
-    # for the clustering assuming k cluster
-    clusters_n = {}
+    # clusters_t_n[t_w][k][i] is a list of members indices contained in
+    # cluster i for the clustering assuming k clusters for the extracted
+    # time window t_w
+    clusters_t_n = [{} for _ in range(n_windows)]
 
-    # ---- clustering method specific parameters --------
+    for t_w in n_windows:
+        # ---- clustering method specific parameters --------
+        # X_clus of shape (N, w_t*d) or (N, w_t, d)
+        X_clus = data_clus[t_w]
 
-    # Get clustering model parameters required by the
-    # clustering model
-    model_kw, fit_predict_kw, model_class_kw = get_model_parameters(
-        model_class,
-        model_kw = model_kw,
-        fit_predict_kw = fit_predict_kw,
-        model_class_kw = model_class_kw,
-    )
-    # Update fit_predict_kw with the data
-    fit_predict_kw[model_class_kw["X_arg_name"]] = data_clus
+        # Get clustering model parameters required by the
+        # clustering model
+        model_kw, fit_predict_kw, model_class_kw = get_model_parameters(
+            model_class,
+            model_kw = model_kw,
+            fit_predict_kw = fit_predict_kw,
+            model_class_kw = model_class_kw,
+        )
+        # Update fit_predict_kw with the data
+        fit_predict_kw[model_class_kw["X_arg_name"]] = X_clus
 
-    for n_clusters in n_clusters_range:
+        for n_clusters in n_clusters_range:
 
-        # All members in the same cluster. Go to next iteration
-        if n_clusters <= 1:
-            clusters_n[n_clusters] = [[i for i in range(N)]]
-        # General case
-        else:
+            # All members in the same cluster. Go to next iteration
+            if n_clusters <= 1:
+                clusters_t_n[t_w][n_clusters] = [[i for i in range(N)]]
+            # General case
+            else:
 
-            # Update model_kw with the number of clusters
-            model_kw[model_class_kw["k_arg_name"]] = n_clusters
+                # Update model_kw with the number of clusters
+                model_kw[model_class_kw["k_arg_name"]] = n_clusters
 
-            # ---------- Fit & predict using clustering model-------
-            try :
-                clusters = get_clusters(
-                    model_class,
-                    model_kw = model_kw,
-                    fit_predict_kw = fit_predict_kw,
-                    model_class_kw = model_class_kw,
-                )
-            except ValueError as ve:
-                if not quiet:
-                    print(str(ve))
-                clusters_n[n_clusters] = None
-                continue
+                # ---------- Fit & predict using clustering model-------
+                try :
+                    clusters = get_clusters(
+                        model_class,
+                        model_kw = model_kw,
+                        fit_predict_kw = fit_predict_kw,
+                        model_class_kw = model_class_kw,
+                    )
+                except ValueError as ve:
+                    if not quiet:
+                        print(str(ve))
+                    clusters_t_n[t_w][n_clusters] = None
+                    continue
 
-            clusters_n[n_clusters] = clusters
+                clusters_t_n[t_w][n_clusters] = clusters
 
-    return clusters_n
+    return clusters_t_n
+
 
 def compute_all_clustering_params(
     data: np.ndarray,
