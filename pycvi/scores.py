@@ -104,7 +104,7 @@ class Hartigan(Score):
             maximise=False,
             improve=True,
             score_type=score_type,
-            k_condition= lambda k: (k>=0 and k<N)
+            k_condition= lambda k: (k>=0)
         )
 
 class CalinskiHarabasz(Score):

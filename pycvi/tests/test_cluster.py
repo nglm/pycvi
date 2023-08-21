@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..cluster import _sliding_window
+from ..cluster import sliding_window
 
 def test_sliding_window():
     # From examples drawn by hand
@@ -34,7 +34,7 @@ def test_sliding_window():
         [[0, 1, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6], [2, 3, 4, 5, 6], [3, 4, 5, 6], [4, 5, 6]], # 6
     ]
     for i, w in enumerate(windows):
-        window = _sliding_window(T, w)
+        window = sliding_window(T, w)
 
         output = [window["padding_left"], window["padding_right"]]
         output_exp = [p_l[i], p_r[i]]
