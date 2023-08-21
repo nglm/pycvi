@@ -10,7 +10,7 @@ from .compute_scores import (
 from .cluster import (
     compute_center, generate_uniform, compute_cluster_params, prepare_data,
 )
-from ._configuration import set_data_shape,
+from ._configuration import set_data_shape
 from .utils import check_dims
 
 def _clusters_from_uniform(X, n_clusters):
@@ -245,6 +245,7 @@ def CH(
     # Very special case for the case k=0
     elif k == 0:
 
+        # X0 shape: (N, d*w_t) or (N, w_t, d)
         X0 = score_kwargs.get("X0", generate_uniform(X))
         #
         # Option 1: use the centroid of the uniform distribution
@@ -290,4 +291,5 @@ def cvi(
     clustering_model,
     k_range: Sequence = None,
 ) -> List[float]:
+    # Compute all clusterings + compute all scores
     pass

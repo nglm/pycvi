@@ -15,7 +15,7 @@ def compute_asym_std(X, center):
     return np.sqrt( np.sum((X - center)**2) / n)
 
 def compute_disp(X, center):
-    (d, ) = center.shape                      # shape: (d)
+    (d,) = center.shape                     # shape: (d)
     disp_inf = np.zeros(d)                  # shape: (d)
     disp_sup = np.zeros(d)                  # shape: (d)
     disp = np.std(X, axis=0).reshape(-1)    # shape: (d)
@@ -155,7 +155,7 @@ def generate_uniform(
     """
     Generate a uniform distribution with the same bounds as X
 
-    X and X0 of shape (N, d, T)
+    X and X0 of shape (N, T, d)
     """
     # Determines how to measure the score of the 0th component
     if zero_type == 'variance':
@@ -171,8 +171,8 @@ def generate_uniform(
     # We keep all the dims except the first one (Hence the 0) because
     # The number of members dimension will be added in members_0 in the
     # List comprehension
-    # X of shape (N, d, T) even if d and T were initially omitted
-    # mins and max of shape (d, T) (the [0] is to get rid of the N dim)
+    # X of shape (N, T, d) even if d and T were initially omitted
+    # mins and max of shape (T, d) (the [0] is to get rid of the N dim)
     mins = np.amin(X, axis=0, keepdims=True)[0]
     maxs = np.amax(X, axis=0, keepdims=True)[0]
 
@@ -380,7 +380,6 @@ def get_clusters(
             raise ValueError('No members in cluster')
 
     return clusters
-
 
 def generate_all_clusterings(
     data: np.ndarray,
