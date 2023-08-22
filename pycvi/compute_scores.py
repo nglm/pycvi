@@ -7,7 +7,9 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from ._configuration import set_data_shape
 from .utils import match_dims
-from .cluster import compute_center, prepare_data, sliding_window
+from .cluster import (
+    compute_center, prepare_data, sliding_window, generate_uniform
+)
 
 SCORES = [
         'inertia',
@@ -536,6 +538,7 @@ def compute_all_scores(
     # --------------------------------------------------------------
 
     data_copy = set_data_shape(data)
+    data0 = generate_uniform(data_copy)
     (N, T, d) = data_copy.shape
 
     if time_window is not None:
@@ -547,6 +550,7 @@ def compute_all_scores(
     # (N, T|w_t, d) if DTW
     # (N, (T|w_t)*d) if not DTW
     data_clus = prepare_data(data_copy, DTW, wind, transformer, scaler)
+    data_clus0 = prepare_data(data0, DTW, wind, transformer, scaler)
     n_windows = len(data_clus)
 
     # temporary variable to help remember scores
@@ -559,7 +563,10 @@ def compute_all_scores(
         for n_clusters in clusterings.keys():
             # Take the data used for clustering while taking into account the
             # difference between time step indices with/without sliding window
-            X_clus = data_clus[t_w]
+            if n_clusters == 0:
+                X_clus = data_clus0[t_w]
+            else:
+                X_clus = data_clus[t_w]
 
             # Find cluster membership of each member
             clusters = clusterings[t_w][n_clusters]
