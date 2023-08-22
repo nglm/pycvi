@@ -402,7 +402,7 @@ def generate_all_clusterings(
     fit_predict_kw: dict = {},
     model_class_kw: dict = {},
     quiet: bool = True,
-) -> List[Dict[List[List[int]]]]:
+) -> List[Dict[int, List[List[int]]]]:
     """
     Generate and return all clusterings.
 
@@ -410,7 +410,7 @@ def generate_all_clusterings(
     in cluster i for the clustering assuming k clusters for the
     extracted time window t_w.
 
-    :rtype: List[Dict[List[List[int]]]]
+    :rtype: List[Dict[int, List[List[int]]]]
     """
     # --------------------------------------------------------------
     # --------------------- Preliminary ----------------------------

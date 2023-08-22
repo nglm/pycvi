@@ -429,14 +429,14 @@ def compute_score(
     :param score_type: type of score
     :type score_type: Union[str, callable]
     :param X: Values of all members, defaults to None
-    :type X: np.ndarray, shape: (N, d*w) optional
-    :param clusters_data: List of (members, info) tuples, defaults to None
-    :type clusters_data: List[Tuple(List[int], Dict)]
+    :type X: np.ndarray, shape: (N, d*w) or (N, w_t, d) optional
+    :param clusters: List of members, defaults to None
+    :type clusters: List[List[int]]
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
     :param score_kwargs: kwargs for the CVI.
     :type score_kwargs: dict
-    :raises ValueError: [description]
+    :raises ValueError: If invalid score_type was given
     :return: Score of the given clustering
     :rtype: float
     """
@@ -518,18 +518,18 @@ def compute_score(
 def compute_all_scores(
     score,
     data: np.ndarray,
-    clusterings: List[Dict[List[List[int]]]],
+    clusterings: List[Dict[int, List[List[int]]]],
     transformer = None,
     scaler = StandardScaler(),
     DTW: bool = True,
     time_window: int = None,
     score_kwargs: dict = {},
     verbose: bool = False,
-) -> List[Dict[float]]:
+) -> List[Dict[int, float]]:
     """
     Compute and return all scores
 
-    :rtype: List[Dict[float]]
+    :rtype: List[Dict[int, float]]
     """
 
     # --------------------------------------------------------------
