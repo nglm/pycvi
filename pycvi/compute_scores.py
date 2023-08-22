@@ -571,7 +571,7 @@ def compute_all_scores(
             clusters = clusterings[t_w][n_clusters]
 
             # ------------ Score corresponding to 'n_clusters' ---------
-            score = score(
+            res_score = score(
                 X=X_clus,
                 clusters=clusters,
                 **score_kwargs
@@ -579,10 +579,10 @@ def compute_all_scores(
 
             if verbose:
                 print(" ========= {t_w} ========= ")
-                msg = "n_clusters: {n_clusters}  ||   score: {score}"
+                msg = "n_clusters: {n_clusters}  ||   score: {res_score}"
                 print(msg)
 
-            scores_t_n[t_w][n_clusters] = score
+            scores_t_n[t_w][n_clusters] = res_score
 
     return scores_t_n
 
