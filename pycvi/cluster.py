@@ -300,6 +300,15 @@ def sliding_window(T: int, w: int) -> dict:
     - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas apply.
 
     The midpoint in the original array is actually simply t
+
+    Available keys:
+
+    - `padding_left`: Padding to the left
+    - `padding_right`: Padding to the right
+    - `length`: Actual length of the time window
+    - `midpoint_w`: Midpoint in the window reference
+    - `midpoint_o`: Midpoint in the origin reference
+    - `origin`: Original indices
     """
     # Boundaries between regular cases and extreme ones
     ind_start = (w-1)//2
