@@ -624,47 +624,43 @@ def better_score(
         raise ValueError(msg)
 
 def argbest(
-    score1: float,
-    score2: float,
+    scores: List[float],
     maximize: bool,
 ) -> int:
     """
     Returns index of best score
     """
-    if better_score(score1, score2, maximize):
-        return 0
+    if maximize:
+        int(np.argmax(scores))
     else:
-        return 1
+        int(np.argmin(scores))
 
 def best_score(
-    score1: float,
-    score2: float,
+    scores: List[float],
     maximize: bool,
 ) -> float:
     """
     Returns best score
     """
-    return [score1, score2][argbest(score1, score2, maximize)]
+    return scores[argbest(scores, maximize)]
 
 def argworst(
-    score1: float,
-    score2: float,
+    scores: List[float],
     maximize: bool,
 ) -> int:
     """
     Returns index of worst score
     """
-    if better_score(score1, score2, maximize):
-        return 1
+    if maximize:
+        int(np.argmin(scores))
     else:
-        return 0
+        int(np.argmax(scores))
 
 def worst_score(
-    score1: float,
-    score2: float,
+    scores: List[float],
     maximize: bool,
 ) -> float:
     """
     Returns worst score
     """
-    return [score1, score2][argworst(score1, score2, maximize)]
+    return scores[argworst(scores, maximize)]

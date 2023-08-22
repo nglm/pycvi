@@ -63,35 +63,31 @@ class Score():
 
     def argbest(
         self,
-        score1: float,
-        score2: float,
+        scores: List[float],
     ) -> int:
-        return argbest(score1, score2, self.maximise)
+        return argbest(scores, self.maximise)
 
     def best_score(
         self,
-        score1: float,
-        score2: float,
+        scores: List[float],
     ) -> float:
 
-        return best_score(score1, score2, self.maximize)
+        return best_score(scores, self.maximise)
 
     def argworst(
         self,
-        score1: float,
-        score2: float,
+        scores: List[float],
     ) -> int:
-        return argworst(score1, score2, self.maximize)
+        return argworst(scores, self.maximise)
 
     def worst_score(
         self,
-        score1: float,
-        score2: float,
+        scores: List[float],
     ) -> float:
         """
         Returns worst score
         """
-        return worst_score(score1, score2, self.maximize)
+        return worst_score(scores, self.maximise)
 
 class Hartigan(Score):
 
