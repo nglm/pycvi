@@ -6,7 +6,7 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .cvi import gap_statistic, silhouette, score_function, CH, hartigan
 from .compute_scores import (
-    best_score, better_score, worst_score, argbest, argworst
+    best_score, better_score, worst_score, argbest, argworst, compute_score
 )
 
 
@@ -30,11 +30,10 @@ class Score():
     def __call__(
         self,
         X: np.ndarray,
-        clusters_data: List[Tuple[List[int], Dict]],
-        dist_kwargs: dict = {},
-        *args: Any, **kwds: Any,
-    ) -> Any:
-        return self.function(X, clusters_data, dist_kwargs, )
+        clusters: List[List[int]],
+        score_kwargs: dict = {},
+    ) -> float:
+        return self.function(X, clusters, **score_kwargs)
 
     def is_relevant(self, score, k, score_prev, k_prev) -> bool:
         # A score is always relevant when it is absolute
@@ -122,5 +121,28 @@ class CalinskiHarabasz(Score):
             maximise=True,
             improve=True,
             score_type=score_type,
+            k_condition = k_condition,
+        )
+
+class Inertia(Score):
+
+    def __init__(
+        self,
+    ) -> None:
+
+        k_condition = lambda k: k>=0
+
+        def score_function(X, clusters):
+            return compute_score(
+                "inertia", X, clusters,
+                dist_kwargs={},
+                score_kwargs={}
+            )
+
+        super().__init__(
+            score_function=score_function,
+            maximise=False,
+            improve=True,
+            score_type="monotonous",
             k_condition = k_condition,
         )

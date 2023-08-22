@@ -445,7 +445,7 @@ def compute_score(
     # ------------------------------------------------------------------
     # callable CVI
     if not (type(score_type) == str):
-        score = score_type(X, clusters, dist_kwargs, score_kwargs)
+        score = score_type(X, clusters, **score_kwargs)
     else:
         # --------------------------------------------------------------
         # Implemented CVI
@@ -523,7 +523,6 @@ def compute_all_scores(
     scaler = StandardScaler(),
     DTW: bool = True,
     time_window: int = None,
-    dist_kwargs: dict = {},
     score_kwargs: dict = {},
     verbose: bool = False,
 ) -> List[Dict[float]]:
@@ -572,12 +571,10 @@ def compute_all_scores(
             clusters = clusterings[t_w][n_clusters]
 
             # ------------ Score corresponding to 'n_clusters' ---------
-            score = compute_score(
-                score,
+            score = score(
                 X=X_clus,
                 clusters=clusters,
-                dist_kwargs=dist_kwargs,
-                score_kwargs=score_kwargs
+                **score_kwargs
             )
 
             if verbose:
