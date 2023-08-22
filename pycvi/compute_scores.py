@@ -559,7 +559,7 @@ def compute_all_scores(
 
     for t_w in range(n_windows):
 
-        for n_clusters in clusterings.keys():
+        for n_clusters in clusterings[t_w].keys():
             # Take the data used for clustering while taking into account the
             # difference between time step indices with/without sliding window
             if n_clusters == 0:
