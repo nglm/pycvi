@@ -557,7 +557,7 @@ def compute_all_scores(
     # clusters for the extracted time window t_w
     scores_t_n = [{} for _ in range(n_windows)]
 
-    for t_w in n_windows:
+    for t_w in range(n_windows):
 
         for n_clusters in clusterings.keys():
             # Take the data used for clustering while taking into account the

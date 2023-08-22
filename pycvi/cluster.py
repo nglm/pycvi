@@ -442,7 +442,7 @@ def generate_all_clusterings(
     # extracted time window t_w
     clusterings_t_k = [{} for _ in range(n_windows)]
 
-    for t_w in n_windows:
+    for t_w in range(n_windows):
         # ---- clustering method specific parameters --------
         # X_clus of shape (N, w_t*d) or (N, w_t, d)
         X_clus = data_clus[t_w]
