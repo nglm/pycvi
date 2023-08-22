@@ -33,13 +33,14 @@ def test_comparisons():
         else:
             out_exp_arg = 1
             out_exp_score = s2
-        out = argbest(s1, s2, maximize)
+        out = argbest([s1, s2], maximize)
         msg = "argbest was wrong,      i: {} | s1: {} | s2 {}".format(i, s1, s2)
-        assert out == out_exp_arg, msg
+        assert (out == out_exp_arg or s1 == s2), msg
 
-        out = best_score(s1, s2, maximize)
+
+        out = best_score([s1, s2], maximize)
         msg = "best_score was wrong,      i: {} | s1: {} | s2 {}".format(i, s1, s2)
-        assert out == out_exp_score, msg
+        assert (out == out_exp_score), msg
 
 def test_compute_score():
     pass

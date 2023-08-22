@@ -627,10 +627,14 @@ def argbest(
     """
     Returns index of best score
     """
-    if maximize:
-        int(np.argmax(scores))
-    else:
-        int(np.argmin(scores))
+    try:
+        res = scores.index(None)
+        return res
+    except ValueError:
+        if maximize:
+            return int(np.argmax(scores))
+        else:
+            return int(np.argmin(scores))
 
 def best_score(
     scores: List[float],
@@ -648,10 +652,11 @@ def argworst(
     """
     Returns index of worst score
     """
+    scores_with_nans = [s if s is not None else np.nan for s in scores]
     if maximize:
-        int(np.argmin(scores))
+        return int(np.nanargmin(scores_with_nans))
     else:
-        int(np.argmax(scores))
+        return int(np.nanargmax(scores_with_nans))
 
 def worst_score(
     scores: List[float],
