@@ -134,9 +134,28 @@ class Inertia(Score):
 
         def score_function(X, clusters):
             return compute_score(
-                "inertia", X, clusters,
-                dist_kwargs={},
-                score_kwargs={}
+                "inertia", X, clusters, dist_kwargs={}, score_kwargs={}
+            )
+
+        super().__init__(
+            score_function=score_function,
+            maximise=False,
+            improve=True,
+            score_type="monotonous",
+            k_condition = k_condition,
+        )
+
+class MaxDiameter(Score):
+
+    def __init__(
+        self,
+    ) -> None:
+
+        k_condition = lambda k: k>=0
+
+        def score_function(X, clusters):
+            return compute_score(
+                "max_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
             )
 
         super().__init__(
