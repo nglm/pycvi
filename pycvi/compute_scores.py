@@ -516,7 +516,7 @@ def compute_score(
 def compute_all_scores(
     score,
     data: np.ndarray,
-    clusterings: List[List[List[int]]],
+    clusterings: List[Dict[List[List[int]]]],
     transformer = None,
     scaler = StandardScaler(),
     DTW: bool = True,
@@ -524,11 +524,11 @@ def compute_all_scores(
     dist_kwargs: dict = {},
     score_kwargs: dict = {},
     verbose: bool = False,
-) -> List[List[float]]:
+) -> List[Dict[float]]:
     """
     Compute and return all scores
 
-    :rtype: List[float]
+    :rtype: List[Dict[float]]
     """
 
     # --------------------------------------------------------------

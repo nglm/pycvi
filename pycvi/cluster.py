@@ -393,15 +393,15 @@ def generate_all_clusterings(
     fit_predict_kw: dict = {},
     model_class_kw: dict = {},
     quiet: bool = True,
-) -> List[List[List[int]]]:
+) -> List[Dict[List[List[int]]]]:
     """
     Generate and return all clusterings.
 
-    `clusters_t_n[t_w][k][i]` is a list of members indices contained in
-    cluster i for the clustering assuming k clusters for the extracted
-    time window t_w.
+    `clusterings_t_k[t_w][k][i]` is a list of members indices contained
+    in cluster i for the clustering assuming k clusters for the
+    extracted time window t_w.
 
-    :rtype: List[List[List[int]]]
+    :rtype: List[Dict[List[List[int]]]]
     """
     # --------------------------------------------------------------
     # --------------------- Preliminary ----------------------------
@@ -428,11 +428,10 @@ def generate_all_clusterings(
     # --------------------- Find clusters --------------------------
     # --------------------------------------------------------------
 
-    # temporary variable to help remember clusters before merging
-    # clusters_t_n[t_w][k][i] is a list of members indices contained in
-    # cluster i for the clustering assuming k clusters for the extracted
-    # time window t_w
-    clusters_t_n = [{} for _ in range(n_windows)]
+    # clusterings_t_k[t_w][k][i] is a list of members indices contained
+    # in cluster i for the clustering assuming k clusters for the
+    # extracted time window t_w
+    clusterings_t_k = [{} for _ in range(n_windows)]
 
     for t_w in n_windows:
         # ---- clustering method specific parameters --------
@@ -454,7 +453,7 @@ def generate_all_clusterings(
 
             # All members in the same cluster. Go to next iteration
             if n_clusters <= 1:
-                clusters_t_n[t_w][n_clusters] = [[i for i in range(N)]]
+                clusterings_t_k[t_w][n_clusters] = [[i for i in range(N)]]
             # General case
             else:
 
@@ -472,9 +471,9 @@ def generate_all_clusterings(
                 except ValueError as ve:
                     if not quiet:
                         print(str(ve))
-                    clusters_t_n[t_w][n_clusters] = None
+                    clusterings_t_k[t_w][n_clusters] = None
                     continue
 
-                clusters_t_n[t_w][n_clusters] = clusters
+                clusterings_t_k[t_w][n_clusters] = clusters
 
-    return clusters_t_n
+    return clusterings_t_k

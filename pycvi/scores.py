@@ -22,6 +22,7 @@ class Score():
     ) -> None:
         self.function = score_function
         self.maximise = maximise
+        # If score_type == "absolute", 'improve' is irrelevant
         self.improve = improve
         self.score_type = score_type
         self.k_condition = k_condition
