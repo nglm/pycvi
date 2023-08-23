@@ -229,18 +229,18 @@ def prepare_data(
             ind = window["origin"][t]
             extracted_window = X_trans[:,ind,:]
             if DTW:
-                # List of (N, w_t, d) arrays
+                # List of T (N, w_t, d) arrays
                 X_clus.append(extracted_window)
             else:
-                # List of (N, w_t*d) arrays
+                # List of T (N, w_t*d) arrays
                 X_clus.append(extracted_window.reshape(N, -1))
     # Otherwise we return an array
     else:
         if DTW:
-            # array of shape (N, T, d)
+            # List of one array of shape (N, T, d)
             X_clus = [X_trans]
         else:
-            # array of shape (N, T*d)
+            # List of one array of shape (N, T*d)
             X_clus = [X_trans.reshape(N, -1)]
 
     # X_clus is:
