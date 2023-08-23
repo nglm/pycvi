@@ -116,7 +116,7 @@ def get_centroid(
 def f_pdist(
     cluster: np.ndarray,
     dist_kwargs: dict = {}
-) -> float:
+) -> np.ndarray:
     """
     Compute the pairwise distance within a group of elements
 
@@ -125,8 +125,9 @@ def f_pdist(
     :type cluster: np.ndarray
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
-    :return: pairwise distance within the cluster
-    :rtype: float
+    :return: pairwise distance within the cluster (a condensed matrix)
+        for the regular case or a (N_c, N_c) matrix for the DTW case
+    :rtype: np.ndarray
     """
     dims = cluster.shape
     if len(dims) == 2:
@@ -137,11 +138,11 @@ def f_pdist(
     if len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
         (N_c, w_t, d)  = cluster.shape
-        dist = np.zeros(N_c)
+        dist = np.zeros((N_c, N_c))
         for m in range(1, N_c):
-            dist[m-1, :N_c-m] = cdist_soft_dtw(
-                cluster[m:],
+            dist[m-1:m, :N_c-m] = cdist_soft_dtw(
                 np.expand_dims(cluster[m-1], 0),
+                cluster[m:],
                 gamma=1
             )
 
@@ -154,7 +155,7 @@ def f_cdist(
     clusterA: np.ndarray,
     clusterB: np.ndarray,
     dist_kwargs: dict = {},
-) -> float:
+) -> np.ndarray:
     """
     Compute the distance between two (group of) elements.
 
@@ -166,7 +167,7 @@ def f_cdist(
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
     :return: pairwise distance within the cluster
-    :rtype: float
+    :rtype: np.ndarray, shape (NA, NB)
     """
     clusterA, clusterB = match_dims(clusterA, clusterB)
     dims = clusterA.shape
@@ -207,10 +208,10 @@ def f_intra(
     :type cluster_info: dict
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
-    :return: pairwise distance within the cluster
+    :return: sum of pairwise distances within the cluster
     :rtype: float
     """
-    return sum(f_pdist(cluster, dist_kwargs))
+    return float(np.sum(f_pdist(cluster, dist_kwargs)))
 
 def f_inertia(
     cluster: np.ndarray,
@@ -227,12 +228,12 @@ def f_inertia(
     :type score_kwargs: dict
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
-    :return: pairwise distance within the cluster
+    :return: sum of squared distances between each element and the centroid
     :rtype: float
     """
     centroid = np.expand_dims(compute_center(cluster), 0)
     dist = f_cdist(cluster, centroid, **dist_kwargs )
-    return sum(dist)
+    return float(np.sum(dist))
 
 def f_generalized_var(
     cluster: np.ndarray,
