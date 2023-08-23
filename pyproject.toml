@@ -12,6 +12,7 @@ tslearn = "^0.6.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
+tslearn = "^0.6.2"
 
 [build-system]
 requires = ["poetry-core"]

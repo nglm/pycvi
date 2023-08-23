@@ -360,13 +360,13 @@ files = [
 
 [[package]]
 name = "tslearn"
-version = "0.6.1"
+version = "0.6.2"
 description = "A machine learning toolkit dedicated to time-series data"
 optional = false
 python-versions = "*"
 files = [
-    {file = "tslearn-0.6.1-py3-none-any.whl", hash = "sha256:3905f79be32cc9b40c02f0b3b0ca48fd98737fa65b008c23396c29cc7d84dabc"},
-    {file = "tslearn-0.6.1.tar.gz", hash = "sha256:aafb1ab423228974863d0a305347624d6441077c00ce94ea715e62f53407a1d3"},
+    {file = "tslearn-0.6.2-py3-none-any.whl", hash = "sha256:a53f417b2495c8b21d2df1c7fd556fcc5fc5a2559cbc2c63118f67e324ef6a61"},
+    {file = "tslearn-0.6.2.tar.gz", hash = "sha256:8640e9a5147d51f5d2776ef9ea7cbec901fc19534c970cee4c3e76e7961dd147"},
 ]
 
 [package.dependencies]
@@ -409,4 +409,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "aa31320dda1db56ab0488c11492ff823db716571104fac58492cb7348900d991"
+content-hash = "fd1cef76972271cb96471396e42685a6878843915acb8d22ecac93804655b88d"
