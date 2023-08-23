@@ -420,7 +420,7 @@ def generate_all_clusterings(
     (N, T, d) = data_copy.shape
 
     if n_clusters_range is None:
-        n_clusters_range = range(N)
+        n_clusters_range = range(N+1)
 
     if time_window is not None:
         wind = sliding_window(T, time_window)
