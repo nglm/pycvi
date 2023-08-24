@@ -6,6 +6,7 @@ from ..datasets import mini
 from ..compute_scores import (
     better_score, argbest, best_score, argworst, worst_score,
     compute_score, f_cdist, f_pdist, f_intra, f_inertia, compute_all_scores,
+    compute_subscores
 )
 
 def test_comparisons():
@@ -102,7 +103,29 @@ def test_f_inertia():
         assert type(dist) == float
 
 def test_compute_subscores():
-    pass
+    for mulivariate in [True, False]:
+        data, time = mini(multivariate=mulivariate)
+        (N, T, d) = data.shape
+        c1 = [i for i in range(N//2)]
+        c2 = [i for i in range(N//2, N)]
+
+        # DTW case
+        dist = compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
+        assert type(dist) == float
+        dist = compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
+        assert type(dist) == float
+        dist = compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
+        assert type(dist) == list
+        assert type(dist[0]) == float
+
+        # Non DTW case
+        dist = compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
+        assert type(dist) == float
+        dist = compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
+        assert type(dist) == float
+        dist = compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
+        assert type(dist) == list
+        assert type(dist[0]) == float
 
 def test_compute_score():
     pass
