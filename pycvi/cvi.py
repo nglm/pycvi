@@ -194,8 +194,7 @@ def silhouette(
     S_i1 = []
     nis = [len(c) for c in clusters]
 
-    for i1, (c1, _) in enumerate(clusters):
-        ni = len(c1)
+    for i1, c1 in enumerate(clusters):
 
         # Compute 'a' for all x (=X[m]) in c1 (excluding x in c1)
         a = [(1/nis[i1]) * reduce(f_cdist(X[c1], X[m]), "sum") for m in c1]
@@ -203,7 +202,7 @@ def silhouette(
         # Compute 'b' for all x (=X[m]) in c1
         b = [np.min([
                 reduce(f_cdist(X[c2], X[m]), "mean")
-                for i2, (c2, _) in enumerate(clusters) if i1 != i2
+                for i2, c2 in enumerate(clusters) if i1 != i2
             ]) for m in c1]
 
         # Silhouette score for cluster c1

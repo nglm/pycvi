@@ -196,6 +196,9 @@ def prepare_data(
     of clustering that were computed using `X_clus` is called
     "midpoint_w" in the window dictionary
 
+    Scaler has to be fit beforehand on the original data (even for)
+    the case k=0.
+
     X_clus is:
     - a list of T (N, w_t, d) arrays if sliding window and DTW was used
     - a list of T (N, w_t*d) arrays if sliding window was used but not DTW
@@ -220,7 +223,7 @@ def prepare_data(
 
     # Scaling for each variable and not time step wise
     if scaler is not None:
-        X_trans = scaler.fit_transform(X_trans.reshape(N, -1)).reshape(N, T, d)
+        X_trans = scaler.transform(X_trans.reshape(N, -1)).reshape(N, T, d)
 
     # If we use sliding windows, we return a list of extracted windows
     if window is not None:
@@ -418,6 +421,8 @@ def generate_all_clusterings(
 
     data_copy = set_data_shape(data)
     (N, T, d) = data_copy.shape
+    if scaler is not None:
+        scaler.fit(data_copy.reshape(N, -1))
 
     if n_clusters_range is None:
         n_clusters_range = range(N+1)

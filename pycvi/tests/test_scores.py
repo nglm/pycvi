@@ -145,30 +145,30 @@ def test_compute_score():
 
         # DTW case
         dist = compute_score("inertia", data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score("max_inertia", data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
-        assert type(dist[0]) == float
-        dist = compute_score(Inertia, data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist[0]) == float or type(dist) == np.float64)
+        dist = compute_score(Inertia(), data, [c1, c2])
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score(silhouette, data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
 
         # Non DTW case
         data = data.reshape(N, -1)
         dist = compute_score("inertia", data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score("max_inertia", data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
-        assert type(dist[0]) == float
-        dist = compute_score(Inertia, data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist[0]) == float or type(dist) == np.float64)
+        dist = compute_score(Inertia(), data, [c1, c2])
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score(silhouette, data, [c1, c2])
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
 
 def test_compute_all_scores():
     model_DTW = TimeSeriesKMeans

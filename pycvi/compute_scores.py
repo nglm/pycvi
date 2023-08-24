@@ -514,7 +514,7 @@ def compute_score(
                     + " is invalid. Please choose a valid score_type: "
                     + str(SCORES_TO_MAXIMIZE + SCORES_TO_MINIMIZE)
                 )
-        return score
+    return score
 
 def compute_all_scores(
     score: callable,
@@ -540,6 +540,8 @@ def compute_all_scores(
     data_copy = set_data_shape(data)
     data0 = generate_uniform(data_copy)
     (N, T, d) = data_copy.shape
+    if scaler is not None:
+        scaler.fit(data_copy.reshape(N, -1))
 
     if time_window is not None:
         wind = sliding_window(T, time_window)

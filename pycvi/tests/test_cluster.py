@@ -30,6 +30,7 @@ def test_prepare_data():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
+        scaler = StandardScaler().fit(data.reshape(N, -1))
         l_w = [1, T//2, T]
 
         # Using DTW and window
@@ -39,7 +40,7 @@ def test_prepare_data():
             data_clus = prepare_data(
                 data,
                 DTW=True, window=window, transformer=None,
-                scaler=StandardScaler(),
+                scaler=scaler,
             )
 
             exp_len = T
@@ -56,7 +57,7 @@ def test_prepare_data():
         data_clus = prepare_data(
             data,
             DTW=True, window=None, transformer=None,
-            scaler=StandardScaler(),
+            scaler=scaler,
         )
         assert len(data_clus) == 1
         assert data_clus[0].shape == (N, T, d)
@@ -153,6 +154,7 @@ def test_get_clusters():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
+        scaler = StandardScaler().fit(data.reshape(N, -1))
         l_w = [1, T//2, T]
 
         # Using DTW and window
@@ -162,7 +164,7 @@ def test_get_clusters():
             data_clus = prepare_data(
                 data,
                 DTW=True, window=window, transformer=None,
-                scaler=StandardScaler(),
+                scaler=scaler,
             )
             fit_predict_kw = {
                 "X" : data_clus[0]
@@ -185,7 +187,7 @@ def test_get_clusters():
         data_clus = prepare_data(
             data,
             DTW=True, window=None, transformer=None,
-            scaler=StandardScaler(),
+            scaler=scaler,
         )
         fit_predict_kw = {
             "X" : data_clus[0]
@@ -210,7 +212,7 @@ def test_get_clusters():
             data_clus = prepare_data(
                 data,
                 DTW=False, window=window, transformer=None,
-                scaler=StandardScaler(),
+                scaler=scaler,
             )
             fit_predict_kw = {
                 "X" : data_clus[0]
@@ -233,7 +235,7 @@ def test_get_clusters():
         data_clus = prepare_data(
             data,
             DTW=False, window=None, transformer=None,
-            scaler=StandardScaler(),
+            scaler=scaler,
         )
         fit_predict_kw = {
             "X" : data_clus[0]
