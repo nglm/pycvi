@@ -245,7 +245,6 @@ def test_generate_all_clusterings():
 
     Test with/without DTW/sliding window
     """
-    k = 2
     model_DTW = TimeSeriesKMeans
     model = KMeans
     for multivariate in [True, False]:
