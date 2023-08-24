@@ -69,7 +69,7 @@ def _dist_between_centroids(
     global_center = np.expand_dims(compute_center(X), 0)
     dist = [
         # Distance between the centroids and the global centroid
-        f_pdist(
+        f_cdist(
             np.expand_dims(compute_center(X[c]), 0),
             global_center,
             dist_kwargs
