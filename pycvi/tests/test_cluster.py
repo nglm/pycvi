@@ -6,8 +6,20 @@ from sklearn.preprocessing import StandardScaler
 
 from ..datasets import mini
 from ..cluster import (
-    sliding_window, prepare_data, get_clusters, generate_all_clusterings
+    sliding_window, prepare_data, get_clusters, generate_all_clusterings,
+    generate_uniform
 )
+
+def test_generate_uniform():
+    """
+    Test shapes of the output
+    """
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
+        (N, T, d) = data.shape
+        data0 = generate_uniform(data)
+        assert type(data0) == np.ndarray
+        assert data0.shape == (N, T, d)
 
 def test_prepare_data():
     """
