@@ -167,7 +167,7 @@ def hartigan(
     N = len(X)
     k = len(clustersk1)
     if k == N:
-        hartigan = 0
+        hartigan = 0.
     else:
         Wk1 = _compute_Wk(X, clustersk1)
         Wk2 = _compute_Wk(X, clustersk2)
@@ -241,7 +241,7 @@ def CH(
     # If we forget about the (N-k) / (k-1) factor, CH is defined and
     # is equal to 0
     if k == 1:
-        CH = 0
+        CH = 0.
     # Very special case for the case k=0
     elif k == 0:
 
