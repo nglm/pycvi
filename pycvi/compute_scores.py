@@ -517,7 +517,7 @@ def compute_score(
         return score
 
 def compute_all_scores(
-    score,
+    score: callable,
     data: np.ndarray,
     clusterings: List[Dict[int, List[List[int]]]],
     transformer = None,

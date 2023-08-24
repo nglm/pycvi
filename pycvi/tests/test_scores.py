@@ -1,6 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
+from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 from ..scores import Inertia
 
 from ..datasets import mini
@@ -9,7 +11,8 @@ from ..compute_scores import (
     compute_score, f_cdist, f_pdist, f_intra, f_inertia, compute_all_scores,
     compute_subscores
 )
-from ..cvi import silhouette
+from ..cvi import silhouette, CH
+from ..cluster import generate_all_clusterings
 
 def test_comparisons():
     maximize = False
@@ -168,4 +171,58 @@ def test_compute_score():
         assert type(dist) == float
 
 def test_compute_all_scores():
-    pass
+    model_DTW = TimeSeriesKMeans
+    model = KMeans
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
+        (N, T, d) = data.shape
+
+        # Using DTW but not window
+        DTW = True
+        clusterings_t_k = generate_all_clusterings(
+                data, model_DTW,
+                DTW=DTW, time_window=None, transformer=None,
+                scaler=StandardScaler(),
+                model_kw={}, fit_predict_kw={}, model_class_kw={}
+            )
+
+        scores_t_k = compute_all_scores(
+            Inertia(), data, clusterings_t_k,
+            transformer=None, scaler=StandardScaler(), DTW=DTW,
+            time_window=None
+        )
+
+        # T_w = 1
+        assert (len(scores_t_k) == 1)
+        for k in range(N+1):
+            # all clusterings were computed
+            assert k in scores_t_k[0]
+        # List[Dict[int, float]]
+        assert (type(scores_t_k) == list)
+        assert (type(scores_t_k[0]) == dict)
+        assert (type(scores_t_k[0][0]) == float)
+
+        # Not using DTW nor window
+        DTW = False
+        clusterings_t_k = generate_all_clusterings(
+                data, model_DTW,
+                DTW=DTW, time_window=None, transformer=None,
+                scaler=None,
+                model_kw={}, fit_predict_kw={}, model_class_kw={}
+            )
+
+        scores_t_k = compute_all_scores(
+            CH, data, clusterings_t_k,
+            transformer=None, scaler=None, DTW=DTW,
+            time_window=None
+        )
+
+        # T_w = 1
+        assert (len(scores_t_k) == 1)
+        for k in range(N+1):
+            # all clusterings were computed
+            assert k in scores_t_k[0]
+        # List[Dict[int, float]]
+        assert (type(scores_t_k) == list)
+        assert (type(scores_t_k[0]) == dict)
+        assert (type(scores_t_k[0][0]) == float)
