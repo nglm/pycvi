@@ -245,9 +245,6 @@ def test_generate_all_clusterings():
 
     Test with/without DTW/sliding window
     """
-    model_kw = {
-        "n_clusters": 2
-    }
     k = 2
     model_DTW = TimeSeriesKMeans
     model = KMeans
@@ -313,8 +310,8 @@ def test_generate_all_clusterings():
         # data_clus is a list of T (N, w_t*d) arrays
         for w in l_w:
             clusterings_t_k = generate_all_clusterings(
-                data, model_DTW,
-                DTW=True, time_window=w, transformer=None,
+                data, model,
+                DTW=False, time_window=w, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -339,7 +336,7 @@ def test_generate_all_clusterings():
         # Not using DTW nor window
         # data_clus is a list of 1 (N, T*d) array
         clusterings_t_k = generate_all_clusterings(
-                data, model_DTW,
+                data, model,
                 DTW=False, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
