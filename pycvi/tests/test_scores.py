@@ -48,8 +48,8 @@ def test_comparisons():
         assert (out == out_exp_score), msg
 
 def test_f_pdist():
-    for mulivariate in [True, False]:
-        data, time = mini(multivariate=mulivariate)
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         # DTW case
         dist = f_pdist(data)
@@ -62,8 +62,8 @@ def test_f_pdist():
 
 
 def test_f_cdist():
-    for mulivariate in [True, False]:
-        data, time = mini(multivariate=mulivariate)
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         # DTW case
         dist = f_cdist(data[N//2:], data[:N//2])
@@ -79,8 +79,8 @@ def test_f_cdist():
         assert dist.shape == exp_shape
 
 def test_f_intra():
-    for mulivariate in [True, False]:
-        data, time = mini(multivariate=mulivariate)
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         # DTW case
         dist = f_intra(data)
@@ -92,8 +92,8 @@ def test_f_intra():
         assert type(dist) == float
 
 def test_f_inertia():
-    for mulivariate in [True, False]:
-        data, time = mini(multivariate=mulivariate)
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         # DTW case
         dist = f_inertia(data)
@@ -105,8 +105,8 @@ def test_f_inertia():
         assert type(dist) == float
 
 def test_compute_subscores():
-    for mulivariate in [True, False]:
-        data, time = mini(multivariate=mulivariate)
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         c1 = [i for i in range(N//2)]
         c2 = [i for i in range(N//2, N)]
@@ -134,8 +134,8 @@ def test_compute_score():
     """
     Test types of outputs and try with "str", "Score" and "callable" scores
     """
-    for mulivariate in [True, False]:
-        data, time = mini(multivariate=mulivariate)
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         c1 = [i for i in range(N//2)]
         c2 = [i for i in range(N//2, N)]
