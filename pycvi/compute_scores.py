@@ -232,7 +232,7 @@ def f_inertia(
     :rtype: float
     """
     centroid = np.expand_dims(compute_center(cluster), 0)
-    dist = f_cdist(cluster, centroid, **dist_kwargs )
+    dist = f_cdist(cluster, centroid, dist_kwargs )
     return float(np.sum(dist))
 
 def f_generalized_var(
