@@ -2,6 +2,7 @@
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from tslearn.clustering import TimeSeriesKMeans
 import numpy as np
 
 from .compute_scores import (
@@ -19,8 +20,15 @@ def _clusters_from_uniform(X, n_clusters):
     """
     N = len(X)
 
+    # DTW case
+    if len(X.shape) == 3:
+        model = TimeSeriesKMeans(n_clusters=n_clusters)
+    elif len(X.shape) == 2:
+        model = KMeans(n_clusters=n_clusters)
+    else:
+        ValueError("X must have shape (N, T, d) or (N, T*d)")
+
     # Fit a KMeans model to the sample from a uniform distribution
-    model = KMeans(n_clusters=n_clusters)
     labels = model.fit_predict(X)
 
     # Sort members into the different clusters and compute their
@@ -53,7 +61,7 @@ def _compute_Wk(
     # Compute the log of the within-cluster dispersion of the clustering
     nis = [len(c) for c in clusters]
     d_intra = [f_pdist(X[c], dist_kwargs) for c in clusters]
-    Wk = sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
+    Wk = np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
     return Wk
 
 def _dist_between_centroids(
@@ -104,7 +112,7 @@ def gap_statistic(
     wcss = np.log(_compute_Wk(X, clusters))
 
     # Generate B random datasets with the same shape as the input data
-    random_datasets = [np.random.rand(X.shape) for _ in range(B)]
+    random_datasets = [np.random.rand(*X.shape) for _ in range(B)]
 
     # Compute the log of the within-cluster dispersion for each random dataset
     wcss_rand = []
@@ -136,12 +144,12 @@ def score_function(
 
     nis = [len(c) for c in clusters]
 
-    bdc = 1/(N*k) * sum(
+    bdc = 1/(N*k) * np.sum(
         np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
     )
 
-    wdc = sum([
-        f_inertia(c, dist_kwargs) / len(c)
+    wdc = np.sum([
+        f_inertia(X[c], dist_kwargs) / len(c)
         for c in clusters
     ])
 
@@ -201,7 +209,7 @@ def silhouette(
 
         # Compute 'b' for all x (=X[m]) in c1
         b = [np.min([
-                reduce(f_cdist(X[c2], X[m]), "mean")
+                reduce(f_cdist(X[c2], np.expand_dims(X[m], 0)), "mean")
                 for i2, c2 in enumerate(clusters) if i1 != i2
             ]) for m in c1]
 
@@ -265,7 +273,7 @@ def CH(
         # denominator or the case k=1 (which is not used because CH(1) =
         # 0)
         # Note that the list has actually only one element
-        comp = sum([
+        comp = np.sum([
             f_inertia(X[c], dist_kwargs) for c in clusters
         ])
         CH = - N * (sep / comp)
@@ -273,11 +281,11 @@ def CH(
     # Normal case
     else:
         nis = [len(c) for c in clusters]
-        sep = sum(
+        sep = np.sum(
             np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
         )
 
-        comp = sum([
+        comp = np.sum([
             f_inertia(X[c], dist_kwargs) for c in clusters
         ])
 

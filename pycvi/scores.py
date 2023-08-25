@@ -33,7 +33,15 @@ class Score():
         clusters: List[List[int]],
         score_kwargs: dict = {},
     ) -> float:
-        return self.function(X, clusters, **score_kwargs)
+        n_clusters = len(clusters)
+        if self.k_condition(n_clusters):
+            return self.function(X, clusters, **score_kwargs)
+        else:
+            msg = (
+                f"{self.__class__} called with an incompatible number of "
+                + f"clusters: {n_clusters}"
+            )
+            raise ValueError(msg)
 
     def is_relevant(self, score, k, score_prev, k_prev) -> bool:
         # A score is always relevant when it is absolute

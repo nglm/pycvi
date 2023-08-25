@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
 from sklearn.preprocessing import StandardScaler
-from tslearn.metrics import cdist_soft_dtw
+from tslearn.metrics import cdist_soft_dtw_normalized
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from ._configuration import set_data_shape
@@ -11,7 +11,7 @@ from .cluster import (
     compute_center, prepare_data, sliding_window, generate_uniform
 )
 
-SCORES = [
+OLD_SCORES = [
         'inertia',
         'mean_inertia',  # mean inertia and distortion are the same thing
         'weighted_inertia',
@@ -27,9 +27,9 @@ SCORES = [
         'max_MedDevCentroid',
 ]
 
-SUBSCORES = ["", "mean_", "median_", "weighted_", "min_", "max_"]
+OLD_SUBSCORES = ["", "mean_", "median_", "weighted_", "min_", "max_"]
 
-MAIN_SCORES_TO_MINIMIZE = [
+OLD_MAIN_SCORES_TO_MINIMIZE = [
     "inertia",
     #"variance",            #TODO: Outdated since DTW
     "MedDevCentroid",
@@ -38,13 +38,13 @@ MAIN_SCORES_TO_MINIMIZE = [
     #'diameter',            #TODO: Outdated since DTW
 ]
 
-MAIN_SCORES_TO_MAXIMIZE = []
+OLD_MAIN_SCORES_TO_MAXIMIZE = []
 
-SCORES_TO_MINIMIZE = [p+s for s in MAIN_SCORES_TO_MINIMIZE for p in SUBSCORES]
-SCORES_TO_MAXIMIZE = [p+s for s in MAIN_SCORES_TO_MAXIMIZE for p in SUBSCORES]
+OLD_SCORES_TO_MINIMIZE = [p+s for s in OLD_MAIN_SCORES_TO_MINIMIZE for p in OLD_SUBSCORES]
+OLD_SCORES_TO_MAXIMIZE = [p+s for s in OLD_MAIN_SCORES_TO_MAXIMIZE for p in OLD_SUBSCORES]
 
-SCORES_TO_MINIMIZE += []
-SCORES_TO_MAXIMIZE += ["gap_statistic", "CH", "silhouette", "score_function"]
+OLD_SCORES_TO_MINIMIZE += []
+OLD_SCORES_TO_MAXIMIZE += ["gap_statistic", "CH", "silhouette", "score_function"]
 
 SCORES_MONOTONOUS = [
     "CH", "gap_statistic"
@@ -74,6 +74,11 @@ def reduce(
     dist: np.ndarray,
     reduction: Union[str, callable] = None,
 ) -> Union[float, np.ndarray]:
+    """
+    reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
+    `"min"`, `""`, `None` or a callable. See
+    `pycvi.compute_scores.reduce`
+    """
     if reduction is not None:
         if reduction == "sum":
             dist = np.sum(dist)
@@ -140,7 +145,7 @@ def f_pdist(
         (N_c, w_t, d)  = cluster.shape
         dist = np.zeros((N_c, N_c))
         for m in range(1, N_c):
-            dist[m-1:m, :N_c-m] = cdist_soft_dtw(
+            dist[m-1:m, :N_c-m] = cdist_soft_dtw_normalized(
                 np.expand_dims(cluster[m-1], 0),
                 cluster[m:],
                 gamma=1
@@ -179,7 +184,7 @@ def f_cdist(
         )
     if len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
-        dist = cdist_soft_dtw(
+        dist = cdist_soft_dtw_normalized(
             clusterA,
             clusterB,
             gamma=1
@@ -574,11 +579,15 @@ def compute_all_scores(
             clusters = clusterings[t_w][n_clusters]
 
             # ------------ Score corresponding to 'n_clusters' ---------
-            res_score = score(
-                X=X_clus,
-                clusters=clusters,
-                **score_kwargs
-            )
+            try:
+                res_score = score(
+                    X=X_clus,
+                    clusters=clusters,
+                    **score_kwargs
+                )
+            # Ignore if the score was used with a wrong number of clusters
+            except ValueError:
+                res_score = None
 
             if verbose:
                 print(" ========= {t_w} ========= ")
