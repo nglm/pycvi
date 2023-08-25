@@ -10,7 +10,6 @@ from .compute_scores import (
     reduce
 )
 
-
 class Score():
 
     def __init__(
@@ -125,6 +124,48 @@ class CalinskiHarabasz(Score):
             k_condition = k_condition,
         )
 
+class GapStatistic(Score):
+
+    def __init__(
+        self,
+        score_type: str = "monotonous",
+        B: int = 10
+    ) -> None:
+
+        k_condition = lambda k: (
+            k>=0 if score_type == "monotonous" else k>=1
+        )
+
+        super().__init__(
+            score_function= lambda X, clusters: gap_statistic(X, clusters, B),
+            maximise=True,
+            improve=True,
+            score_type=score_type,
+            k_condition=k_condition
+        )
+
+class Silhouette(Score):
+
+    def __init__(self) -> None:
+        super().__init__(
+            score_function= lambda X, clusters: silhouette(X, clusters),
+            maximise=True,
+            improve=None,
+            score_type="absolute",
+            k_condition= lambda k: (k>=2)
+        )
+
+class ScoreFunction(Score):
+
+    def __init__(self) -> None:
+        super().__init__(
+            score_function= lambda X, clusters: score_function(X, clusters),
+            maximise=True,
+            improve=None,
+            score_type="absolute",
+            k_condition= lambda k: (k>=1)
+        )
+
 class Inertia(Score):
 
     def __init__(
@@ -133,7 +174,8 @@ class Inertia(Score):
     ) -> None:
         """
         reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
-        `"min"`, `""`, `None`. see `pycvi.compute_scores.reduce`
+        `"min"`, `""`, `None` or a callable. See
+        `pycvi.compute_scores.reduce`
         """
 
         k_condition = lambda k: k>=0
@@ -151,18 +193,24 @@ class Inertia(Score):
             k_condition = k_condition,
         )
 
-class MaxDiameter(Score):
+class Diameter(Score):
 
     def __init__(
         self,
+        reduction: Union[str, callable] = "sum",
     ) -> None:
+        """
+        reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
+        `"min"`, `""`, `None` or a callable. See
+        `pycvi.compute_scores.reduce`
+        """
 
         k_condition = lambda k: k>=0
 
         def score_function(X, clusters):
-            return compute_score(
-                "max_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
-            )
+            return reduce(compute_score(
+                "list_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
+                ), reduction)
 
         super().__init__(
             score_function=score_function,
@@ -171,3 +219,13 @@ class MaxDiameter(Score):
             score_type="monotonous",
             k_condition = k_condition,
         )
+
+SCORES = [
+    Hartigan,
+    CalinskiHarabasz,
+    GapStatistic,
+    Silhouette,
+    ScoreFunction,
+    Inertia,
+    Diameter,
+]
