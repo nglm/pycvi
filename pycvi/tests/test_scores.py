@@ -12,7 +12,7 @@ from ..compute_scores import (
 from ..cluster import generate_all_clusterings
 
 
-def test_compute_all_scores():
+def test_Scores():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape

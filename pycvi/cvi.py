@@ -234,7 +234,11 @@ def silhouette(
         # The usual formula is written a sum divided by the number of x,
         # which is the mean
         S_i1.append(np.mean(
-            [(b_x - a_x) / (max(b_x, a_x)) for (a_x, b_x) in zip(a, b)]
+            [
+                (b_x - a_x) / (max(b_x, a_x))
+                # To address the case of 2 singletons being equal
+                if (a_x != 0 or b_x != 0) else 0
+                for (a_x, b_x) in zip(a, b)]
         ))
 
     # Silhouette score of the clustering
