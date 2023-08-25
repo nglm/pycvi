@@ -60,7 +60,7 @@ def _compute_Wk(
     dist_kwargs.setdefault("metric", "sqeuclidean")
     # Compute the log of the within-cluster dispersion of the clustering
     nis = [len(c) for c in clusters]
-    d_intra = [f_pdist(X[c], dist_kwargs) for c in clusters]
+    d_intra = [np.sum(f_pdist(X[c], dist_kwargs)) for c in clusters]
     Wk = np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
     return Wk
 
@@ -121,7 +121,11 @@ def gap_statistic(
         wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand)))
 
     # Compute the gap statistic for the current clustering
-    gap = np.mean(wcss_rand) - wcss
+    gap = float(np.mean(wcss_rand) - wcss)
+    # To address the case of singletons. Note that gap=0 means that the
+    # clustering is irrelevant.
+    if gap == -np.inf:
+        gap = 0
     return gap
 
 def score_function(
