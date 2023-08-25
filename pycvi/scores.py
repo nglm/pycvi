@@ -229,7 +229,7 @@ class Diameter(Score):
         )
 
 SCORES = [
-    Hartigan,
+    #Hartigan,  # Remove because of the annoying clustering2 argument
     CalinskiHarabasz,
     GapStatistic,
     Silhouette,
