@@ -390,7 +390,7 @@ def compute_subscores(
         ]
     if (score_type in [p + main_score for p in prefixes] ):
         # Take the sum
-        score = sum(score_tmp)
+        score = np.sum(score_tmp)
         # Take the mean score by cluster
         if score_type  == "mean_" + main_score:
             score /= len(clusters)
