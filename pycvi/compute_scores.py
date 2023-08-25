@@ -601,11 +601,12 @@ def argbest(
 def best_score(
     scores: List[float],
     maximize: bool,
+    ignore_None: bool = False,
 ) -> float:
     """
     Returns best score
     """
-    return scores[argbest(scores, maximize)]
+    return scores[argbest(scores, maximize, ignore_None)]
 
 def argworst(
     scores: List[float],

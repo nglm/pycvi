@@ -78,9 +78,10 @@ class Score():
     def best_score(
         self,
         scores: List[float],
+        ignore_None: bool = False,
     ) -> float:
 
-        return best_score(scores, self.maximise)
+        return best_score(scores, self.maximise, ignore_None)
 
     def argworst(
         self,
