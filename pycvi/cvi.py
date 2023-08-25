@@ -277,7 +277,8 @@ def CH(
             f_inertia(X[c], dist_kwargs) for c in clusters
         ])
         CH = - N * (sep / comp)
-
+    elif k == N:
+        CH=0.
     # Normal case
     else:
         nis = [len(c) for c in clusters]
