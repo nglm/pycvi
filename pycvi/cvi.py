@@ -121,10 +121,14 @@ def gap_statistic(
         wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand)))
 
     # Compute the gap statistic for the current clustering
-    gap = float(np.mean(wcss_rand) - wcss)
+    mean_wcss_rand = np.mean(wcss_rand)
+    gap = float(mean_wcss_rand - wcss)
     # To address the case of singletons. Note that gap=0 means that the
     # clustering is irrelevant.
     if gap == -np.inf:
+        gap = 0
+    # To address the case where both are -np.inf which yield gap=nan
+    elif mean_wcss_rand == -np.inf and wcss == -np.inf:
         gap = 0
     return gap
 
