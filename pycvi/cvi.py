@@ -212,12 +212,21 @@ def silhouette(
 
     for i1, c1 in enumerate(clusters):
 
-        # Compute 'a' for all x (=X[m]) in c1 (excluding x in c1)
-        a = [(1/nis[i1]) * reduce(f_cdist(X[c1], X[m]), "sum") for m in c1]
+        # --- Compute 'a' for all x (=X[m]) in c1 (excluding x in c1) --
+        # Case in which there is only x in a
+        if nis[i1] == 1:
+            a = [0]
+        # It is usually written as a mean, but since we have to exclude
+        # x in c1, we don't get the same number of operations
+        else:
+            a = [
+                (1/(nis[i1]-1)) * np.sum(f_cdist(X[c1], X[m]))
+                for m in c1
+            ]
 
         # Compute 'b' for all x (=X[m]) in c1
         b = [np.min([
-                reduce(f_cdist(X[c2], np.expand_dims(X[m], 0)), "mean")
+                np.mean(f_cdist(X[c2], np.expand_dims(X[m], 0)))
                 for i2, c2 in enumerate(clusters) if i1 != i2
             ]) for m in c1]
 
