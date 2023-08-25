@@ -11,61 +11,6 @@ from .cluster import (
     compute_center, prepare_data, sliding_window, generate_uniform
 )
 
-OLD_SCORES = [
-        'inertia',
-        'mean_inertia',  # mean inertia and distortion are the same thing
-        'weighted_inertia',
-        'max_inertia',
-        # ----------
-        #'variance',     #TODO: Outdated since DTW
-        # ----------
-        #"diameter",     #TODO: Outdated since DTW
-        #"max_diameter", #TODO: Outdated since DTW
-        # ----------
-        'MedDevCentroid',
-        'mean_MedDevCentroid',
-        'max_MedDevCentroid',
-]
-
-OLD_SUBSCORES = ["", "mean_", "median_", "weighted_", "min_", "max_"]
-
-OLD_MAIN_SCORES_TO_MINIMIZE = [
-    "inertia",
-    #"variance",            #TODO: Outdated since DTW
-    "MedDevCentroid",
-    #"MeanDevMed",          #TODO: Outdated since DTW
-    #"MedDevMed",           #TODO: Outdated since DTW
-    #'diameter',            #TODO: Outdated since DTW
-]
-
-OLD_MAIN_SCORES_TO_MAXIMIZE = []
-
-OLD_SCORES_TO_MINIMIZE = [p+s for s in OLD_MAIN_SCORES_TO_MINIMIZE for p in OLD_SUBSCORES]
-OLD_SCORES_TO_MAXIMIZE = [p+s for s in OLD_MAIN_SCORES_TO_MAXIMIZE for p in OLD_SUBSCORES]
-
-OLD_SCORES_TO_MINIMIZE += []
-OLD_SCORES_TO_MAXIMIZE += ["gap_statistic", "CH", "silhouette", "score_function"]
-
-SCORES_MONOTONOUS = [
-    "CH", "gap_statistic"
-]
-
-SCORES_ABSOLUTE = [
-    "silhouette", "score_function"
-]
-
-# For monotonous scores only: "does the score increase with croissant number
-# of clusters?""
-SCORES_INCREASE = [
-    "CH", "gap_statistic"
-]
-
-# For monotonous scores only: "does the score improve with croissant number
-# of clusters?""
-SCORES_IMPROVE = [
-    "inertia", "mean_inertia", "max_inertia",  "gap_statistic", "CH"
-]
-
 DEFAULT_DIST_KWARGS = {
     "metric" : 'sqeuclidean',
 }
@@ -417,8 +362,7 @@ def compute_subscores(
     else:
         raise ValueError(
                 score_type + " has an invalid prefix."
-                + "Please choose a valid score_type: "
-                + str(SCORES_TO_MAXIMIZE + SCORES_TO_MINIMIZE)
+                + "Please choose a valid score_type"
             )
     return score
 
@@ -516,8 +460,7 @@ def compute_score(
         else:
             raise ValueError(
                     score_type
-                    + " is invalid. Please choose a valid score_type: "
-                    + str(SCORES_TO_MAXIMIZE + SCORES_TO_MINIMIZE)
+                    + " is invalid. Please choose a valid score_type."
                 )
     return score
 
