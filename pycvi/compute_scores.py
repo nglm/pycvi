@@ -578,18 +578,25 @@ def better_score(
 def argbest(
     scores: List[float],
     maximize: bool,
+    ignore_None: bool = False,
 ) -> int:
     """
     Returns index of best score
     """
-    try:
-        res = scores.index(None)
-        return res
-    except ValueError:
-        if maximize:
-            return int(np.argmax(scores))
-        else:
-            return int(np.argmin(scores))
+    # In some cases we want "None" to be the best score
+    if not ignore_None:
+        try:
+            res = scores.index(None)
+            return res
+        except ValueError:
+            # If we wanted None to be the best but there is no None
+            # just continue with the regular case
+            pass
+    scores_with_nans = [s if s is not None else np.nan for s in scores]
+    if maximize:
+        return int(np.nanargmax(scores_with_nans))
+    else:
+        return int(np.nanargmin(scores_with_nans))
 
 def best_score(
     scores: List[float],
