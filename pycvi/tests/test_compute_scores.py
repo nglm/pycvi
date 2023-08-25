@@ -116,22 +116,22 @@ def test_compute_subscores():
 
         # DTW case
         dist = compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
         assert type(dist) == list
-        assert type(dist[0]) == float
+        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
 
         # Non DTW case
         data = data.reshape(N, -1)
         dist = compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
-        assert type(dist) == float
+        assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
         assert type(dist) == list
-        assert type(dist[0]) == float
+        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
 
 def test_compute_score():
     """
@@ -150,7 +150,7 @@ def test_compute_score():
         assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
-        assert (type(dist[0]) == float or type(dist) == np.float64)
+        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
         dist = compute_score(Inertia(), data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score(silhouette, data, [c1, c2])
@@ -164,7 +164,7 @@ def test_compute_score():
         assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
-        assert (type(dist[0]) == float or type(dist) == np.float64)
+        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
         dist = compute_score(Inertia(), data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
         dist = compute_score(silhouette, data, [c1, c2])
