@@ -6,7 +6,8 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .cvi import gap_statistic, silhouette, score_function, CH, hartigan
 from .compute_scores import (
-    best_score, better_score, worst_score, argbest, argworst, compute_score
+    best_score, better_score, worst_score, argbest, argworst, compute_score,
+    reduce
 )
 
 
@@ -128,14 +129,19 @@ class Inertia(Score):
 
     def __init__(
         self,
+        reduction: Union[str, callable] = "sum",
     ) -> None:
+        """
+        reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
+        `"min"`, `""`, `None`. see `pycvi.compute_scores.reduce`
+        """
 
         k_condition = lambda k: k>=0
 
         def score_function(X, clusters):
-            return compute_score(
-                "inertia", X, clusters, dist_kwargs={}, score_kwargs={}
-            )
+            return reduce(compute_score(
+                "list_inertia", X, clusters, dist_kwargs={}, score_kwargs={}
+                ), reduction)
 
         super().__init__(
             score_function=score_function,
