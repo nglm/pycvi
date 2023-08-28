@@ -160,22 +160,22 @@ def generate_uniform(
     """
     # Determines how to measure the score of the 0th component
     if zero_type == 'variance':
-        raise NotImplementedError("Only 'bounds' is implemented as `zero_type`")
         # Get the parameters of the uniform distrib using mean and variance
-        var = np.var(data, axis=0)
-        mean = np.mean(data, axis=0)
+        var = np.var(data, axis=0, keepdims=True)[0]
+        mean = np.mean(data, axis=0, keepdims=True)[0]
 
         mins = (2*mean - np.sqrt(12*var)) / 2
         maxs = (2*mean + np.sqrt(12*var)) / 2
-
-    # Get the parameters of the uniform distrib using min and max
-    # We keep all the dims except the first one (Hence the 0) because
-    # The number of members dimension will be added in members_0 in the
-    # List comprehension
-    # data of shape (N, T, d) even if d and T were initially omitted
-    # mins and max of shape (T, d) (the [0] is to get rid of the N dim)
-    mins = np.amin(data, axis=0, keepdims=True)[0]
-    maxs = np.amax(data, axis=0, keepdims=True)[0]
+    else:
+        # Get the parameters of the uniform distrib using min and max We
+        # keep all the dims except the first one (Hence the 0) because
+        # The number of members dimension will be added in members_0 in
+        # the List comprehension
+        # data of shape (N, T, d) even if d and T were initially omitted
+        # mins and max of shape (T, d) (the [0] is to get rid of the N
+        # dim)
+        mins = np.amin(data, axis=0, keepdims=True)[0]
+        maxs = np.amax(data, axis=0, keepdims=True)[0]
 
     (N, T, d) = data.shape
     # Generate N_zero samples from a uniform distribution with shape
