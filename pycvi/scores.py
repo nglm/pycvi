@@ -130,6 +130,7 @@ class Hartigan(Score):
         score_kwargs: dict = {}
     ) -> None:
         s_kw = {}
+        s_kw["k"] = n_clusters
         if n_clusters < len(X_clus):
             s_kw["clusters_next"] = clusterings_t.get(n_clusters+1, None)
         s_kw.update(score_kwargs)
@@ -199,6 +200,7 @@ class GapStatistic(Score):
         score_kwargs: dict = {}
     ) -> None:
         s_kw = {"B" : 10}
+        s_kw["k"] = n_clusters
         s_kw.update(score_kwargs)
         return s_kw
 

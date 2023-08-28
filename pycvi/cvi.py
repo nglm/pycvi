@@ -89,7 +89,8 @@ def _dist_between_centroids(
 def gap_statistic(
     X : np.ndarray,
     clusters: List[List[int]],
-    B: int = 10
+    B: int = 10,
+    k: int = None,
 ) -> float:
     """
     Compute the Gap statistics for a given clustering
@@ -106,30 +107,31 @@ def gap_statistic(
     :return: The gap statistics
     :rtype: float
     """
-    k = len(clusters)
-
-    # Compute the log of the within-cluster dispersion of the clustering
-    wcss = np.log(_compute_Wk(X, clusters))
-
-    # Generate B random datasets with the same shape as the input data
-    random_datasets = [np.random.rand(*X.shape) for _ in range(B)]
-
-    # Compute the log of the within-cluster dispersion for each random dataset
-    wcss_rand = []
-    for X_rand in random_datasets:
-        clusters_rand = _clusters_from_uniform(X_rand, k)
-        wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand)))
-
-    # Compute the gap statistic for the current clustering
-    mean_wcss_rand = np.mean(wcss_rand)
-    gap = float(mean_wcss_rand - wcss)
-    # To address the case of singletons. Note that gap=0 means that the
-    # clustering is irrelevant.
-    if gap == -np.inf:
+    if k == 0:
         gap = 0
-    # To address the case where both are -np.inf which yield gap=nan
-    elif mean_wcss_rand == -np.inf and wcss == -np.inf:
-        gap = 0
+    else:
+        # Compute the log of the within-cluster dispersion of the clustering
+        wcss = np.log(_compute_Wk(X, clusters))
+
+        # Generate B random datasets with the same shape as the input data
+        random_datasets = [np.random.rand(*X.shape) for _ in range(B)]
+
+        # Compute the log of the within-cluster dispersion for each random dataset
+        wcss_rand = []
+        for X_rand in random_datasets:
+            clusters_rand = _clusters_from_uniform(X_rand, k)
+            wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand)))
+
+        # Compute the gap statistic for the current clustering
+        mean_wcss_rand = np.mean(wcss_rand)
+        gap = float(mean_wcss_rand - wcss)
+        # To address the case of singletons. Note that gap=0 means that the
+        # clustering is irrelevant.
+        if gap == -np.inf:
+            gap = 0
+        # To address the case where both are -np.inf which yield gap=nan
+        elif mean_wcss_rand == -np.inf and wcss == -np.inf:
+            gap = 0
     return gap
 
 def score_function(
@@ -168,7 +170,8 @@ def score_function(
 def hartigan(
     X : np.ndarray,
     clusters: List[Tuple[List[int], Dict]],
-    clusters_next: List[Tuple[List[int], Dict]],
+    clusters_next: List[Tuple[List[int], Dict]] = None,
+    k:int = None,
 ) -> float:
     """
     Compute the hartigan index for a given clustering
@@ -181,11 +184,17 @@ def hartigan(
     :rtype: float
     """
     N = len(X)
-    k = len(clusters)
+    # We can't compute using the next clustering, but in any case,
+    # we'll have Wk=0
     if k == N:
         hartigan = 0.
+    # Because of the factor (N-k-1)
+    elif k == N-1:
+        hartigan = 0
+    # If we haven't computed the case k+1
     elif clusters_next is None:
         hartigan = 0.
+    # Regular case
     else:
         Wk = _compute_Wk(X, clusters)
         Wk_next = _compute_Wk(X, clusters_next)
