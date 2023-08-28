@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from tslearn.metrics import dtw_path
 from tslearn.barycenters import softdtw_barycenter
-from typing import List, Sequence, Union, Any, Dict
+from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._configuration import set_data_shape, get_model_parameters
 
 
@@ -149,20 +149,21 @@ def compute_cluster_params(
     return cluster_params
 
 def generate_uniform(
-    X: np.ndarray,
+    data: np.ndarray,
     zero_type: str = "bounds",
-) -> np.ndarray:
+    N_zero: int = 10,
+) -> List[np.ndarray]:
     """
-    Generate a uniform distribution with the same bounds as X
+    Generate N_zero samples from a uniform distribution based on data.
 
-    X and X0 of shape (N, T, d)
+    data and each element of l_data0 are of shape (N, T, d)
     """
     # Determines how to measure the score of the 0th component
     if zero_type == 'variance':
         raise NotImplementedError("Only 'bounds' is implemented as `zero_type`")
         # Get the parameters of the uniform distrib using mean and variance
-        var = np.var(X, axis=0)
-        mean = np.mean(X, axis=0)
+        var = np.var(data, axis=0)
+        mean = np.mean(data, axis=0)
 
         mins = (2*mean - np.sqrt(12*var)) / 2
         maxs = (2*mean + np.sqrt(12*var)) / 2
@@ -171,16 +172,19 @@ def generate_uniform(
     # We keep all the dims except the first one (Hence the 0) because
     # The number of members dimension will be added in members_0 in the
     # List comprehension
-    # X of shape (N, T, d) even if d and T were initially omitted
+    # data of shape (N, T, d) even if d and T were initially omitted
     # mins and max of shape (T, d) (the [0] is to get rid of the N dim)
-    mins = np.amin(X, axis=0, keepdims=True)[0]
-    maxs = np.amax(X, axis=0, keepdims=True)[0]
+    mins = np.amin(data, axis=0, keepdims=True)[0]
+    maxs = np.amax(data, axis=0, keepdims=True)[0]
 
-    # Generate a perfect uniform distribution
-    N = len(X)
-    steps = (maxs-mins) / (N-1)
-    X0 = np.array([mins + i*steps for i in range(N)])
-    return X0
+    (N, T, d) = data.shape
+    # Generate N_zero samples from a uniform distribution with shape
+    # (N, T, d)
+    l_data0 = [
+        np.random.uniform(low=mins, high=maxs, size=(N, T, d))
+        for _ in range(N_zero)
+    ]
+    return l_data0
 
 def prepare_data(
     X: np.ndarray,

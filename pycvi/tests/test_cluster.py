@@ -3,6 +3,7 @@ from numpy.testing import assert_array_equal
 from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from typing import List
 
 from ..datasets import mini
 from ..cluster import (
@@ -16,10 +17,13 @@ def test_generate_uniform():
     """
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
+        N_zero = 36
         (N, T, d) = data.shape
-        data0 = generate_uniform(data)
-        assert type(data0) == np.ndarray
-        assert data0.shape == (N, T, d)
+        l_data0 = generate_uniform(data, N_zero=N_zero)
+        assert type(l_data0) == list
+        assert len(l_data0) == N_zero
+        assert type(l_data0[0]) == np.ndarray
+        assert l_data0[0].shape == (N, T, d)
 
 def test_prepare_data():
     """

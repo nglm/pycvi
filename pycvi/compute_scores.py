@@ -472,8 +472,8 @@ def compute_all_scores(
     scaler = StandardScaler(),
     DTW: bool = True,
     time_window: int = None,
+    N_zero: int = 10,
     score_kwargs: dict = {},
-    verbose: bool = False,
 ) -> List[Dict[int, float]]:
     """
     Compute and return all scores
@@ -486,7 +486,7 @@ def compute_all_scores(
     # --------------------------------------------------------------
 
     data_copy = set_data_shape(data)
-    data0 = generate_uniform(data_copy)
+    l_data0 = generate_uniform(data_copy, N_zero=N_zero)
     (N, T, d) = data_copy.shape
     if scaler is not None:
         scaler.fit(data_copy.reshape(N, -1))
@@ -500,7 +500,10 @@ def compute_all_scores(
     # (N, T|w_t, d) if DTW
     # (N, (T|w_t)*d) if not DTW
     data_clus = prepare_data(data_copy, DTW, wind, transformer, scaler)
-    data_clus0 = prepare_data(data0, DTW, wind, transformer, scaler)
+    l_data_clus0 = [
+        prepare_data(data0, DTW, wind, transformer, scaler)
+        for data0 in l_data0
+    ]
     n_windows = len(data_clus)
 
     # temporary variable to help remember scores
@@ -511,31 +514,45 @@ def compute_all_scores(
     for t_w in range(n_windows):
 
         for n_clusters in clusterings[t_w].keys():
-            # Take the data used for clustering while taking into account the
-            # difference between time step indices with/without sliding window
-            if n_clusters == 0:
-                X_clus = data_clus0[t_w]
-            else:
-                X_clus = data_clus[t_w]
 
             # Find cluster membership of each member
             clusters = clusterings[t_w][n_clusters]
 
-            # ------------ Score corresponding to 'n_clusters' ---------
-            try:
-                res_score = score(
-                    X=X_clus,
-                    clusters=clusters,
-                    **score_kwargs
-                )
-            # Ignore if the score was used with a wrong number of clusters
-            except ValueError:
-                res_score = None
+            # Special case k=0: compute average score over N_zero
+            # samples
+            if n_clusters == 0:
+                l_res_score = []
+                for data_clus0 in l_data_clus0:
+                    X_clus = data_clus0[t_w]
+                    try:
+                        l_res_score.append(score(
+                            X=X_clus,
+                            clusters=clusters,
+                            **score_kwargs
+                        ))
+                    except ValueError:
+                        pass
+                if l_res_score:
+                    res_score = np.mean(l_res_score)
+                # If it gave a "ValueError" for each sample return None
+                else:
+                    res_score = None
+            else:
+                # Take the data used for clustering while taking into
+                # account the difference between time step indices
+                # with/without sliding window
+                X_clus = data_clus[t_w]
 
-            if verbose:
-                print(" ========= {t_w} ========= ")
-                msg = "n_clusters: {n_clusters}  ||   score: {res_score}"
-                print(msg)
+                # ------------ Score corresponding to 'n_clusters' ---------
+                try:
+                    res_score = score(
+                        X=X_clus,
+                        clusters=clusters,
+                        **score_kwargs
+                    )
+                # Ignore if the score was used with a wrong number of clusters
+                except ValueError:
+                    res_score = None
 
             scores_t_n[t_w][n_clusters] = res_score
 
