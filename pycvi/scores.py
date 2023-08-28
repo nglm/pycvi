@@ -131,7 +131,7 @@ class Hartigan(Score):
     ) -> None:
         s_kw = {}
         if n_clusters < len(X_clus):
-            s_kw["clusters_next"] == clusterings_t.get(n_clusters+1, None)
+            s_kw["clusters_next"] = clusterings_t.get(n_clusters+1, None)
         s_kw.update(score_kwargs)
         return s_kw
 
@@ -279,7 +279,7 @@ class Diameter(Score):
         )
 
 SCORES = [
-    #Hartigan,  # Remove because of the annoying clustering2 argument
+    Hartigan,  # Remove because of the annoying clustering2 argument
     CalinskiHarabasz,
     GapStatistic,
     Silhouette,

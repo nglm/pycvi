@@ -473,6 +473,7 @@ def compute_all_scores(
     DTW: bool = True,
     time_window: int = None,
     N_zero: int = 10,
+    zero_type: str = "bounds",
     score_kwargs: dict = {},
 ) -> List[Dict[int, float]]:
     """
@@ -486,7 +487,7 @@ def compute_all_scores(
     # --------------------------------------------------------------
 
     data_copy = set_data_shape(data)
-    l_data0 = generate_uniform(data_copy, N_zero=N_zero)
+    l_data0 = generate_uniform(data_copy, zero_type=zero_type, N_zero=N_zero)
     (N, T, d) = data_copy.shape
     if scaler is not None:
         scaler.fit(data_copy.reshape(N, -1))

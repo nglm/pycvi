@@ -188,7 +188,7 @@ def test_compute_all_scores():
         scores_t_k = compute_all_scores(
             Inertia(), data, clusterings_t_k,
             transformer=None, scaler=StandardScaler(), DTW=DTW,
-            time_window=None
+            time_window=None,
         )
 
         # T_w = 1

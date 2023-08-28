@@ -276,7 +276,7 @@ def CH(
 
         # X0 shape: (N, d*w_t) or (N, w_t, d)
         if X1 is None:
-            X0 = generate_uniform(X, N_zero=1)[0]
+            X0 = generate_uniform(X, zero_type="bounds", N_zero=1)[0]
             X1 = X
         else:
             X0 = X

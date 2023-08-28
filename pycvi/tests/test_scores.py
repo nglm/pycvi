@@ -28,8 +28,8 @@ def test_Scores():
             )
 
         for score in SCORES:
-            if score == Hartigan:
-                continue
+            # if score == Hartigan:
+            #     continue
             scores_t_k = compute_all_scores(
                 score(), data, clusterings_t_k,
                 transformer=None, scaler=StandardScaler(), DTW=DTW,
@@ -62,8 +62,8 @@ def test_Scores():
             )
 
         for score in SCORES:
-            if score == Hartigan:
-                continue
+            # if score == Hartigan:
+            #     continue
             scores_t_k = compute_all_scores(
                 score(), data, clusterings_t_k,
                 transformer=None, scaler=None, DTW=DTW,
