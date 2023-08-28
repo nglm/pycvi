@@ -252,6 +252,7 @@ def CH(
     clusters: List[List[int]],
     dist_kwargs: dict = {},
     X1: np.ndarray = None,
+    k: int = None,
 ) -> float:
     """
     Compute the Calinski–Harabasz (CH) index  for a given clustering
@@ -264,7 +265,6 @@ def CH(
     :rtype: float
     """
     N = len(X)
-    k = len(clusters)
     dist_kwargs.setdefault("metric", "sqeuclidean")
 
     # If we forget about the (N-k) / (k-1) factor, CH is defined and
@@ -278,6 +278,8 @@ def CH(
         if X1 is None:
             X0 = generate_uniform(X, N_zero=1)[0]
             X1 = X
+        else:
+            X0 = X
         #
         # Option 1: use the centroid of the uniform distribution
         # clusters0 = score_kwargs.get(
@@ -310,9 +312,7 @@ def CH(
             np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
         )
 
-        comp = np.sum([
-            f_inertia(X[c], dist_kwargs) for c in clusters
-        ])
+        comp = np.sum([ f_inertia(X[c], dist_kwargs) for c in clusters ])
 
         CH = (N-k) / (k-1) * (sep / comp)
     return CH

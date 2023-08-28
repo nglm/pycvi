@@ -161,6 +161,8 @@ def generate_uniform(
     # Determines how to measure the score of the 0th component
     if zero_type == 'variance':
         # Get the parameters of the uniform distrib using mean and variance
+        # mean = (1/2)*(a+b)
+        # var  = (1/12)*(b-a)**2
         var = np.var(data, axis=0, keepdims=True)[0]
         mean = np.mean(data, axis=0, keepdims=True)[0]
 

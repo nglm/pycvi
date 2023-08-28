@@ -165,8 +165,9 @@ class CalinskiHarabasz(Score):
     ) -> None:
 
         s_kw = {}
+        s_kw["k"] = n_clusters
         if n_clusters == 0:
-            s_kw["X1"] = clusterings_t.get(1, None)
+            s_kw["X1"] = X_clus[clusterings_t.get(1, None)]
         s_kw.update(score_kwargs)
         return s_kw
 
