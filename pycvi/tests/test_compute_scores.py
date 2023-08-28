@@ -3,7 +3,7 @@ from numpy.testing import assert_array_equal
 from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-from ..scores import Inertia
+from ..scores import Inertia, GapStatistic
 
 from ..datasets import mini
 from ..compute_scores import (
@@ -217,7 +217,7 @@ def test_compute_all_scores():
             )
 
         scores_t_k = compute_all_scores(
-            CH, data, clusterings_t_k,
+            GapStatistic(), data, clusterings_t_k,
             transformer=None, scaler=None, DTW=DTW,
             time_window=None
         )

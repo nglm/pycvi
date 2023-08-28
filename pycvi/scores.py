@@ -27,6 +27,15 @@ class Score():
         self.score_type = score_type
         self.k_condition = k_condition
 
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {},
+    ) -> dict:
+        return score_kwargs
+
     def __call__(
         self,
         X: np.ndarray,
@@ -113,6 +122,19 @@ class Hartigan(Score):
             k_condition= lambda k: (k>=0)
         )
 
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        s_kw = {}
+        if n_clusters < len(X_clus):
+            s_kw["clusters_next"] == clusterings_t.get(n_clusters+1, None)
+        s_kw.update(score_kwargs)
+        return s_kw
+
 class CalinskiHarabasz(Score):
 
     def __init__(
@@ -134,6 +156,20 @@ class CalinskiHarabasz(Score):
             k_condition = k_condition,
         )
 
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+
+        s_kw = {}
+        if n_clusters == 0:
+            s_kw["X1"] = clusterings_t.get(1, None)
+        s_kw.update(score_kwargs)
+        return s_kw
+
 class GapStatistic(Score):
 
     def __init__(
@@ -147,18 +183,29 @@ class GapStatistic(Score):
         )
 
         super().__init__(
-            score_function= lambda X, clusters: gap_statistic(X, clusters, B),
+            score_function= gap_statistic,
             maximise=True,
             improve=True,
             score_type=score_type,
             k_condition=k_condition
         )
 
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        s_kw = {"B" : 10}
+        s_kw.update(score_kwargs)
+        return s_kw
+
 class Silhouette(Score):
 
     def __init__(self) -> None:
         super().__init__(
-            score_function= lambda X, clusters: silhouette(X, clusters),
+            score_function=silhouette,
             maximise=True,
             improve=None,
             score_type="absolute",
@@ -169,7 +216,7 @@ class ScoreFunction(Score):
 
     def __init__(self) -> None:
         super().__init__(
-            score_function= lambda X, clusters: score_function(X, clusters),
+            score_function=score_function,
             maximise=True,
             improve=None,
             score_type="absolute",

@@ -167,8 +167,8 @@ def score_function(
 
 def hartigan(
     X : np.ndarray,
-    clustersk1: List[Tuple[List[int], Dict]],
-    clustersk2: List[Tuple[List[int], Dict]],
+    clusters: List[Tuple[List[int], Dict]],
+    clusters_next: List[Tuple[List[int], Dict]],
 ) -> float:
     """
     Compute the hartigan index for a given clustering
@@ -181,14 +181,15 @@ def hartigan(
     :rtype: float
     """
     N = len(X)
-    k = len(clustersk1)
+    k = len(clusters)
     if k == N:
         hartigan = 0.
+    elif clusters_next is None:
+        hartigan = 0.
     else:
-        Wk1 = _compute_Wk(X, clustersk1)
-        Wk2 = _compute_Wk(X, clustersk2)
-
-        hartigan = (Wk1/Wk2 - 1)*(N-k-1)
+        Wk = _compute_Wk(X, clusters)
+        Wk_next = _compute_Wk(X, clusters_next)
+        hartigan = (Wk/Wk_next - 1)*(N-k-1)
 
     return hartigan
 
@@ -250,7 +251,7 @@ def CH(
     X : np.ndarray,
     clusters: List[List[int]],
     dist_kwargs: dict = {},
-    score_kwargs: dict = {},
+    X1: np.ndarray = None,
 ) -> float:
     """
     Compute the Calinski–Harabasz (CH) index  for a given clustering
@@ -274,7 +275,9 @@ def CH(
     elif k == 0:
 
         # X0 shape: (N, d*w_t) or (N, w_t, d)
-        X0 = score_kwargs.get("X0", generate_uniform(X))
+        if X1 is None:
+            X0 = generate_uniform(X, N_zero=1)[0]
+            X1 = X
         #
         # Option 1: use the centroid of the uniform distribution
         # clusters0 = score_kwargs.get(
@@ -287,7 +290,7 @@ def CH(
         # The numerator can be seen as the distance between the global
         # centroid and N singletons uniformly distributed
         # Which can be seen as d(C0, c)
-        sep = f_cdist(X0, np.expand_dims(compute_center(X), 0), dist_kwargs)
+        sep = f_cdist(X0, np.expand_dims(compute_center(X1), 0), dist_kwargs)
 
         # The denominator can be seen as the distance between the
         # original data and its centroid, which would correspond to the
@@ -295,7 +298,7 @@ def CH(
         # 0)
         # Note that the list has actually only one element
         comp = np.sum([
-            f_inertia(X[c], dist_kwargs) for c in clusters
+            f_inertia(X1[c], dist_kwargs) for c in clusters
         ])
         CH = - N * (sep / comp)
     elif k == N:

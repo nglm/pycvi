@@ -465,7 +465,7 @@ def compute_score(
     return score
 
 def compute_all_scores(
-    score: callable,
+    score,
     data: np.ndarray,
     clusterings: List[Dict[int, List[List[int]]]],
     transformer = None,
@@ -517,18 +517,26 @@ def compute_all_scores(
 
             # Find cluster membership of each member
             clusters = clusterings[t_w][n_clusters]
+            # Take the data used for clustering while taking into
+            # account the difference between time step indices
+            # with/without sliding window
+            X_clus = data_clus[t_w]
+
+            score_kwargs = score.get_score_kwargs(
+                X_clus, clusterings[t_w], n_clusters, score_kwargs
+            )
 
             # Special case k=0: compute average score over N_zero
             # samples
             if n_clusters == 0:
                 l_res_score = []
                 for data_clus0 in l_data_clus0:
-                    X_clus = data_clus0[t_w]
+                    X_clus0 = data_clus0[t_w]
                     try:
                         l_res_score.append(score(
-                            X=X_clus,
+                            X=X_clus0,
                             clusters=clusters,
-                            **score_kwargs
+                            score_kwargs=score_kwargs,
                         ))
                     except ValueError:
                         pass
@@ -538,17 +546,13 @@ def compute_all_scores(
                 else:
                     res_score = None
             else:
-                # Take the data used for clustering while taking into
-                # account the difference between time step indices
-                # with/without sliding window
-                X_clus = data_clus[t_w]
 
                 # ------------ Score corresponding to 'n_clusters' ---------
                 try:
                     res_score = score(
                         X=X_clus,
                         clusters=clusters,
-                        **score_kwargs
+                        score_kwargs=score_kwargs,
                     )
                 # Ignore if the score was used with a wrong number of clusters
                 except ValueError:
