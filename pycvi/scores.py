@@ -117,8 +117,6 @@ class Score():
         """
         return [self.criterion(s_t) for s_t in scores_t_k]
 
-
-
     def better_score(
         self,
         score1: float,
