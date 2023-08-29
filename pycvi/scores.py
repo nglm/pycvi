@@ -27,15 +27,6 @@ class Score():
         self.score_type = score_type
         self.k_condition = k_condition
 
-    def get_score_kwargs(
-        self,
-        X_clus: np.ndarray = None,
-        clusterings_t: Dict[int, List] = None,
-        n_clusters: int = None,
-        score_kwargs: dict = {},
-    ) -> dict:
-        return score_kwargs
-
     def __call__(
         self,
         X: np.ndarray,
@@ -51,6 +42,49 @@ class Score():
                 + f"clusters: {n_clusters}"
             )
             raise ValueError(msg)
+
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {},
+    ) -> dict:
+        return score_kwargs
+
+    def criterion(self, scores: Dict[int, float]):
+        if self.score_type == "monotonous":
+            max_k = None
+            max_diff = 0
+
+            list_k = list(scores.keys())
+            last_relevant_score = scores[list_k[0]]
+            last_relevant_k = list_k[0]
+
+            # If it is improving compare last to current
+            # Otherwise compare current to next
+            if self.improve:
+                list_k_compare = list_k[1:]
+            else:
+                list_k_compare = list_k[:-1]
+            # Find the biggest increase / drop
+            for i, k in enumerate(list_k_compare):
+                if (
+                    i==0
+                    or self.is_relevant(
+                        scores[k], k,
+                        last_relevant_score, last_relevant_k)
+                ):
+                    diff = abs(scores[k] - last_relevant_k)
+                    if max_diff < diff:
+                        max_k = k
+                        max_diff = diff
+
+                    last_relevant_k = k
+                    last_relevant_score = scores[k]
+        else:
+            max_k = max(scores, key=scores.get)
+        return max_k
 
     def is_relevant(self, score, k, score_prev, k_prev) -> bool:
         # A score is always relevant when it is absolute
@@ -68,6 +102,22 @@ class Score():
                 return (
                     self.better_score(score_prev, score) == k_prev > k
                 )
+
+    def select(
+        self,
+        scores_t_k: List[Dict[int, float]]
+    ) -> List[int]:
+        """
+        Select the best $k$ for each $t$ according to the scores given.
+
+        :param scores_t_k: _description_
+        :type scores_t_k: List[Dict[int, float]]
+        :return: _description_
+        :rtype: List[int]
+        """
+        return [self.criterion(s_t) for s_t in scores_t_k]
+
+
 
     def better_score(
         self,
