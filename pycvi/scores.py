@@ -95,12 +95,12 @@ class Score():
             if self.improve:
                 # better "and" greater or worse and lesser
                 return (
-                    self.better_score(score, score_prev) == k > k_prev
+                    self.better_score(score, score_prev) == (k > k_prev)
                 )
             else:
                 # worse "and" greater or better and lesser
                 return (
-                    self.better_score(score_prev, score) == k_prev > k
+                    self.better_score(score_prev, score) == (k_prev > k)
                 )
 
     def select(
