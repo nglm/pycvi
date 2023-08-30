@@ -54,7 +54,7 @@ class Score():
 
     def criterion(self, scores: Dict[int, float]):
         if self.score_type == "monotonous":
-            max_k = None
+            selected_k = None
             max_diff = 0
 
             list_k = list(scores.keys())
@@ -75,16 +75,19 @@ class Score():
                         scores[k], k,
                         last_relevant_score, last_relevant_k)
                 ):
-                    diff = abs(scores[k] - last_relevant_k)
+                    diff = abs(scores[k] - last_relevant_score)
                     if max_diff < diff:
-                        max_k = k
+                        selected_k = k
                         max_diff = diff
 
                     last_relevant_k = k
                     last_relevant_score = scores[k]
         else:
-            max_k = max(scores, key=scores.get)
-        return max_k
+            if self.maximise:
+                selected_k = max(scores, key=scores.get)
+            else:
+                selected_k = min(scores, key=scores.get)
+        return selected_k
 
     def is_relevant(self, score, k, score_prev, k_prev) -> bool:
         # A score is always relevant when it is absolute

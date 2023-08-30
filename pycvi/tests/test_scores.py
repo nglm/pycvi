@@ -4,7 +4,7 @@ from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-from ..scores import SCORES, Hartigan
+from ..scores import SCORES, Score, Hartigan
 from ..datasets import mini
 from ..compute_scores import (
     compute_all_scores,
@@ -84,3 +84,52 @@ def test_Scores():
                 # returns None when the score was used with an
                 # incompatible number of clusters
                 or type(scores_t_k[0][0]) == type(None))
+
+def test_is_relevant():
+    l_score1 = [-1.,  -1., -1.,  1.,  1.,  1.]
+    l_score2 = [-2., -0.5, 0.5, -1., 0.5,  2.]
+    # True when s2 is lower
+    exp_res_mono_min_imp = [
+        s2 < s1 for s1, s2 in zip(l_score1, l_score2)
+    ]
+    # Typically inertia
+    S_monotone = Score(
+        maximise=False, improve=True, score_type="monotonous"
+    )
+    # Typically Silhouette score
+    S_abs = Score(
+        score_type="absolute"
+    )
+    k1 = 2
+    k2 = 4
+
+    for i, (s1, s2) in enumerate(zip(l_score1, l_score2)):
+        assert type(S_abs.is_relevant(s1, k1, s2, k2)) == bool
+        assert S_abs.is_relevant(s1, k1, s2, k2)
+        assert S_abs.is_relevant(s1, k2, s2, k1)
+        assert S_abs.is_relevant(s2, k2, s1, k1)
+
+        assert S_monotone.is_relevant(s1, k1, s2, k2) == exp_res_mono_min_imp[i]
+        assert S_monotone.is_relevant(s1, k2, s2, k1) != exp_res_mono_min_imp[i]
+        assert S_monotone.is_relevant(s2, k2, s1, k1) == exp_res_mono_min_imp[i]
+        assert S_monotone.is_relevant(s2, k1, s1, k2) != exp_res_mono_min_imp[i]
+
+def test_select():
+    l_score_mono = [
+        {0: 10000, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
+    ]
+    l_score_abs  = [ {1: 10000, 2: 5000, 3: 15000, 5: -40000} ]
+    # Typically inertia
+    S_monotone = Score(
+        maximise=False, improve=True, score_type="monotonous"
+    )
+    # Typically Silhouette score
+    S_abs_max = Score(
+        score_type="absolute", maximise=True
+    )
+    S_abs_min = Score(
+        score_type="absolute", maximise=False
+    )
+    assert S_monotone.select(l_score_mono) == [4]
+    assert S_abs_max.select(l_score_abs) == [3]
+    assert S_abs_min.select(l_score_abs) == [5]
