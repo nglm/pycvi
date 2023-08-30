@@ -296,8 +296,8 @@ def f_diameter(
     if len(cluster) == 1:
         return 0
     else:
-        intra = f_intra(cluster, dist_kwargs)
-        return np.amax(intra)
+        pdist = f_pdist(cluster, dist_kwargs)
+        return np.amax(pdist)
 
 def compute_subscores(
     score_type: str,
