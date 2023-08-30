@@ -6,13 +6,13 @@ authors = ["Natacha, Galmiche <natacha.galmiche@uib.no>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.7"
-tslearn = "^0.6.1"
+python = "^3.8"
+tslearn = "^0.6.2"
 
 
 [tool.poetry.group.dev.dependencies]
+pandas = {version = "*", python = "^3.8" }
 pytest = "^7.4.0"
-tslearn = "^0.6.2"
 
 [build-system]
 requires = ["poetry-core"]
