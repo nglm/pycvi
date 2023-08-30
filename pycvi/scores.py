@@ -83,10 +83,12 @@ class Score():
                     last_relevant_k = k
                     last_relevant_score = scores[k]
         else:
+            #
+            scores_valid = {k: s for k,s in scores.items() if s is not None}
             if self.maximise:
-                selected_k = max(scores, key=scores.get)
+                selected_k = max(scores_valid, key=scores_valid.get)
             else:
-                selected_k = min(scores, key=scores.get)
+                selected_k = min(scores_valid, key=scores_valid.get)
         return selected_k
 
     def is_relevant(self, score, k, score_prev, k_prev) -> bool:
