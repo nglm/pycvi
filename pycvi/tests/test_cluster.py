@@ -39,11 +39,12 @@ def test_prepare_data():
 
         # Using DTW and window
         # data_clus is a list of T (N, w_t, d) arrays
+        DTW = True
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=True, window=window, transformer=None,
+                DTW=DTW, window=window, transformer=None,
                 scaler=scaler,
             )
 
@@ -60,7 +61,7 @@ def test_prepare_data():
         # data_clus is a list of 1 (N, T, d) array
         data_clus = prepare_data(
             data,
-            DTW=True, window=None, transformer=None,
+            DTW=DTW, window=None, transformer=None,
             scaler=scaler,
         )
         assert len(data_clus) == 1
@@ -68,11 +69,12 @@ def test_prepare_data():
 
         # Not using DTW but using window
         # data_clus is a list of T (N, w_t*d) arrays
+        DTW = False
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=False, window=window, transformer=None,
+                DTW=DTW, window=window, transformer=None,
                 scaler=None,
             )
 
@@ -89,7 +91,7 @@ def test_prepare_data():
         # data_clus is a list of 1 (N, T*d) array
         data_clus = prepare_data(
             data,
-            DTW=False, window=None, transformer=None,
+            DTW=DTW, window=None, transformer=None,
             scaler=None,
         )
         assert len(data_clus) == 1
@@ -163,11 +165,12 @@ def test_get_clusters():
 
         # Using DTW and window
         # data_clus is a list of T (N, w_t, d) arrays
+        DTW = True
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=True, window=window, transformer=None,
+                DTW=DTW, window=window, transformer=None,
                 scaler=scaler,
             )
             fit_predict_kw = {
@@ -190,7 +193,7 @@ def test_get_clusters():
         # data_clus is a list of 1 (N, T, d) array
         data_clus = prepare_data(
             data,
-            DTW=True, window=None, transformer=None,
+            DTW=DTW, window=None, transformer=None,
             scaler=scaler,
         )
         fit_predict_kw = {
@@ -211,11 +214,12 @@ def test_get_clusters():
 
         # Not using DTW but using window
         # data_clus is a list of T (N, w_t*d) arrays
+        DTW = False
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=False, window=window, transformer=None,
+                DTW=DTW, window=window, transformer=None,
                 scaler=scaler,
             )
             fit_predict_kw = {
@@ -238,7 +242,7 @@ def test_get_clusters():
         # data_clus is a list of 1 (N, T*d) array
         data_clus = prepare_data(
             data,
-            DTW=False, window=None, transformer=None,
+            DTW=DTW, window=None, transformer=None,
             scaler=scaler,
         )
         fit_predict_kw = {

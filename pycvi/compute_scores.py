@@ -500,10 +500,15 @@ def compute_all_scores(
     # list of T (if sliding window) or 1 array(s) of shape:
     # (N, T|w_t, d) if DTW
     # (N, (T|w_t)*d) if not DTW
-    data_clus = prepare_data(data_copy, DTW, wind, transformer, scaler)
+    data_clus = prepare_data(
+        data_copy, DTW=DTW, window=wind, transformer=transformer,
+        scaler=scaler
+    )
     l_data_clus0 = [
-        prepare_data(data0, DTW, wind, transformer, scaler)
-        for data0 in l_data0
+        prepare_data(
+            data0, DTW=DTW, window=wind, transformer=transformer,
+            scaler=scaler
+        ) for data0 in l_data0
     ]
     n_windows = len(data_clus)
 
