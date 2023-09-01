@@ -77,11 +77,11 @@ def _dist_between_centroids(
     global_center = np.expand_dims(compute_center(X), 0)
     dist = [
         # Distance between the centroids and the global centroid
-        f_cdist(
+        float(f_cdist(
             np.expand_dims(compute_center(X[c]), 0),
             global_center,
             dist_kwargs
-        )
+        ))
         for c in clusters
     ]
     return dist
@@ -190,7 +190,7 @@ def hartigan(
         hartigan = 0.
     # Because of the factor (N-k-1)
     elif k == N-1:
-        hartigan = 0
+        hartigan = 0.
     # If we haven't computed the case k+1
     elif clusters_next is None:
         hartigan = 0.
@@ -301,7 +301,9 @@ def CH(
         # The numerator can be seen as the distance between the global
         # centroid and N singletons uniformly distributed
         # Which can be seen as d(C0, c)
-        sep = f_cdist(X0, np.expand_dims(compute_center(X1), 0), dist_kwargs)
+        sep = np.sum(
+            f_cdist(X0, np.expand_dims(compute_center(X1), 0), dist_kwargs)
+        )
 
         # The denominator can be seen as the distance between the
         # original data and its centroid, which would correspond to the
