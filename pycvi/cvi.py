@@ -163,7 +163,7 @@ def score_function(
         for c in clusters
     ])
 
-    sf = 1 - (1 / (np.exp(np.exp(bdc - wdc))))
+    sf = 1 - (1 / (np.exp(np.exp(bdc + wdc))))
 
     return sf
 
