@@ -1,8 +1,12 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from tslearn.clustering import TimeSeriesKMeans
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import urllib
+from scipy.io import arff
+import io
 
 from ..scores import SCORES, Score, Hartigan
 from ..datasets import mini
@@ -11,8 +15,16 @@ from ..compute_scores import (
 )
 from ..cluster import generate_all_clusterings
 
+URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
+PATH = URL_ROOT + "artificial/"
+
+def arff_from_github(url):
+    ftpstream = urllib.request.urlopen(url)
+    data, meta = arff.loadarff(io.StringIO(ftpstream.read().decode('utf-8')))
+    return data, meta
 
 def test_Scores():
+    # ---------------- Test on toy datasets ----------------------------
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
@@ -84,6 +96,35 @@ def test_Scores():
                 # returns None when the score was used with an
                 # incompatible number of clusters
                 or type(scores_t_k[0][0]) == type(None))
+
+    # ---------- Test on clustering benchmark dataset ------------------
+    DTW = False
+    model = AgglomerativeClustering
+    data, meta = arff_from_github(PATH + 'diamond9.arff')
+    df = pd.DataFrame(data)
+    # Get only data, not the labels and convert to numpy
+    data = df.iloc[:, 0:-1].to_numpy()
+    n_clusters_range = [i for i in range(15)]
+
+    clusterings_t_k = generate_all_clusterings(
+            data, model, n_clusters_range=n_clusters_range,
+            DTW=DTW, time_window=None, transformer=None,
+            scaler=StandardScaler(),
+            model_kw={}, fit_predict_kw={}, model_class_kw={}
+        )
+    for score in SCORES:
+
+        s = score()
+
+        scores_t_k = compute_all_scores(
+            s, data, clusterings_t_k,
+            transformer=None, scaler=StandardScaler(), DTW=DTW,
+            time_window=None
+        )
+
+        k = s.select(scores_t_k)
+
+        print(score, k)
 
 def test_is_relevant():
     l_score1 = [-1.,  -1., -1.,  1.,  1.,  1.]
