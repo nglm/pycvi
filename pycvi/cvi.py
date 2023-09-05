@@ -53,6 +53,9 @@ def _compute_Wk(
     """
     Helper function for some scores (gap, hartigan, CH, etc.)
 
+    X is the entire data to be clustered and clusters contains the
+    cluster memberships. X can be of shape (N, T, d) or (N, T*d)
+
     Pooled within-cluster sum of squares around the cluster means (WCSS)
     There are two ways to compute it, using distance to centroid or
     pairwise, we use pairwise, to avoid using barycenters.

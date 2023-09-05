@@ -5,7 +5,7 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 
 def set_data_shape(X: np.ndarray) -> np.ndarray:
     """
-    Returns a copy of the data but with the right shape
+    Returns a copy of the data but with the right shape (N, T, d)
     """
     X_copy = np.copy(X)  #Original Data
 

@@ -419,6 +419,10 @@ def generate_all_clusterings(
     in cluster i for the clustering assuming k clusters for the
     extracted time window t_w.
 
+    If some clusterings couldn't be defined because the clustering
+    algorithm didn't converged then `clusterings_t_k[t_w][n_clusters] =
+    None`
+
     :rtype: List[Dict[int, List[List[int]]]]
     """
     # --------------------------------------------------------------
