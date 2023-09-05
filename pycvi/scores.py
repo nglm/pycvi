@@ -323,7 +323,7 @@ class Diameter(Score):
 
     def __init__(
         self,
-        reduction: Union[str, callable] = "sum",
+        reduction: Union[str, callable] = "max",
     ) -> None:
         """
         reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
