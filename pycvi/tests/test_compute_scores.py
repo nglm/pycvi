@@ -13,6 +13,10 @@ from ..compute_scores import (
 )
 from ..cvi import silhouette, CH
 from ..cluster import generate_all_clusterings
+from ..utils import load_data_from_github
+
+URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
+PATH = URL_ROOT + "artificial/"
 
 def test_comparisons():
     maximize = False
@@ -57,11 +61,17 @@ def test_f_pdist():
         # DTW case
         dist = f_pdist(data)
         assert type(dist) == np.ndarray
+        assert np.all(dist>=0)
 
         # Non DTW case
         data = data.reshape(N, -1)
         dist = f_pdist(data)
         assert type(dist) == np.ndarray
+        assert np.all(dist>=0)
+    data, meta = load_data_from_github(PATH + 'diamond9.arff')
+    dist = f_pdist(data)
+    assert type(dist) == np.ndarray
+    assert np.all(dist>=0)
 
 
 def test_f_cdist():
@@ -71,15 +81,22 @@ def test_f_cdist():
         # DTW case
         dist = f_cdist(data[N//2:], data[:N//2])
         assert type(dist) == np.ndarray
+        assert np.all(dist>=0)
         exp_shape = (N-N//2, N//2)
         assert dist.shape == exp_shape
 
         # Non DTW case
         data = data.reshape(N, -1)
         dist = f_cdist(data[N//2:], data[:N//2])
+        assert np.all(dist>=0)
         assert type(dist) == np.ndarray
         exp_shape = (N-N//2, N//2)
         assert dist.shape == exp_shape
+
+    data, meta = load_data_from_github(PATH + 'diamond9.arff')
+    dist = f_cdist(data[:N//2], data[N//2:])
+    assert type(dist) == np.ndarray
+    assert np.all(dist>=0)
 
 def test_f_intra():
     for multivariate in [True, False]:
