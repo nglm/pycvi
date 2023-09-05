@@ -78,14 +78,15 @@ def _dist_between_centroids(
     List of distances between cluster centroids and global centroid
     """
     global_center = np.expand_dims(compute_center(X), 0)
+    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
     dist = [
         # Distance between the centroids and the global centroid
         float(f_cdist(
-            np.expand_dims(compute_center(X[c]), 0),
+            center,
             global_center,
             dist_kwargs
         ))
-        for c in clusters
+        for center in centers
     ]
     return dist
 
