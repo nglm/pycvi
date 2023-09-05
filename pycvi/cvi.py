@@ -111,13 +111,14 @@ def gap_statistic(
     :rtype: float
     """
     if k == 0:
-        gap = 0
+        gap = 0.
     else:
         # Compute the log of the within-cluster dispersion of the clustering
         wcss = np.log(_compute_Wk(X, clusters))
 
         # Generate B random datasets with the same shape as the input data
-        random_datasets = [np.random.rand(*X.shape) for _ in range(B)]
+        # and the same parameters
+        random_datasets = generate_uniform(X, zero_type="bounds", N_zero=B)
 
         # Compute the log of the within-cluster dispersion for each random dataset
         wcss_rand = []
@@ -131,10 +132,10 @@ def gap_statistic(
         # To address the case of singletons. Note that gap=0 means that the
         # clustering is irrelevant.
         if gap == -np.inf:
-            gap = 0
+            gap = 0.
         # To address the case where both are -np.inf which yield gap=nan
         elif mean_wcss_rand == -np.inf and wcss == -np.inf:
-            gap = 0
+            gap = 0.
     return gap
 
 def score_function(
@@ -153,7 +154,7 @@ def score_function(
     """
     N = len(X)
     k = len(clusters)
-    dist_kwargs = {"metric" : 'euclidean'}
+    dist_kwargs = {"metric" : 'sqeuclidean'}
 
     nis = [len(c) for c in clusters]
 
@@ -161,12 +162,13 @@ def score_function(
         np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
     )
 
+    dist_kwargs = {"metric" : 'euclidean'}
     wdc = np.sum([
         f_inertia(X[c], dist_kwargs) / len(c)
         for c in clusters
     ])
 
-    sf = 1 - (1 / (np.exp(np.exp(bdc + wdc))))
+    sf = 1 - (1 / (np.exp(np.exp(bdc - wdc))))
 
     return sf
 
@@ -238,7 +240,7 @@ def silhouette(
             ]
 
         # Compute 'b' for all x (=X[m]) in c1
-        b = [np.min([
+        b = [np.amin([
                 np.mean(f_cdist(X[c2], np.expand_dims(X[m], 0)))
                 for i2, c2 in enumerate(clusters) if i1 != i2
             ]) for m in c1]
@@ -248,7 +250,7 @@ def silhouette(
         # which is the mean
         S_i1.append(np.mean(
             [
-                (b_x - a_x) / (max(b_x, a_x))
+                (b_x - a_x) / (np.amax([b_x, a_x]))
                 # To address the case of 2 singletons being equal
                 if (a_x != 0 or b_x != 0) else 0
                 for (a_x, b_x) in zip(a, b)]
