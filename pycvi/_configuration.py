@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from typing import List, Sequence, Union, Any, Dict, Tuple
+from .exceptions import ShapeError
 
 def set_data_shape(X: np.ndarray) -> np.ndarray:
     """
@@ -14,7 +15,7 @@ def set_data_shape(X: np.ndarray) -> np.ndarray:
 
     N = shape[0]  # Number of members (time series)
     if N < 2:
-        raise ValueError(
+        raise ShapeError(
             "At least 2 samples should be given (N>=2)" + str(N)
         )
     # Assume that both d and T are "missing"
@@ -24,7 +25,7 @@ def set_data_shape(X: np.ndarray) -> np.ndarray:
     elif len(shape) == 2:
         X_copy = np.expand_dims(X_copy, axis=1)
     elif len(shape) != 3:
-        raise ValueError(
+        raise ShapeError(
             "Invalid shape of members provided: {shape}. "
             + "Please provide a valid shape: (N,) or (N, d) or (N, T, d)"
         )

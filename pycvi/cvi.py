@@ -6,13 +6,12 @@ from tslearn.clustering import TimeSeriesKMeans
 import numpy as np
 
 from .compute_scores import (
-    compute_score, f_inertia, f_pdist, get_centroid, reduce, f_cdist,
+    f_inertia, f_pdist, f_cdist,
 )
 from .cluster import (
-    compute_center, generate_uniform, compute_cluster_params, prepare_data,
+    compute_center, generate_uniform,
 )
-from ._configuration import set_data_shape
-from .utils import check_dims
+from .exceptions import NoClusterError, ShapeError
 
 def _clusters_from_uniform(X, n_clusters):
     """
@@ -26,7 +25,7 @@ def _clusters_from_uniform(X, n_clusters):
     elif len(X.shape) == 2:
         model = KMeans(n_clusters=n_clusters)
     else:
-        ValueError("X must have shape (N, T, d) or (N, T*d)")
+        raise ShapeError("X must have shape (N, T, d) or (N, T*d)")
 
     # Fit a KMeans model to the sample from a uniform distribution
     labels = model.fit_predict(X)
@@ -39,7 +38,7 @@ def _clusters_from_uniform(X, n_clusters):
         # Members belonging to that clusters
         members = [m for m in range(N) if labels[m] == label_i]
         if members == []:
-            raise ValueError('No members in cluster')
+            raise NoClusterError('No members in cluster')
 
         clusters.append(members)
 

@@ -3,6 +3,7 @@ import pandas as pd
 import urllib
 from scipy.io import arff
 import io
+from .exceptions import ShapeError
 
 def check_dims(a, ndim):
     dims = a.shape
@@ -10,7 +11,7 @@ def check_dims(a, ndim):
         a = np.expand_dims(a, 0)
     elif len(dims) != ndim:
         msg = f"Array should have {ndim} dimensions, but has shape {dims}"
-        raise ValueError(msg)
+        raise ShapeError(msg)
     return a
 
 def match_dims(a1, a2):
@@ -33,7 +34,7 @@ def match_dims(a1, a2):
         return a1, a2
     else:
         msg = f"Cannot make dimensions {dims1} and {dims2} match."
-        raise ValueError(msg)
+        raise ShapeError(msg)
 
 def load_data_from_github(url):
     ftpstream = urllib.request.urlopen(url)

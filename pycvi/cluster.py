@@ -4,6 +4,7 @@ from tslearn.metrics import dtw_path
 from tslearn.barycenters import softdtw_barycenter
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._configuration import set_data_shape, get_model_parameters
+from .exceptions import ShapeError, NoClusterError
 
 
 def compute_asym_std(X, center):
@@ -53,7 +54,7 @@ def compute_center(
             "Clusters should be of dimension (N, d*w_t) or (N, w_t, d)."
             + "and not " + str(dims)
         )
-        raise ValueError(msg)
+        raise ShapeError(msg)
     return center
 
 def align_to_barycenter(
@@ -157,7 +158,8 @@ def generate_uniform(
     """
     Generate N_zero samples from a uniform distribution based on data.
 
-    data and each element of l_data0 are of shape (N, T, d)
+    data and each element of l_data0 have the same shape, either
+    `(N, T, d)` or `(N, T*d)`
     """
     # Determines how to measure the score of the 0th component
     if zero_type == 'variance':
@@ -180,11 +182,10 @@ def generate_uniform(
         mins = np.amin(data, axis=0, keepdims=True)[0]
         maxs = np.amax(data, axis=0, keepdims=True)[0]
 
-    (N, T, d) = data.shape
     # Generate N_zero samples from a uniform distribution with shape
-    # (N, T, d)
+    # the same shape as data
     l_data0 = [
-        np.random.uniform(low=mins, high=maxs, size=(N, T, d))
+        np.random.uniform(low=mins, high=maxs, size=data.shape)
         for _ in range(N_zero)
     ]
     return l_data0
@@ -396,7 +397,7 @@ def get_clusters(
         members = [m for m in range(N) if labels[m] == label_i]
         clusters[label_i] = members
         if members == []:
-            raise ValueError('No members in cluster')
+            raise NoClusterError('No members in cluster')
 
     return clusters
 
@@ -496,9 +497,9 @@ def generate_all_clusterings(
                         fit_predict_kw = fit_predict_kw,
                         model_class_kw = model_class_kw,
                     )
-                except ValueError as ve:
+                except NoClusterError as e:
                     if not quiet:
-                        print(str(ve))
+                        print(str(e))
                     clusters = None
 
                 clusterings_t_k[t_w][n_clusters] = clusters

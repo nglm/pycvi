@@ -9,6 +9,7 @@ from .compute_scores import (
     best_score, better_score, worst_score, argbest, argworst, compute_score,
     reduce
 )
+from .exceptions import InvalidKError
 
 class Score():
 
@@ -44,7 +45,7 @@ class Score():
                 f"{self.__class__} called with an incompatible number of "
                 + f"clusters: {n_clusters}"
             )
-            raise ValueError(msg)
+            raise InvalidKError(msg)
 
     def get_score_kwargs(
         self,

@@ -10,6 +10,7 @@ from .utils import match_dims
 from .cluster import (
     compute_center, prepare_data, sliding_window, generate_uniform
 )
+from .exceptions import InvalidScoreError, ScoreError, InvalidKError
 
 DEFAULT_DIST_KWARGS = {
     "metric" : 'sqeuclidean',
@@ -360,7 +361,7 @@ def compute_subscores(
     elif score_type == 'min_' + main_score:
         score = min(score_tmp)
     else:
-        raise ValueError(
+        raise InvalidScoreError(
                 score_type + " has an invalid prefix."
                 + "Please choose a valid score_type"
             )
@@ -458,7 +459,7 @@ def compute_score(
             )
         # --------------------------------------------------------------
         else:
-            raise ValueError(
+            raise InvalidScoreError(
                     score_type
                     + " is invalid. Please choose a valid score_type."
                 )
@@ -555,11 +556,11 @@ def compute_all_scores(
                             clusters=clusters,
                             score_kwargs=score_kw,
                         ))
-                    except ValueError:
+                    except InvalidKError as e:
                         pass
                 if l_res_score:
                     res_score = np.mean(l_res_score)
-                # If it gave a "ValueError" for each sample return None
+                # If it gave a "InvalidKError" for each sample return None
                 else:
                     res_score = None
             else:
@@ -572,7 +573,7 @@ def compute_all_scores(
                         score_kwargs=score_kw,
                     )
                 # Ignore if the score was used with a wrong number of clusters
-                except ValueError:
+                except InvalidKError as e:
                     res_score = None
 
             scores_t_n[t_w][n_clusters] = res_score
@@ -588,7 +589,7 @@ def better_score(
     """
     Determines whether `score1` is indeed better than `score2`.
 
-    If both scores are None, return a ValueError.
+    If both scores are None, return a ScoreError.
 
     It is assumed that if one (and only one) score is `None` it means
     that it hasn't been reached yet, which means that it is probably
@@ -596,7 +597,7 @@ def better_score(
     """
     if score1 is None and score2 is None:
         msg = "Better score not determined, both scores are None."
-        raise ValueError(msg)
+        raise ScoreError(msg)
     elif score1 is None:
         return True
     elif score2 is None:
@@ -611,7 +612,7 @@ def better_score(
         msg = "Better score could not be determined: {} | {}".format(
             score1, score2
         )
-        raise ValueError(msg)
+        raise ScoreError(msg)
 
 def argbest(
     scores: List[float],
