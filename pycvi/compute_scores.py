@@ -124,7 +124,7 @@ def f_cdist(
     if len(dims) == 2:
         dist = cdist(
             clusterA,
-            clusterA,
+            clusterB,
             **dist_kwargs
         )
     if len(dims) == 3:
