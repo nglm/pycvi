@@ -92,7 +92,7 @@ def test_Scores():
     # ---------- Test on clustering benchmark dataset ------------------
     DTW = False
     model = AgglomerativeClustering
-    load_data_from_github(PATH + "diamond9.arff")
+    data, meta = load_data_from_github(PATH + "xclara.arff")
     n_clusters_range = [i for i in range(15)]
 
     clusterings_t_k = generate_all_clusterings(

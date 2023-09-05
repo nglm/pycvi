@@ -68,7 +68,7 @@ def test_f_pdist():
         dist = f_pdist(data)
         assert type(dist) == np.ndarray
         assert np.all(dist>=0)
-    data, meta = load_data_from_github(PATH + 'diamond9.arff')
+    data, meta = load_data_from_github(PATH + 'xclara.arff')
     dist = f_pdist(data)
     assert type(dist) == np.ndarray
     assert np.all(dist>=0)
@@ -93,7 +93,7 @@ def test_f_cdist():
         exp_shape = (N-N//2, N//2)
         assert dist.shape == exp_shape
 
-    data, meta = load_data_from_github(PATH + 'diamond9.arff')
+    data, meta = load_data_from_github(PATH + 'xclara.arff')
     dist = f_cdist(data[:N//2], data[N//2:])
     assert type(dist) == np.ndarray
     assert np.all(dist>=0)

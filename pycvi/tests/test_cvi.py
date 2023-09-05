@@ -40,7 +40,7 @@ def test__compute_Wk():
                     assert ( type(Wk) == float or type(Wk) == np.float64 )
                     assert Wk >= 0
 
-    data, meta = load_data_from_github(PATH + "diamond9.arff")
+    data, meta = load_data_from_github(PATH + "xclara.arff")
     N = len(data)
     l_clusters = [
         [[i for i in range(N)]],
