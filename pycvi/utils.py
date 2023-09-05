@@ -1,4 +1,8 @@
 import numpy as np
+import pandas as pd
+import urllib
+from scipy.io import arff
+import io
 
 def check_dims(a, ndim):
     dims = a.shape
@@ -30,3 +34,11 @@ def match_dims(a1, a2):
     else:
         msg = f"Cannot make dimensions {dims1} and {dims2} match."
         raise ValueError(msg)
+
+def load_data_from_github(url):
+    ftpstream = urllib.request.urlopen(url)
+    data, meta = arff.loadarff(io.StringIO(ftpstream.read().decode('utf-8')))
+    df = pd.DataFrame(data)
+    # Get only data, not the labels and convert to numpy
+    data = df.iloc[:, 0:-1].to_numpy()
+    return data, meta

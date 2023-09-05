@@ -3,10 +3,6 @@ from numpy.testing import assert_array_equal
 from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
-import pandas as pd
-import urllib
-from scipy.io import arff
-import io
 
 from ..scores import SCORES, Score, Hartigan
 from ..datasets import mini
@@ -14,14 +10,10 @@ from ..compute_scores import (
     compute_all_scores,
 )
 from ..cluster import generate_all_clusterings
+from ..utils import load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
-
-def arff_from_github(url):
-    ftpstream = urllib.request.urlopen(url)
-    data, meta = arff.loadarff(io.StringIO(ftpstream.read().decode('utf-8')))
-    return data, meta
 
 def test_Scores():
     # ---------------- Test on toy datasets ----------------------------
@@ -100,10 +92,7 @@ def test_Scores():
     # ---------- Test on clustering benchmark dataset ------------------
     DTW = False
     model = AgglomerativeClustering
-    data, meta = arff_from_github(PATH + 'diamond9.arff')
-    df = pd.DataFrame(data)
-    # Get only data, not the labels and convert to numpy
-    data = df.iloc[:, 0:-1].to_numpy()
+    load_data_from_github(PATH + "diamond9.arff")
     n_clusters_range = [i for i in range(15)]
 
     clusterings_t_k = generate_all_clusterings(
