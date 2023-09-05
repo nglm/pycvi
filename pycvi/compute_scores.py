@@ -533,8 +533,11 @@ def compute_all_scores(
             # with/without sliding window
             X_clus = data_clus[t_w]
 
-            score_kwargs = score.get_score_kwargs(
-                X_clus, clusterings[t_w], n_clusters, score_kwargs
+            score_kw = score.get_score_kwargs(
+                X_clus=X_clus,
+                clusterings_t=clusterings[t_w],
+                n_clusters=n_clusters,
+                score_kwargs=score_kwargs,
             )
 
             # Special case if the clustering algorithm didn't converge,
@@ -550,7 +553,7 @@ def compute_all_scores(
                         l_res_score.append(score(
                             X=X_clus0,
                             clusters=clusters,
-                            score_kwargs=score_kwargs,
+                            score_kwargs=score_kw,
                         ))
                     except ValueError:
                         pass
@@ -566,7 +569,7 @@ def compute_all_scores(
                     res_score = score(
                         X=X_clus,
                         clusters=clusters,
-                        score_kwargs=score_kwargs,
+                        score_kwargs=score_kw,
                     )
                 # Ignore if the score was used with a wrong number of clusters
                 except ValueError:
