@@ -49,7 +49,7 @@ class Score():
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         score_kwargs: dict = {},
-    ) -> dict:
+    ) -> Union[dict, None]:
         return score_kwargs
 
     def criterion(self, scores: Dict[int, float]):
@@ -69,7 +69,12 @@ class Score():
                 list_k_compare = list_k[:-1]
             # Find the biggest increase / drop
             for i, k in enumerate(list_k_compare):
-                if (
+                # Special case if the score couldn't be computed
+                # either because this score doesn't allow this k
+                # or because the clustering model didn't converge
+                if scores[k] is None:
+                    continue
+                elif (
                     i==0
                     or self.is_relevant(
                         scores[k], k,
@@ -85,10 +90,15 @@ class Score():
         else:
             #
             scores_valid = {k: s for k,s in scores.items() if s is not None}
-            if self.maximise:
-                selected_k = max(scores_valid, key=scores_valid.get)
+            # Special case if None if all scores were None (because of
+            # the condition on k or because the model didn't converge)
+            if scores_valid == {}:
+                selected_k = None
             else:
-                selected_k = min(scores_valid, key=scores_valid.get)
+                if self.maximise:
+                    selected_k = max(scores_valid, key=scores_valid.get)
+                else:
+                    selected_k = min(scores_valid, key=scores_valid.get)
         return selected_k
 
     def is_relevant(self, score, k, score_prev, k_prev) -> bool:

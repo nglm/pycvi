@@ -479,6 +479,10 @@ def compute_all_scores(
     """
     Compute and return all scores
 
+    If some scores couldn't be computed because of the condition on k
+    or because the clustering algorithm used previously didn't converged
+    then `scores[t_w][n_clusters] = None`.
+
     :rtype: List[Dict[int, float]]
     """
 
@@ -523,6 +527,7 @@ def compute_all_scores(
 
             # Find cluster membership of each member
             clusters = clusterings[t_w][n_clusters]
+
             # Take the data used for clustering while taking into
             # account the difference between time step indices
             # with/without sliding window
@@ -532,9 +537,12 @@ def compute_all_scores(
                 X_clus, clusterings[t_w], n_clusters, score_kwargs
             )
 
+            # Special case if the clustering algorithm didn't converge,
+            if clusters is None:
+                res_score = None
             # Special case k=0: compute average score over N_zero
             # samples
-            if n_clusters == 0:
+            elif n_clusters == 0:
                 l_res_score = []
                 for data_clus0 in l_data_clus0:
                     X_clus0 = data_clus0[t_w]
