@@ -33,7 +33,10 @@ class Score():
         clusters: List[List[int]],
         score_kwargs: dict = {},
     ) -> float:
-        n_clusters = len(clusters)
+        if "k" in score_kwargs:
+            n_clusters = score_kwargs["k"]
+        else:
+            n_clusters = len(clusters)
         if self.k_condition(n_clusters):
             return self.function(X, clusters, **score_kwargs)
         else:
