@@ -41,12 +41,12 @@ def compute_center(
     # Regular case
     if len(dims) == 2:
         # Shape (d)
-        return np.mean(cluster, axis=0).reshape(-1)
+        center = np.mean(cluster, axis=0).reshape(-1)
 
     # DTW case
     elif len(dims) == 3:
         # Shape (w_t, d)
-        return softdtw_barycenter(cluster)
+        center = softdtw_barycenter(cluster)
 
     else:
         msg = (
@@ -54,6 +54,7 @@ def compute_center(
             + "and not " + str(dims)
         )
         raise ValueError(msg)
+    return center
 
 def align_to_barycenter(
     cluster,
@@ -498,8 +499,7 @@ def generate_all_clusterings(
                 except ValueError as ve:
                     if not quiet:
                         print(str(ve))
-                    clusterings_t_k[t_w][n_clusters] = None
-                    continue
+                    clusters = None
 
                 clusterings_t_k[t_w][n_clusters] = clusters
 
