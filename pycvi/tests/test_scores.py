@@ -144,10 +144,18 @@ def test_select():
     l_score_mono = [
         {0: 10000, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
     ]
-    l_score_abs  = [ {1: 10000, 2: 5000, 3: 15000, 5: -40000} ]
+    l_score_mono_ignore0 = [
+        {0: 100, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
+    ]
+    l_score_abs  = [ {1: 12000, 2: 5000, 3: 15000, 5: -40000} ]
     # Typically inertia
     S_monotone = Score(
         maximise=False, improve=True, score_type="monotonous"
+    )
+    # Typically Hartigan
+    S_monotone_ignore0 = Score(
+        maximise=False, improve=True, score_type="monotonous",
+        ignore0=True
     )
     # Typically Silhouette score
     S_abs_max = Score(
@@ -157,5 +165,6 @@ def test_select():
         score_type="absolute", maximise=False
     )
     assert S_monotone.select(l_score_mono) == [4]
+    assert S_monotone_ignore0.select(l_score_mono_ignore0) == [4]
     assert S_abs_max.select(l_score_abs) == [3]
     assert S_abs_min.select(l_score_abs) == [5]

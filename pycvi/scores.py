@@ -20,6 +20,7 @@ class Score():
         improve: bool = True,
         score_type: str = "monotonous",
         k_condition: callable = None,
+        ignore0: bool = False,
     ) -> None:
         self.function = score_function
         self.maximise = maximise
@@ -27,6 +28,7 @@ class Score():
         self.improve = improve
         self.score_type = score_type
         self.k_condition = k_condition
+        self.ignore0 = ignore0
 
     def __call__(
         self,
@@ -56,7 +58,10 @@ class Score():
     ) -> Union[dict, None]:
         return score_kwargs
 
-    def criterion(self, scores: Dict[int, float]):
+    def criterion(
+        self,
+        scores: Dict[int, float],
+    ) -> int:
         if self.score_type == "monotonous":
             selected_k = None
             max_diff = 0
@@ -78,11 +83,22 @@ class Score():
                 # or because the clustering model didn't converge
                 if scores[k] is None:
                     continue
-                elif (
-                    i==0
-                    or self.is_relevant(
+                # Special case for example for Hartigan where
+                # we don't use k=0 as a reference score if k=0 is more
+                # relevant than k=1
+                elif (i==0 and self.ignore0 and not self.is_relevant(
                         scores[k], k,
                         last_relevant_score, last_relevant_k)
+                    ):
+                    selected_k = 1
+                    last_relevant_k = 1
+                    last_relevant_score = scores[k]
+                elif (
+                    (i==0 and not self.ignore0)
+                    or self.is_relevant(
+                        scores[k], k,
+                        last_relevant_score, last_relevant_k
+                    )
                 ):
                     diff = abs(scores[k] - last_relevant_score)
                     if max_diff < diff:
@@ -186,7 +202,8 @@ class Hartigan(Score):
             maximise=False,
             improve=True,
             score_type=score_type,
-            k_condition= lambda k: (k>=0)
+            k_condition= lambda k: (k>=0),
+            ignore0 = True,
         )
 
     def get_score_kwargs(
