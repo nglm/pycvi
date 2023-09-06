@@ -200,6 +200,8 @@ class Hartigan(Score):
         s_kw["k"] = n_clusters
         if n_clusters < len(X_clus):
             s_kw["clusters_next"] = clusterings_t.get(n_clusters+1, None)
+        if n_clusters == 0:
+            s_kw["X1"] = X_clus
         s_kw.update(score_kwargs)
         return s_kw
 

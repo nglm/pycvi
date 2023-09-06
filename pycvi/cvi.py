@@ -177,6 +177,7 @@ def hartigan(
     clusters: List[Tuple[List[int], Dict]],
     clusters_next: List[Tuple[List[int], Dict]] = None,
     k:int = None,
+    X1: np.ndarray = None,
 ) -> float:
     """
     Compute the hartigan index for a given clustering
@@ -199,6 +200,19 @@ def hartigan(
     # If we haven't computed the case k+1
     elif clusters_next is None:
         hartigan = 0.
+    elif k == 0:
+        # X0 shape: (N, d*w_t) or (N, w_t, d)
+        if X1 is None:
+            l_X0 = generate_uniform(X, zero_type="bounds", N_zero=1)
+            X1 = X
+        else:
+            l_X0 = [X]
+        l_Wk = []
+        for X0 in l_X0:
+            l_Wk.append(_compute_Wk(X0, clusters))
+        Wk = np.mean(l_Wk)
+        Wk_next = _compute_Wk(X1, clusters)
+        hartigan = (Wk/Wk_next - 1)*(N-k-1)
     # Regular case
     else:
         Wk = _compute_Wk(X, clusters)
