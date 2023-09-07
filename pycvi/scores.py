@@ -222,6 +222,9 @@ class Hartigan(Score):
         s_kw.update(score_kwargs)
         return s_kw
 
+    def __str__(self) -> str:
+        return 'Hartigan_{}'.format(self.score_type)
+
 class CalinskiHarabasz(Score):
 
     def __init__(
@@ -258,6 +261,9 @@ class CalinskiHarabasz(Score):
         s_kw.update(score_kwargs)
         return s_kw
 
+    def __str__(self) -> str:
+        return 'CalinskiHarabasz_{}'.format(self.score_type)
+
 class GapStatistic(Score):
 
     def __init__(
@@ -290,6 +296,9 @@ class GapStatistic(Score):
         s_kw.update(score_kwargs)
         return s_kw
 
+    def __str__(self) -> str:
+        return 'GapStatistic_{}'.format(self.score_type)
+
 class Silhouette(Score):
 
     def __init__(self) -> None:
@@ -301,6 +310,9 @@ class Silhouette(Score):
             k_condition= lambda k: (k>=2)
         )
 
+    def __str__(self) -> str:
+        return 'Silhouette'
+
 class ScoreFunction(Score):
 
     def __init__(self) -> None:
@@ -311,6 +323,9 @@ class ScoreFunction(Score):
             score_type="absolute",
             k_condition= lambda k: (k>=1)
         )
+
+    def __str__(self) -> str:
+        return 'ScoreFunction'
 
 class Inertia(Score):
 
@@ -339,6 +354,11 @@ class Inertia(Score):
             k_condition = k_condition,
         )
 
+        self.reduction = reduction
+
+    def __str__(self) -> str:
+        return 'Inertia_{}'.format(self.reduction)
+
 class Diameter(Score):
 
     def __init__(
@@ -365,6 +385,11 @@ class Diameter(Score):
             score_type="monotonous",
             k_condition = k_condition,
         )
+
+        self.reduction = reduction
+
+    def __str__(self) -> str:
+        return 'Diameter_{}'.format(self.reduction)
 
 SCORES = [
     Hartigan,  # Remove because of the annoying clustering2 argument
