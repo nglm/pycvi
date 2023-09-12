@@ -94,6 +94,7 @@ def gap_statistic(
     clusters: List[List[int]],
     B: int = 10,
     k: int = None,
+    zero_type: str = "variance",
 ) -> float:
     """
     Compute the Gap statistics for a given clustering
@@ -118,7 +119,7 @@ def gap_statistic(
 
         # Generate B random datasets with the same shape as the input data
         # and the same parameters
-        random_datasets = generate_uniform(X, zero_type="bounds", N_zero=B)
+        random_datasets = generate_uniform(X, zero_type=zero_type, N_zero=B)
 
         # Compute the log of the within-cluster dispersion for each random dataset
         wcss_rand = []
@@ -281,6 +282,7 @@ def CH(
     dist_kwargs: dict = {},
     X1: np.ndarray = None,
     k: int = None,
+    zero_type: str = "variance",
 ) -> float:
     """
     Compute the Calinski–Harabasz (CH) index  for a given clustering
@@ -304,7 +306,7 @@ def CH(
 
         # X0 shape: (N, d*w_t) or (N, w_t, d)
         if X1 is None:
-            X0 = generate_uniform(X, zero_type="bounds", N_zero=1)[0]
+            X0 = generate_uniform(X, zero_type=zero_type, N_zero=1)[0]
             X1 = X
         else:
             X0 = X

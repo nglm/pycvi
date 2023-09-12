@@ -19,16 +19,20 @@ class Score():
         maximise: bool = True,
         improve: bool = True,
         score_type: str = "monotonous",
+        criterion_function: callable = None,
         k_condition: callable = None,
         ignore0: bool = False,
     ) -> None:
         self.function = score_function
+        self.criterion_function = criterion_function
         self.maximise = maximise
         # If score_type == "absolute", 'improve' is irrelevant
         self.improve = improve
         self.score_type = score_type
         self.k_condition = k_condition
         self.ignore0 = ignore0
+        self.N = None
+        self.d = None
 
     def __call__(
         self,
@@ -36,6 +40,23 @@ class Score():
         clusters: List[List[int]],
         score_kwargs: dict = {},
     ) -> float:
+        """
+        Compute the score of the clustering.
+
+        :param X: Values of all members
+        :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+        :param clusters: List of (members, info) tuples
+        :type clusters: List[List[int]]
+        :param score_kwargs: kwargs specific for the score, defaults to
+            {}
+        :type score_kwargs: dict, optional
+        :raises InvalidKError: _description_
+        :return: _description_
+        :rtype: float
+        """
+        dims = X.shape
+        self.N = dims[0]
+        self.d = dims[-1]
         if "k" in score_kwargs:
             n_clusters = score_kwargs["k"]
         else:
@@ -61,8 +82,14 @@ class Score():
     def criterion(
         self,
         scores: Dict[int, float],
+        score_type: str = None,
     ) -> int:
-        if self.score_type == "monotonous":
+        # Because some custom criterion_function relies on the general
+        # case "monotonous"/"absolute"
+        if score_type is None:
+            score_type = self.score_type
+        # For monotonous scores
+        if score_type == "monotonous":
             selected_k = None
             max_diff = 0
 
@@ -107,7 +134,8 @@ class Score():
 
                     last_relevant_k = k
                     last_relevant_score = scores[k]
-        else:
+        # For absolute scores
+        elif score_type == "absolute":
             #
             scores_valid = {k: s for k,s in scores.items() if s is not None}
             # Special case if None if all scores were None (because of
@@ -119,6 +147,9 @@ class Score():
                     selected_k = max(scores_valid, key=scores_valid.get)
                 else:
                     selected_k = min(scores_valid, key=scores_valid.get)
+        # For scores with a special selection process
+        else:
+            selected_k = self.criterion_function(scores)
         return selected_k
 
     def is_relevant(self, score, k, score_prev, k_prev) -> bool:
@@ -231,12 +262,22 @@ class CalinskiHarabasz(Score):
         self,
         score_type: str = "monotonous"
     ) -> None:
+        """
+        Originally this index has to be maximised to find the best $k$.
+        A monotonous approach can also be taken, so that the case k=1
+        can be selected, with CH(1) = 0 and CH(0) extended (see
+        `pycvi.cvi.CH`)
+        """
 
         # Note that the case k=1 for the absolute version will always
         # give CH=0
         k_condition = lambda k: (
             k>=0 if score_type == "monotonous" else k>=1
         )
+
+        # original and absolute are the same
+        if score_type == "original":
+            score_type = "absolute"
 
         super().__init__(
             score_function=CH,
@@ -258,18 +299,26 @@ class CalinskiHarabasz(Score):
         s_kw["k"] = n_clusters
         if n_clusters == 0:
             s_kw["X1"] = X_clus
+        if "zero_type" not in s_kw or s_kw["zero_type"] == None:
+            if len(X_clus) > 100:
+                s_kw["zero_type"] = "variance"
+            else:
+                s_kw["zero_type"] = "bounds"
         s_kw.update(score_kwargs)
         return s_kw
 
     def __str__(self) -> str:
-        return 'CalinskiHarabasz_{}'.format(self.score_type)
+        score_type = self.score_type
+        # original and absolute are the same
+        if score_type == "absolute":
+            score_type = "original"
+        return 'CalinskiHarabasz_{}'.format(score_type)
 
 class GapStatistic(Score):
 
     def __init__(
         self,
         score_type: str = "monotonous",
-        B: int = 10
     ) -> None:
 
         k_condition = lambda k: (
@@ -294,6 +343,11 @@ class GapStatistic(Score):
         s_kw = {"B" : 10}
         s_kw["k"] = n_clusters
         s_kw.update(score_kwargs)
+        if "zero_type" not in s_kw or s_kw["zero_type"] == None:
+            if len(X_clus) > 100:
+                s_kw["zero_type"] = "variance"
+            else:
+                s_kw["zero_type"] = "bounds"
         return s_kw
 
     def __str__(self) -> str:
@@ -315,14 +369,45 @@ class Silhouette(Score):
 
 class ScoreFunction(Score):
 
-    def __init__(self) -> None:
+    def __init__(self, score_type: str = "original") -> None:
+        """
+        Originally this index has to be maximised to find the best $k$,
+        but the original paper Saitta et al. [2007] adds special cases:
+
+        - if the score always increases, then the number $k=1$ is chosen
+        - if a maximum is found, outside the extreme $k$ values, then
+          the argument of this maximum is chosen.
+        - it is empirically decided that if $(SF2 − SF1) \times d <=
+          0.2$ then, $k = 1$ is also chosen (d being the dimensionality
+          of the data)
+
+        The absolute case can also be chosen (i.e. special case are
+        ignored)
+        """
         super().__init__(
             score_function=score_function,
             maximise=True,
             improve=None,
-            score_type="absolute",
+            score_type=score_type,
+            criterion_function=self.f_criterion,
             k_condition= lambda k: (k>=1)
         )
+
+    def f_criterion(
+        self,
+        scores: Dict[int, float],
+    ) -> int:
+        # General case first
+        best_k = self.criterion(scores, score_type="absolute")
+        # If score always increases, then choose k=1
+        if best_k == max(scores):
+            best_k = 1
+        if (
+            (1 in scores) and (2 in scores)
+            and ((scores[2] - scores[1]) * self.d <= 0.2)
+        ):
+            best_k=1
+        return best_k
 
     def __str__(self) -> str:
         return 'ScoreFunction'
@@ -392,7 +477,7 @@ class Diameter(Score):
         return 'Diameter_{}'.format(self.reduction)
 
 SCORES = [
-    Hartigan,  # Remove because of the annoying clustering2 argument
+    Hartigan,
     CalinskiHarabasz,
     GapStatistic,
     Silhouette,
