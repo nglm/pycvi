@@ -228,7 +228,8 @@ def hartigan(
             l_Wk.append(_compute_Wk(X0, clusters))
         Wk = np.mean(l_Wk)
         Wk_next = _compute_Wk(X1, clusters)
-        hartigan = (Wk/Wk_next - 1)*(N-k-1)
+        # We use the normal formula but with k=1 so that we get the
+        hartigan = (Wk/Wk_next - 1)*(N-1-1)
     # Regular case
     else:
         Wk = _compute_Wk(X, clusters)

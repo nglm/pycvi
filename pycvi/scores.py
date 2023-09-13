@@ -272,7 +272,7 @@ class Hartigan(Score):
             # $k$ and $k+1$ is the smallest
             ks = sorted([k for k in scores.keys() if scores[k] is not None])
             arg_selected_k = np.argmin(
-                [scores[ks[i+1]]-scores[ks[i]] for i in range(len(ks)-1)]
+                [abs(scores[ks[i+1]]-scores[ks[i]]) for i in range(len(ks)-1)]
             )
             selected_k = ks[arg_selected_k]
         return selected_k
