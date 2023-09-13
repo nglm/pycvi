@@ -32,26 +32,28 @@ def test_Scores():
             )
 
         for score in SCORES:
-            scores_t_k = compute_all_scores(
-                score(), data, clusterings_t_k,
-                transformer=None, scaler=StandardScaler(), DTW=DTW,
-                time_window=None
-            )
+            for score_type in score.score_types:
+                s = score(score_type=score_type)
+                scores_t_k = compute_all_scores(
+                    s, data, clusterings_t_k,
+                    transformer=None, scaler=StandardScaler(), DTW=DTW,
+                    time_window=None
+                )
 
-            # T_w = 1
-            assert (len(scores_t_k) == 1)
-            for k in range(N+1):
-                # all clusterings were computed
-                assert k in scores_t_k[0]
-            # List[Dict[int, float]]
-            assert (type(scores_t_k) == list)
-            assert (type(scores_t_k[0]) == dict)
-            assert (
-                type(scores_t_k[0][0]) == float
-                or type(scores_t_k[0][0]) == np.float64
-                # returns None when the score was used with an
-                # incompatible number of clusters
-                or type(scores_t_k[0][0]) == type(None))
+                # T_w = 1
+                assert (len(scores_t_k) == 1)
+                for k in range(N+1):
+                    # all clusterings were computed
+                    assert k in scores_t_k[0]
+                # List[Dict[int, float]]
+                assert (type(scores_t_k) == list)
+                assert (type(scores_t_k[0]) == dict)
+                assert (
+                    type(scores_t_k[0][0]) == float
+                    or type(scores_t_k[0][0]) == np.float64
+                    # returns None when the score was used with an
+                    # incompatible number of clusters
+                    or type(scores_t_k[0][0]) == type(None))
 
         # Not using DTW nor window
         DTW = False
@@ -64,26 +66,28 @@ def test_Scores():
             )
 
         for score in SCORES:
-            scores_t_k = compute_all_scores(
-                score(), data, clusterings_t_k,
-                transformer=None, scaler=None, DTW=DTW,
-                time_window=None
-            )
+            for score_type in score.score_types:
+                s = score(score_type=score_type)
+                scores_t_k = compute_all_scores(
+                    s, data, clusterings_t_k,
+                    transformer=None, scaler=None, DTW=DTW,
+                    time_window=None
+                )
 
-            # T_w = 1
-            assert (len(scores_t_k) == 1)
-            for k in range(N+1):
-                # all clusterings were computed
-                assert k in scores_t_k[0]
-            # List[Dict[int, float]]
-            assert (type(scores_t_k) == list)
-            assert (type(scores_t_k[0]) == dict)
-            assert (
-                type(scores_t_k[0][0]) == float
-                or type(scores_t_k[0][0]) == np.float64
-                # returns None when the score was used with an
-                # incompatible number of clusters
-                or type(scores_t_k[0][0]) == type(None))
+                # T_w = 1
+                assert (len(scores_t_k) == 1)
+                for k in range(N+1):
+                    # all clusterings were computed
+                    assert k in scores_t_k[0]
+                # List[Dict[int, float]]
+                assert (type(scores_t_k) == list)
+                assert (type(scores_t_k[0]) == dict)
+                assert (
+                    type(scores_t_k[0][0]) == float
+                    or type(scores_t_k[0][0]) == np.float64
+                    # returns None when the score was used with an
+                    # incompatible number of clusters
+                    or type(scores_t_k[0][0]) == type(None))
 
     # ---------- Test on clustering benchmark dataset ------------------
     DTW = False
@@ -98,18 +102,18 @@ def test_Scores():
             model_kw={}, fit_predict_kw={}, model_class_kw={}
         )
     for score in SCORES:
+        for score_type in score.score_types:
+            s = score(score_type=score_type)
 
-        s = score()
+            scores_t_k = compute_all_scores(
+                s, data, clusterings_t_k,
+                transformer=None, scaler=StandardScaler(), DTW=DTW,
+                time_window=None
+            )
 
-        scores_t_k = compute_all_scores(
-            s, data, clusterings_t_k,
-            transformer=None, scaler=StandardScaler(), DTW=DTW,
-            time_window=None
-        )
+            k = s.select(scores_t_k)
 
-        k = s.select(scores_t_k)
-
-        print(score, k)
+            print(score, k)
 
 def test_is_relevant():
     l_score1 = [-1.,  -1., -1.,  1.,  1.,  1.]

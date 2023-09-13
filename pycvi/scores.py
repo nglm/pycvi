@@ -13,7 +13,7 @@ from .exceptions import InvalidKError
 
 class Score():
 
-    score_types: List[str] = None
+    score_types: List[str] = ["monotonous", "absolute"]
     reductions: List[str] = None
 
     def __init__(
@@ -31,7 +31,12 @@ class Score():
         self.maximise = maximise
         # If score_type == "absolute", 'improve' is irrelevant
         self.improve = improve
-        self.score_type = score_type
+        if score_type in self.score_types:
+            self.score_type = score_type
+        else:
+            raise ValueError(
+                "score_type {} invalid for {}. Please choose among {}".format(score_type, str(self), self.score_types)
+            )
         self.k_condition = k_condition
         self.ignore0 = ignore0
         self.N = None
@@ -249,6 +254,7 @@ class Hartigan(Score):
             maximise=False,
             improve=True,
             score_type=score_type,
+            criterion_function=self.f_criterion,
             k_condition= lambda k: (k>=0),
             ignore0 = True,
         )
@@ -264,7 +270,7 @@ class Hartigan(Score):
         else:
             # Otherwise, choose the $k$ whose difference in Hartigan for
             # $k$ and $k+1$ is the smallest
-            ks = sorted([k for k in scores.keys()])
+            ks = sorted([k for k in scores.keys() if scores[k] is not None])
             arg_selected_k = np.argmin(
                 [scores[ks[i+1]]-scores[ks[i]] for i in range(len(ks)-1)]
             )
@@ -292,17 +298,17 @@ class Hartigan(Score):
 
 class CalinskiHarabasz(Score):
 
-    score_types: List[str] = ["monotonous", "original"]
+    score_types: List[str] = ["monotonous", "original", "absolute"]
 
     def __init__(
         self,
         score_type: str = "monotonous"
     ) -> None:
         """
-        Originally this index has to be maximised to find the best $k$.
-        A monotonous approach can also be taken, so that the case k=1
-        can be selected, with CH(1) = 0 and CH(0) extended (see
-        `pycvi.cvi.CH`)
+        Originally this index is absolute and has to be maximised to
+        find the best $k$. A monotonous approach can also be taken, so
+        that the case k=1 can be selected, with CH(1) = 0 and CH(0)
+        extended (see `pycvi.cvi.CH`)
         """
 
         # Note that the case k=1 for the absolute version will always
@@ -368,7 +374,8 @@ class GapStatistic(Score):
             maximise=True,
             improve=True,
             score_type=score_type,
-            k_condition=k_condition
+            k_condition=k_condition,
+            criterion_function=self.f_criterion,
         )
 
         self.s = {}
@@ -377,7 +384,7 @@ class GapStatistic(Score):
         self,
         scores: Dict[int, float],
     ) -> int:
-        ks = sorted([k for k in scores.keys()])
+        ks = sorted([k for k in scores.keys() if scores[k] is not None])
         selected_k = np.amin([
             ks[k] for k in range(len(ks)-1)
             # Gap(k) >= Gap(k+1) - s(k+1)
@@ -425,12 +432,15 @@ class Silhouette(Score):
 
     score_types: List[str] = ["absolute"]
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        score_type: str = "absolute",
+    ) -> None:
         super().__init__(
             score_function=silhouette,
             maximise=True,
             improve=None,
-            score_type="absolute",
+            score_type=score_type,
             k_condition= lambda k: (k>=2)
         )
 
@@ -494,6 +504,7 @@ class Inertia(Score):
     def __init__(
         self,
         reduction: Union[str, callable] = "sum",
+        score_type: str = "monotonous",
     ) -> None:
         """
         reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
@@ -512,14 +523,17 @@ class Inertia(Score):
             score_function=score_function,
             maximise=False,
             improve=True,
-            score_type="monotonous",
+            score_type=score_type,
             k_condition = k_condition,
         )
 
         self.reduction = reduction
 
     def __str__(self) -> str:
-        return 'Inertia_{}'.format(self.reduction)
+        if hasattr(self, "reduction"):
+            return 'Inertia_{}'.format(self.reduction)
+        else:
+            return 'Inertia'
 
 class Diameter(Score):
 
@@ -531,6 +545,7 @@ class Diameter(Score):
     def __init__(
         self,
         reduction: Union[str, callable] = "max",
+        score_type: str = "monotonous",
     ) -> None:
         """
         reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
@@ -549,7 +564,7 @@ class Diameter(Score):
             score_function=score_function,
             maximise=False,
             improve=True,
-            score_type="monotonous",
+            score_type=score_type,
             k_condition = k_condition,
         )
 
