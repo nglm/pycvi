@@ -13,6 +13,9 @@ from .exceptions import InvalidKError
 
 class Score():
 
+    score_types: List[str] = None
+    reductions: List[str] = None
+
     def __init__(
         self,
         score_function: callable = None,
@@ -223,10 +226,23 @@ class Score():
 
 class Hartigan(Score):
 
+    score_types: List[str] = ["monotonous", "original"]
+
     def __init__(
         self,
         score_type: str = "monotonous"
     ) -> None:
+        """
+        According to de Amorim and Hennig [2015] "In the original paper,
+        the lowest $k$ to yield Hartigan $<= 10$ was proposed as the
+        optimal choice. However, if no $k$ meets this criteria, choose
+        the $k$ whose difference in Hartigan for $k$ and $k+1$ is the
+        smallest". According to Tibshirani et al. [2001] it is "the
+        estimated number of clusters is the smallest k such that
+        Hartigan $<= 10$ and $k=1$ could then be possible.
+
+        Possible score_type: monotonous, or original
+        """
 
         super().__init__(
             score_function=hartigan,
@@ -236,6 +252,24 @@ class Hartigan(Score):
             k_condition= lambda k: (k>=0),
             ignore0 = True,
         )
+
+    def f_criterion(
+        self,
+        scores: Dict[int, float],
+    ) -> int:
+        valid_k = {k: s for k,s in scores.items() if s<=10}
+        if valid_k:
+            # Take the lowest $k$ to yield Hartigan $<= 10$
+            selected_k = min(valid_k)
+        else:
+            # Otherwise, choose the $k$ whose difference in Hartigan for
+            # $k$ and $k+1$ is the smallest
+            ks = sorted([k for k in scores.keys()])
+            arg_selected_k = np.argmin(
+                [scores[ks[i+1]]-scores[ks[i]] for i in range(len(ks)-1)]
+            )
+            selected_k = ks[arg_selected_k]
+        return selected_k
 
     def get_score_kwargs(
         self,
@@ -257,6 +291,8 @@ class Hartigan(Score):
         return 'Hartigan_{}'.format(self.score_type)
 
 class CalinskiHarabasz(Score):
+
+    score_types: List[str] = ["monotonous", "original"]
 
     def __init__(
         self,
@@ -316,6 +352,8 @@ class CalinskiHarabasz(Score):
 
 class GapStatistic(Score):
 
+    score_types: List[str] = ["monotonous", "absolute", "original"]
+
     def __init__(
         self,
         score_type: str = "monotonous",
@@ -355,6 +393,8 @@ class GapStatistic(Score):
 
 class Silhouette(Score):
 
+    score_types: List[str] = ["absolute"]
+
     def __init__(self) -> None:
         super().__init__(
             score_function=silhouette,
@@ -368,6 +408,8 @@ class Silhouette(Score):
         return 'Silhouette'
 
 class ScoreFunction(Score):
+
+    score_types: List[str] = ["absolute", "original"]
 
     def __init__(self, score_type: str = "original") -> None:
         """
@@ -414,6 +456,11 @@ class ScoreFunction(Score):
 
 class Inertia(Score):
 
+    score_types: List[str] = ["monotonous"]
+    reductions: List[str] = [
+        "sum", "mean", "max", "median", "min", "", None
+    ]
+
     def __init__(
         self,
         reduction: Union[str, callable] = "sum",
@@ -445,6 +492,11 @@ class Inertia(Score):
         return 'Inertia_{}'.format(self.reduction)
 
 class Diameter(Score):
+
+    score_types: List[str] = ["monotonous"]
+    reductions: List[str] = [
+        "sum", "mean", "max", "median", "min", "", None
+    ]
 
     def __init__(
         self,
