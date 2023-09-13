@@ -371,6 +371,20 @@ class GapStatistic(Score):
             k_condition=k_condition
         )
 
+        self.s = {}
+
+    def f_criterion(
+        self,
+        scores: Dict[int, float],
+    ) -> int:
+        ks = sorted([k for k in scores.keys()])
+        selected_k = np.amin([
+            ks[k] for k in range(len(ks)-1)
+            # Gap(k) >= Gap(k+1) - s(k+1)
+            if scores[ks[k]] >= scores[ks[k+1]] - self.s[ks[k+1]]
+        ])
+        return selected_k
+
     def get_score_kwargs(
         self,
         X_clus: np.ndarray = None,
@@ -380,6 +394,8 @@ class GapStatistic(Score):
     ) -> None:
         s_kw = {"B" : 10}
         s_kw["k"] = n_clusters
+        if self.score_type == "original":
+            s_kw["return_s"] = True
         s_kw.update(score_kwargs)
         if "zero_type" not in s_kw or s_kw["zero_type"] == None:
             if len(X_clus) > 100:
@@ -387,6 +403,20 @@ class GapStatistic(Score):
             else:
                 s_kw["zero_type"] = "bounds"
         return s_kw
+
+    def __call__(
+        self,
+        X: np.ndarray,
+        clusters: List[List[int]],
+        score_kwargs: dict = {}
+    ) -> float:
+        if self.score_type == "original":
+            gap, s =  super().__call__(X, clusters, score_kwargs)
+            k = len(clusters)
+            self.s[k] = s
+            return gap
+        else:
+            return super().__call__(X, clusters, score_kwargs)
 
     def __str__(self) -> str:
         return 'GapStatistic_{}'.format(self.score_type)

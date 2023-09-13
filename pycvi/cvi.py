@@ -95,6 +95,7 @@ def gap_statistic(
     B: int = 10,
     k: int = None,
     zero_type: str = "variance",
+    return_s: bool = False,
 ) -> float:
     """
     Compute the Gap statistics for a given clustering
@@ -130,14 +131,28 @@ def gap_statistic(
         # Compute the gap statistic for the current clustering
         mean_wcss_rand = np.mean(wcss_rand)
         gap = float(mean_wcss_rand - wcss)
+
         # To address the case of singletons. Note that gap=0 means that the
         # clustering is irrelevant.
         if gap == -np.inf:
             gap = 0.
+            s = 0.
         # To address the case where both are -np.inf which yield gap=nan
         elif mean_wcss_rand == -np.inf and wcss == -np.inf:
             gap = 0.
-    return gap
+            s = 0.
+        elif return_s:
+            # Compute standard deviation of wcss of the references dataset
+            sd = np.sqrt( (1/B) * np.sum(
+                [(wcss_rand - mean_wcss_rand)**2]
+            ))
+            # Apply formula
+            s = np.sqrt(1+(1/B)) * sd
+
+    if return_s:
+        return gap, s
+    else:
+        return gap
 
 def score_function(
     X : np.ndarray,
