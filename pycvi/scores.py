@@ -385,11 +385,11 @@ class GapStatistic(Score):
         scores: Dict[int, float],
     ) -> int:
         ks = sorted([k for k in scores.keys() if scores[k] is not None])
-        selected_k = np.amin([
+        selected_k = int(np.amin([
             ks[k] for k in range(len(ks)-1)
             # Gap(k) >= Gap(k+1) - s(k+1)
             if scores[ks[k]] >= scores[ks[k+1]] - self.s[ks[k+1]]
-        ])
+        ]))
         return selected_k
 
     def get_score_kwargs(
