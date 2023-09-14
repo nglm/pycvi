@@ -1,14 +1,7 @@
 import numpy as np
-from numpy.testing import assert_array_equal
-from tslearn.clustering import TimeSeriesKMeans
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-from ..scores import Inertia, GapStatistic
+import pytest
 
-from ..datasets import mini
-
-from ..cvi import silhouette, CH, _compute_Wk
-from ..cluster import generate_all_clusterings
+from ..cvi import _compute_Wk
 from ..utils import load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'

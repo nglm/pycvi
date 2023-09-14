@@ -1,10 +1,11 @@
 import numpy as np
 from numpy.testing import assert_array_equal
+import pytest
 from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
 
-from ..scores import SCORES, Score, Hartigan
+from ..scores import SCORES, Score
 from ..datasets import mini
 from ..compute_scores import (
     compute_all_scores,

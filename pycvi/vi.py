@@ -29,7 +29,7 @@ def entropy(
     """
     P_ks = P_clusters(clustering)
     return - float(np.sum(
-        [P_k * np.log(P_k) for P_k in P_ks]
+        [P_k * np.log10(P_k) for P_k in P_ks]
     ))
 
 def contingency_matrix(
@@ -49,7 +49,7 @@ def contingency_matrix(
     k1 = len(clustering1)
     k2 = len(clustering2)
     return np.array([
-            [sum(list(set(c1).intersection(c2))) for c2 in clustering2]
+            [len(list(set(c1).intersection(c2))) for c2 in clustering2]
             for c1 in clustering1
         ], dtype=int)
 
@@ -70,12 +70,15 @@ def mutual_information(
     m = contingency_matrix(clustering1, clustering2)
     P_ks1 = P_clusters(clustering1)
     P_ks2 = P_clusters(clustering2)
-    return np.sum([
+    tmp = [
         [
-            m[i1, i2] * np.log( m[i1, i2]/ (P_k1 * P_k2 ))
+            m[i1, i2] * np.log10( m[i1, i2]/ (P_k1 * P_k2 ))
+            if m[i1, i2]>0 else 0
             for i2, P_k2 in enumerate(P_ks2)
         ] for i1, P_k1 in enumerate(P_ks1)
-    ])
+    ]
+    I =  float(np.sum(tmp))
+    return I
 
 def variational_information(
     clustering1: List[List[int]],

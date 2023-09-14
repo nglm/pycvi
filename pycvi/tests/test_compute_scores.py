@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
+import pytest
 from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
