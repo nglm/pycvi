@@ -27,7 +27,8 @@ def set_data_shape(X: np.ndarray) -> np.ndarray:
     elif len(shape) != 3:
         raise ShapeError(
             "Invalid shape of members provided: {shape}. "
-            + "Please provide a valid shape: (N,) or (N, d) or (N, T, d)"
+            + "Please provide a valid shape: "
+            + "`(N,)` or `(N, d)` or `(N, T, d)`"
         )
     return X_copy
 
