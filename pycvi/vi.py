@@ -22,6 +22,14 @@ def entropy(
     """
     Entropy of the given clustering
 
+    Conventions: (see "Elements of Information Theory" by Cover and
+    Thomas), section 2.3
+
+    - log is in base 2 and entropy is count in bits
+    - $0 log(0) = 0$
+    - $0 log(0/q) = 0$
+    - $p log(p/0) = +inf$
+
     :param clustering: A given clustering
     :type clustering: List[List[int]]
     :return: Entropy of the given clustering
@@ -29,7 +37,7 @@ def entropy(
     """
     P_ks = P_clusters(clustering)
     return - float(np.sum(
-        [P_k * np.log10(P_k) for P_k in P_ks]
+        [P_k * np.log2(P_k) for P_k in P_ks]
     ))
 
 def contingency_matrix(
@@ -46,12 +54,12 @@ def contingency_matrix(
     :return: Contingency matrix between the two clusterings.
     :rtype: np.ndarray
     """
-    k1 = len(clustering1)
-    k2 = len(clustering2)
-    return np.array([
-            [len(list(set(c1).intersection(c2))) for c2 in clustering2]
+    N = sum([len(c) for c in clustering1])
+    m = np.array([
+            [len(list(set(c1).intersection(c2)))/N for c2 in clustering2]
             for c1 in clustering1
-        ], dtype=int)
+        ])
+    return m
 
 def mutual_information(
     clustering1: List[List[int]],
@@ -72,7 +80,7 @@ def mutual_information(
     P_ks2 = P_clusters(clustering2)
     tmp = [
         [
-            m[i1, i2] * np.log10( m[i1, i2]/ (P_k1 * P_k2 ))
+            m[i1, i2] * np.log2( m[i1, i2]/ (P_k1 * P_k2 ))
             if m[i1, i2]>0 else 0
             for i2, P_k2 in enumerate(P_ks2)
         ] for i1, P_k1 in enumerate(P_ks1)
