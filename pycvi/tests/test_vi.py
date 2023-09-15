@@ -133,8 +133,12 @@ def test_variational_information():
 
                 assert type(vi) == float
                 assert vi >= 0
+
+                # vi is symmetric
                 assert (
                     variational_information(C1, C2)
                     == variational_information(C2, C1)
                 )
+
+                # vi is positive definite
                 assert variational_information(C1, C1) == 0
