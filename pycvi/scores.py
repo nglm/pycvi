@@ -263,7 +263,10 @@ class Hartigan(Score):
         self,
         scores: Dict[int, float],
     ) -> int:
-        valid_k = {k: s for k,s in scores.items() if s<=10}
+        valid_k = {
+            k: s for k,s in scores.items()
+            if ((s is not None) and (s<=10))
+        }
         if valid_k:
             # Take the lowest $k$ to yield Hartigan $<= 10$
             selected_k = min(valid_k)
