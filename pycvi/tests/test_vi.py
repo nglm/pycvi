@@ -121,3 +121,20 @@ def test_mutual_information():
                 # Mutual information is symmetric
                 assert mutual_information(C1, C2) == mutual_information(C2, C1)
 
+def test_variational_information():
+    Cs = clusterings()
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
+        N = len(data)
+        for C1 in Cs[:-1]:
+            for C2 in Cs[1:]:
+                # Mutual information of two different clusterings
+                vi = variational_information(C1, C2)
+
+                assert type(vi) == float
+                assert vi >= 0
+                assert (
+                    variational_information(C1, C2)
+                    == variational_information(C2, C1)
+                )
+                assert variational_information(C1, C1) == 0
