@@ -27,6 +27,7 @@ class ScoreError(ValueError):
 
 class InvalidKError(ValueError):
     """
-    The CVI was called with an incompatible number of clusters.
+    The CVI was called with an incompatible number of clusters, or
+    two clusterings are to be aligned but their k don't match
     """
     pass

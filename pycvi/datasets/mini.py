@@ -92,3 +92,32 @@ def mini(
     return np.copy(data), np.copy(time)
 
 
+def normal(
+    k: int = 2,
+    nis: List[int] = [20, 10],
+    T: int = 5,
+    multivariate: bool = True,
+    time_scale: bool = True,
+    lows = [-2., -1.5],
+    highs = [1., 3.],
+    sigmas = [0.5, 1.],
+) -> Tuple[np.ndarray, np.ndarray]:
+
+    rng = np.random.default_rng(221)
+
+    time = np.arange(T)
+    # Get a time axis different from the indices (by a factor 6)
+    if time_scale:
+        time *= 6
+
+    if not multivariate:
+        lows = lows[0]
+        highs = highs[0]
+        sigmas = sigmas[0]
+    mus = [rng.uniform(lows, highs, size = k)]
+    sigmas = [rng.uniform(0.5, 1., size = k)]
+    data = np.array([[
+        rng.normal(mus, sigmas, size=T) for ni in nis for _ in range(ni)
+    ]])
+    return data, time
+

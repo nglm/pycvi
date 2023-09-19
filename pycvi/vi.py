@@ -1,5 +1,7 @@
 import numpy as np
-from typing import List
+from typing import List, Tuple
+
+from .exceptions import InvalidKError
 
 def P_clusters(
     clustering: List[List[int]]
@@ -91,6 +93,7 @@ def mutual_information(
 def variational_information(
     clustering1: List[List[int]],
     clustering2: List[List[int]],
+    align: bool = True,
 ) -> float:
     """
     Variational information between two clusterings.
@@ -99,10 +102,62 @@ def variational_information(
     :type clustering1: List[List[int]]
     :param clustering2: Second clustering
     :type clustering2: List[List[int]]
+    :param align: Should the clusterings be aligned first? defaults to
+        True
+    :type align: bool, optional
     :return: Variational information between two clusterings.
     :rtype: float
     """
+    if align:
+        c2 = align_clusterings(clustering1, clustering2)
+    else:
+        c2 = clustering2
     H1 = entropy(clustering1)
-    H2 = entropy(clustering2)
-    I = mutual_information(clustering1, clustering2)
+    H2 = entropy(c2)
+    I = mutual_information(clustering1, c2)
     return H1 + H2 - 2*I
+
+def align_clusterings(
+    clustering1: List[List[int]],
+    clustering2: List[List[int]],
+) -> Tuple[List[List[int]], List[List[int]]]:
+    """
+    Align `clustering2` to `clustering1`.
+
+    To be aligned the clusterings must have the same number of clusters
+
+    :param clustering1: First clustering, used as reference
+    :type clustering1: List[List[int]]
+    :param clustering2: Second clustering, to be aligned
+    :type clustering2: List[List[int]]
+    :return: Same clusters but "aligned" to `clustering1`
+    :rtype: Tuple[List[List[int]], List[List[int]]]
+    """
+    if len(clustering1) != len(clustering2):
+        msg = (
+            "clustering1 and clustering2 can't be aligned because their"
+            + "lengths don't match: {} and {}."
+        ).format(len(clustering1), len(clustering2))
+        raise InvalidKError(msg)
+
+    # Make a safe copy of clustering2 where we will delete one by one
+    # clusters that are already aligned
+    left_c2 = [c.copy() for c in clustering2]
+    sorted_c1 = sorted(clustering1, key=len, reverse=True)
+    res_c2 = []
+
+    # While not all clusters have been processed, take the biggest
+    # cluster in c1
+    for c1 in sorted_c1:
+
+        # Find the cluster in clustering 2 that has the largest common
+        # datapoints with the largest cluster in c1
+        argbest = np.argmax([
+            len(list(set(c1).intersection(c2))) for c2 in left_c2
+        ])
+
+        # Add to the result and remove from left_c2
+        res_c2.append(left_c2[argbest].copy())
+        del left_c2[argbest]
+
+    return sorted_c1, res_c2
