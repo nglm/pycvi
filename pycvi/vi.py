@@ -28,7 +28,7 @@ def entropy(
     Thomas), section 2.3
 
     - log is in base 2 and entropy is count in bits
-    - $0 log(0) = 0$
+    - $0 log(0/0) = 0$
     - $0 log(0/q) = 0$
     - $p log(p/0) = +inf$
 
@@ -39,7 +39,7 @@ def entropy(
     """
     P_ks = P_clusters(clustering)
     return - float(np.sum(
-        [P_k * np.log2(P_k) for P_k in P_ks]
+        [P_k * np.log2(P_k) if P_k>0 else 0 for P_k in P_ks ]
     ))
 
 def contingency_matrix(
@@ -70,6 +70,14 @@ def mutual_information(
     """
     Mutual information between two clusterings.
 
+    Conventions: (see "Elements of Information Theory" by Cover and
+    Thomas), section 2.3
+
+    - log is in base 2 and entropy is count in bits
+    - $0 log(0/0) = 0$
+    - $0 log(0/q) = 0$
+    - $p log(p/0) = +inf$
+
     :param clustering1: First clustering
     :type clustering1: List[List[int]]
     :param clustering2: Second clustering
@@ -93,7 +101,7 @@ def mutual_information(
 def variational_information(
     clustering1: List[List[int]],
     clustering2: List[List[int]],
-    align: bool = True,
+    align: bool = False,
 ) -> float:
     """
     Variational information between two clusterings.
