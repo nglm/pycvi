@@ -111,13 +111,19 @@ def normal(
         time *= 6
 
     if not multivariate:
+        d = 1
         lows = lows[0]
         highs = highs[0]
         sigmas = sigmas[0]
-    mus = [rng.uniform(lows, highs, size = k)]
-    sigmas = [rng.uniform(0.5, 1., size = k)]
-    data = np.array([[
-        rng.normal(mus, sigmas, size=T) for ni in nis for _ in range(ni)
-    ]])
+    else:
+        d = len(lows)
+
+    mus = [rng.uniform(lows, highs) for _ in range(k)]
+    stds = [sigmas for _ in range(k)]
+
+    data = np.array([
+        rng.normal(mus[i_k], stds[i_k], size=(T, d))
+        for i_k, ni in enumerate(nis) for _ in range(ni)
+    ])
     return data, time
 
