@@ -174,6 +174,12 @@ def test_variational_information():
                 # vi is positive definite
                 assert variational_information(C1, C1) == pytest.approx(0)
 
+    # With symmetric clusterings
+    C1s = [ Cs["C2_bis"], Cs["C3_bis"], Cs["C3"]]
+    C2s = [ Cs["C2_bis_shuffled"], Cs["C3_bis_shuffled"], Cs["C3_shuffled"] ]
+    for C1, C2 in zip(C1s, C2s):
+        assert variational_information(C1, C1) == pytest.approx(0)
+
 def test_align_clusterings():
     for multivariate in [True, False]:
         Cs, data, time = clusterings(multivariate=multivariate)
