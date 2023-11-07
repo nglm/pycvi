@@ -66,7 +66,8 @@ def get_centroid(
 
 def f_pdist(
     cluster: np.ndarray,
-    dist_kwargs: dict = {}
+    dist_kwargs: dict = {},
+    DTW: bool = True
 ) -> np.ndarray:
     """
     Compute the pairwise distance within a group of elements
@@ -76,6 +77,8 @@ def f_pdist(
     :type cluster: np.ndarray
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
+    :param DTW: To use DTW even in case the shape was (N, T)
+    :type DTW: bool
     :return: pairwise distance within the cluster (a condensed matrix)
         for the regular case or a (N_c, N_c) matrix for the DTW case
     :rtype: np.ndarray

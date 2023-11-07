@@ -4,7 +4,9 @@ from scipy.spatial.distance import cdist, pdist
 from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
-from .cvi import gap_statistic, silhouette, score_function, CH, hartigan
+from .cvi import (
+    gap_statistic, silhouette, score_function, CH, hartigan, MB,
+)
 from .compute_scores import (
     best_score, better_score, worst_score, argbest, argworst, compute_score,
     reduce
@@ -92,6 +94,13 @@ class Score():
         scores: Dict[int, float],
         score_type: str = None,
     ) -> int:
+        """
+        Treats the regular cases .
+        Cases included monotonous/absolute/pseudo-monotonous and
+        maximise=True/False with improve=True/False.
+
+        Does not take into account rules that are specific to a score.
+        """
         # Because some custom criterion_function relies on the general
         # case "monotonous"/"absolute"
         if score_type is None:
@@ -496,6 +505,28 @@ class ScoreFunction(Score):
 
     def __str__(self) -> str:
         return 'ScoreFunction'
+
+class MaulikBandyopadhyay(Score):
+
+    score_types: List[str] = ["absolute", "original"]
+
+    def __init__(self, score_type: str = "original") -> None:
+        """
+        Originally this index has to be maximised to find the best $k$.
+        The absolute case can also be chosen.
+
+        The case k=1 always returns 0
+        """
+        super().__init__(
+            score_function=MB,
+            maximise=True,
+            improve=True,
+            score_type=score_type,
+            k_condition= lambda k: (k>=1)
+        )
+
+    def __str__(self) -> str:
+        return f'MaulikBandyopadhyay_{self.score_type}'
 
 class Inertia(Score):
 

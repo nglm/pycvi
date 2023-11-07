@@ -66,7 +66,7 @@ def _compute_Wk(
     Wk = np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
     return Wk
 
-def _dist_between_centroids(
+def _dist_centroids_to_global(
     X: np.ndarray,
     clusters: List[List[int]],
     dist_kwargs: dict = {},
@@ -87,6 +87,35 @@ def _dist_between_centroids(
         ))
         for center in centers
     ]
+    return dist
+
+def _dist_between_centroids(
+    X: np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs: dict = {},
+) -> List[float]:
+    """
+    Helper function for some scores.
+
+    List of pairwise distances between cluster centroids.
+    """
+    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+    nested_dist = [
+        [
+        # pairwise distances between cluster centroids.
+            float(f_cdist(
+                center1,
+                center2,
+                dist_kwargs
+            ))
+            for j, center2 in enumerate(centers[i+1:])
+        ] for i, center1 in enumerate(centers[:-1])
+    ]
+
+    # Returns the sum of a default value (here []) and an iterable
+    # So it flattens the list
+    dist = sum(nested_dist, [])
+
     return dist
 
 def gap_statistic(
@@ -175,7 +204,7 @@ def score_function(
     nis = [len(c) for c in clusters]
 
     bdc = 1/(N*k) * np.sum(
-        np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
+        np.multiply(nis, _dist_centroids_to_global(X, clusters, dist_kwargs))
     )
 
     dist_kwargs = {"metric" : 'euclidean'}
@@ -357,7 +386,7 @@ def CH(
     else:
         nis = [len(c) for c in clusters]
         sep = np.sum(
-            np.multiply(nis, _dist_between_centroids(X, clusters, dist_kwargs))
+            np.multiply(nis, _dist_centroids_to_global(X, clusters, dist_kwargs))
         )
 
         comp = np.sum([ f_inertia(X[c], dist_kwargs) for c in clusters ])
@@ -365,11 +394,32 @@ def CH(
         CH = (N-k) / (k-1) * (sep / comp)
     return CH
 
-def cvi(
-    X: np.ndarray,
-    cvi: Union[str, callable],
-    clustering_model,
-    k_range: Sequence = None,
-) -> List[float]:
-    # Compute all clusterings + compute all scores
-    pass
+def MB(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    p: int = 2,
+    k: int = None,
+    dist_kwargs = {},
+) -> float:
+    """
+    Compute the Maulik-Bandyopadhyay index for a given clustering
+
+    :param X: Values of all members
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members
+    :type clusters: List[Tuple(List[int], Dict)]
+    :return: The Maulik-Bandyopadhyay index
+    :rtype: float
+    """
+    if k == 1:
+        I = 0
+    else:
+        N = len(X)
+        E1 = _compute_Wk(X, [np.arange(N)])
+        Ek = _compute_Wk(X, clusters)
+
+        Dk = _dist_between_centroids(X, clusters, dist_kwargs)
+
+        I = (1/k * E1/Ek * Dk)^p
+
+    return I
