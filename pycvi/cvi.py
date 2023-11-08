@@ -142,6 +142,9 @@ def _dist_between_centroids(
 
     List of pairwise distances between cluster centroids.
 
+    If there is only one clustering, returns `[0]` (or `[0, 0]` if `all`
+    is `True`)
+
     :param X: Values of all members.
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
     :param clusters: List of members for each cluster.
@@ -154,23 +157,26 @@ def _dist_between_centroids(
     :return: List of pairwise distances between cluster centroids.
     :rtype: List[float]
     """
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
-    nested_dist = [
-        [
-        # pairwise distances between cluster centroids.
-            float(f_cdist(
-                center1,
-                center2,
-                dist_kwargs
-            ))
-            for j, center2 in enumerate(centers[i+1:])
-        ] for i, center1 in enumerate(centers[:-1])
-    ]
+    if len(clusters) == 1:
+        dist = [0.]
+    else:
+        centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+        nested_dist = [
+            [
+            # pairwise distances between cluster centroids.
+                float(f_cdist(
+                    center1,
+                    center2,
+                    dist_kwargs
+                ))
+                for j, center2 in enumerate(centers[i+1:])
+            ] for i, center1 in enumerate(centers[:-1])
+        ]
 
-    # Returns the sum of a default value (here []) and an iterable
-    # So it flattens the list
-    dist = sum(nested_dist, [])
-    # If we compute all the pairwise distances, each distance appear twice
+        # Returns the sum of a default value (here []) and an iterable
+        # So it flattens the list
+        dist = sum(nested_dist, [])
+        # If we compute all the pairwise distances, each distance appear twice
     if all:
         dist += dist
     return dist

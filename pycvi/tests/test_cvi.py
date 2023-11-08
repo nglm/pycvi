@@ -1,4 +1,5 @@
 import numpy as np
+from math import isclose
 import pytest
 
 from ..cvi import (
@@ -93,3 +94,26 @@ def test__dist_centroids_to_global():
                     assert type(dist) == list
                     assert type(dist[0]) == float
                     assert len(dist) == len(clusters)
+
+def test__dist_between_centroids():
+    N = 30
+    C = get_clusterings(N)
+    l_w = [1, 2, 3, 5]
+    l_d = [1, 2]
+    l_DTW = [True, False]
+    for w_t in l_w:
+        for d in l_d:
+            for DTW in l_DTW:
+                X = get_X(N, d, w_t, DTW)
+                for clusters in C.values():
+                    dist = _dist_between_centroids(X, clusters, all=False)
+                    N_dist = len(dist)
+                    assert type(dist) == list
+                    assert type(dist[0]) == float
+
+                    dist_all = _dist_between_centroids(X, clusters, all=True)
+                    N_dist_all = len(dist_all)
+                    assert type(dist_all) == list
+                    assert type(dist_all[0]) == float
+                    assert 2*N_dist == N_dist_all
+                    assert isclose(2*np.sum(dist), np.sum(dist_all))
