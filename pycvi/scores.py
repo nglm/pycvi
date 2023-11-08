@@ -5,7 +5,7 @@ from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .cvi import (
-    gap_statistic, silhouette, score_function, CH, hartigan, MB,
+    gap_statistic, silhouette, score_function, CH, hartigan, MB, SD_index,
 )
 from .compute_scores import (
     best_score, better_score, worst_score, argbest, argworst, compute_score,
@@ -431,7 +431,7 @@ class GapStatistic(Score):
     ) -> float:
         if self.score_type == "original":
             gap, s =  super().__call__(X, clusters, score_kwargs)
-            k = len(clusters)
+            k = score_kwargs["k"]
             self.s[k] = s
             return gap
         else:
@@ -508,14 +508,14 @@ class ScoreFunction(Score):
 
 class MaulikBandyopadhyay(Score):
 
-    score_types: List[str] = ["absolute", "original"]
+    score_types: List[str] = ["absolute", "monotonous"]
 
     def __init__(self, score_type: str = "original") -> None:
         """
         Originally this index has to be maximised to find the best $k$.
-        The absolute case can also be chosen.
+        The monotonous case can also be chosen.
 
-        The case k=1 always returns 0
+        The case k=1 always returns 0.
         """
         super().__init__(
             score_function=MB,
@@ -525,8 +525,51 @@ class MaulikBandyopadhyay(Score):
             k_condition= lambda k: (k>=1)
         )
 
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        s_kw = {"p" : 2}
+        s_kw["k"] = n_clusters
+        s_kw.update(score_kwargs)
+        return s_kw
+
     def __str__(self) -> str:
         return f'MaulikBandyopadhyay_{self.score_type}'
+
+class SD(Score):
+
+    score_types: List[str] = ["absolute"]
+
+    def __init__(self, score_type: str = "absolute") -> None:
+        """
+        The case k=1 is not possible.
+        """
+        super().__init__(
+            score_function=SD_index,
+            maximise=False,
+            improve=True,
+            score_type=score_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        s_kw = {"p" : 2}
+        s_kw["k"] = n_clusters
+        s_kw.update(score_kwargs)
+        return s_kw
+
+    def __str__(self) -> str:
+        return 'SD'
 
 class Inertia(Score):
 
@@ -613,6 +656,8 @@ SCORES = [
     GapStatistic,
     Silhouette,
     ScoreFunction,
+    MaulikBandyopadhyay,
+    SD,
     Inertia,
     Diameter,
 ]

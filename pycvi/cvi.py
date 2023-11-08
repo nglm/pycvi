@@ -1,4 +1,15 @@
 
+    # :param X: Values of all members.
+    # :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    # :param clusters: List of members for each cluster.
+    # :type clusters: List[List[int]]
+    # :param k: Number of clusters.
+    # :type k: int, optional
+    # :param dist_kwargs: kwargs for the distance function, defaults to {}
+    # :type dist_kwargs: dict, optional
+    # :return:
+    # :rtype: float
+
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -84,7 +95,7 @@ def _compute_Wk(
     # Compute the log of the within-cluster dispersion of the clustering
     nis = [len(c) for c in clusters]
     d_intra = [np.sum(f_pdist(X[c], dist_kwargs)) for c in clusters]
-    Wk = np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)])
+    Wk = float(np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)]))
     return Wk
 
 def _dist_centroids_to_global(
@@ -123,6 +134,7 @@ def _dist_centroids_to_global(
 def _dist_between_centroids(
     X: np.ndarray,
     clusters: List[List[int]],
+    all: bool = False,
     dist_kwargs: dict = {},
 ) -> List[float]:
     """
@@ -158,7 +170,9 @@ def _dist_between_centroids(
     # Returns the sum of a default value (here []) and an iterable
     # So it flattens the list
     dist = sum(nested_dist, [])
-
+    # If we compute all the pairwise distances, each distance appear twice
+    if all:
+        dist += dist
     return dist
 
 def gap_statistic(
@@ -222,7 +236,7 @@ def gap_statistic(
                 [(wcss_rand - mean_wcss_rand)**2]
             ))
             # Apply formula
-            s = np.sqrt(1+(1/B)) * sd
+            s = float(np.sqrt(1+(1/B)) * sd)
 
     if return_s:
         return gap, s
@@ -259,7 +273,7 @@ def score_function(
         for c in clusters
     ])
 
-    sf = 1 - (1 / (np.exp(np.exp(bdc - wdc))))
+    sf = float(1 - (1 / (np.exp(np.exp(bdc - wdc)))))
 
     return sf
 
@@ -372,7 +386,7 @@ def silhouette(
 
     # Silhouette score of the clustering
     # The usual formula is written a sum divided by k, which is the mean
-    S = np.mean(S_i1)
+    S = float(np.mean(S_i1))
     return S
 
 def CH(
@@ -454,6 +468,8 @@ def CH(
         comp = np.sum([ f_inertia(X[c], dist_kwargs) for c in clusters ])
 
         CH = (N-k) / (k-1) * (sep / comp)
+
+    CH = float(CH)
     return CH
 
 def MB(
@@ -480,14 +496,81 @@ def MB(
     :rtype: float
     """
     if k == 1:
-        I = 0
+        I = 0.
     else:
         N = len(X)
-        E1 = _compute_Wk(X, [np.arange(N)])
-        Ek = _compute_Wk(X, clusters)
+        E1 = sqrt(_compute_Wk(X, [np.arange(N)]))
+        Ek = sqrt(_compute_Wk(X, clusters))
 
-        Dk = _dist_between_centroids(X, clusters, dist_kwargs)
+        Dk = np.amax(_dist_between_centroids(X, clusters, dist_kwargs))
 
-        I = (1/k * E1/Ek * Dk)^p
+        I = (1/k * E1/Ek * Dk)**p
+
+    I = float(I)
 
     return I
+
+def _dis(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs = {},
+) -> float:
+    """
+    Helper function for the SD index, computing the "Dis" term.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :return: The "Dis" term of the SD index.
+    :rtype: float
+    """
+    d_btw_centroids = _dist_between_centroids(
+        X, clusters=clusters, all=True, dist_kwargs=dist_kwargs
+    )
+
+    dis = float(
+        (np.amax(d_btw_centroids) / np.amin(d_btw_centroids))
+        * (1 / np.sum(d_btw_centroids))
+    )
+
+    return dis
+
+def SD_index(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    alpha: float = None,
+    dist_kwargs = {},
+) -> float:
+    """
+    Compute the SD index for a given clustering.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param alpha: The constant in the SD index formula (=Dis(k_max)).
+    :type alpha: float
+    :return: The Maulik-Bandyopadhyay index
+    :rtype: float
+    """
+    N = len(X)
+    k = len(clusters)
+    W1 = _compute_Wk(X, [np.arange(N)]) / N
+
+    scat = 1/k * 1/W1 * np.sum(
+        [np.mean(f_pdist(X[c], dist_kwargs)**2) for c in clusters]
+    )
+
+    if alpha is None:
+
+        d_intra = f_pdist(X, dist_kwargs=dist_kwargs)
+        alpha = float(
+            (np.amax(d_intra) / np.amin(d_intra))
+            * (1 / np.sum(d_intra))
+        )
+    dis = _dis(X, clusters=clusters, dist_kwargs=dist_kwargs)
+
+    res = float(alpha * scat + dis)
+    return res
+
