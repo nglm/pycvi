@@ -501,10 +501,11 @@ def MB(
     :return: The Maulik-Bandyopadhyay index
     :rtype: float
     """
-    if k == 1:
+    N = len(X)
+    if k == 1 or k==N:
         I = 0.
     else:
-        N = len(X)
+
         E1 = sqrt(_compute_Wk(X, [np.arange(N)]))
         Ek = sqrt(_compute_Wk(X, clusters))
 
