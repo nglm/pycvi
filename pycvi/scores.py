@@ -563,8 +563,7 @@ class SD(Score):
         n_clusters: int = None,
         score_kwargs: dict = {}
     ) -> None:
-        s_kw = {"p" : 2}
-        s_kw["k"] = n_clusters
+        s_kw = {"alpha" : None}
         s_kw.update(score_kwargs)
         return s_kw
 
