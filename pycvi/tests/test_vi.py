@@ -6,51 +6,14 @@ from ..vi import (
     P_clusters, entropy, contingency_matrix, mutual_information,
     variational_information, align_clusterings,
 )
-from ..datasets import mini, normal
+from ..datasets import mini, normal, get_clusterings
 
 MARGIN = 1e-6
 
 def clusterings(multivariate=True):
     data, time = normal(multivariate=multivariate)
-    C = {}
     N = len(data)
-    C["C1"] = [[i for i in range(N)]]
-    C["C2"] = [
-        [i for i in range(N//2)],
-        [i for i in range(N//2, N)],
-    ]
-    C["C2_bis"] = [
-        [i for i in range(N//2-3)],
-        [i for i in range(N//2-3, N)],
-    ]
-    C["C2_inv"] = [
-        [i+(N//2) for i in range(N//2)],
-        [i-(N//2) for i in range(N//2, N)],
-    ]
-    C["C2_shuffled"] = [
-        C["C2"][1], C["C2"][0]
-    ]
-    C["C2_bis_shuffled"] = [
-        C["C2_bis"][1], C["C2_bis"][0]
-    ]
-    C["C3"] = [
-        [i for i in range(N//3)],
-        [i for i in range(N//3, 2*N//3)],
-        [i for i in range(2*N//3, N)],
-    ]
-    C["C3_bis"] = [
-        [i for i in range(N//3-5)],
-        [i for i in range(N//3-5, 2*N//3)],
-        [i for i in range(2*N//3, N)],
-    ]
-    C["C3_shuffled"] = [
-        C["C3"][0], C["C3"][2], C["C3"][1]
-    ]
-    C["C3_bis_shuffled"] = [
-        C["C3_bis"][0], C["C3_bis"][2], C["C3_bis"][1]
-    ]
-    C["C4"] = [[i] for i in range(N)]
-
+    C = get_clusterings(N)
     return C, data, time
 
 def test_P_clusters():
@@ -80,8 +43,8 @@ def test_entropy():
         assert H == 0.
 
         # entropy when there are only singletons
-        C4 = Cs["C4"]
-        H = entropy(C4)
+        CN = Cs["CN"]
+        H = entropy(CN)
 
 def test_contingency_matrix():
 

@@ -8,5 +8,5 @@ be representative of a typical real life application
 
 # To replace 'from .mini import mini'
 # And use from . import mini'
-from .mini import mini, normal
+from .mini import mini, normal, get_clusterings
 

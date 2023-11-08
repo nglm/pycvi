@@ -2,31 +2,42 @@ import numpy as np
 import pytest
 
 from ..cvi import (
-    _compute_Wk, _clusters_from_uniform
+    _compute_Wk, _clusters_from_uniform, _dist_centroids_to_global,
+    _dist_between_centroids,
 )
 from ..utils import load_data_from_github
+from ..datasets import mini, normal, get_clusterings
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
 
 def get_X(
-    N:int  = 5,
-    d:int  = 2,
+    N:int = 30,
+    d:int = 2,
     w_t:int  = 3,
+    DTW: bool = False,
 ) -> np.ndarray:
-    return np.random.normal(size=N*d*w_t).reshape((N, w_t, d))
+    if DTW:
+        shape = (N, w_t, d)
+    else:
+        shape = (N, w_t*d)
+    return np.random.normal(size=N*d*w_t).reshape(shape)
 
 def test__clusters_from_uniform():
-    X_DTW = get_X()
-    (N, w_t, d) = X_DTW.shape
-    X = X_DTW.reshape((N, w_t, d))
-    for data in [X, X_DTW]:
-        for n_clusters in [1, 2, 3, N]:
-            clusters = _clusters_from_uniform(data, n_clusters)
-            assert type(clusters) == list
-            assert type(clusters[0]) == list
-            assert type(clusters[0][0]) == int
-            assert int(np.sum([len(c) for c in clusters])) == N
+    N = 5
+    l_w = [1, 2, 3, 5]
+    l_d = [1, 2]
+    l_DTW = [True, False]
+    for w_t in l_w:
+        for d in l_d:
+            for DTW in l_DTW:
+                X = get_X(N, d, w_t, DTW)
+                for n_clusters in [1, 2, 3, N]:
+                    clusters = _clusters_from_uniform(X, n_clusters)
+                    assert type(clusters) == list
+                    assert type(clusters[0]) == list
+                    assert type(clusters[0][0]) == int
+                    assert int(np.sum([len(c) for c in clusters])) == N
 
 
 def test__compute_Wk():
@@ -52,7 +63,7 @@ def test__compute_Wk():
                         X = np.reshape(X, (N, T*d))
 
                     Wk = _compute_Wk(X, clusters)
-                    assert ( type(Wk) == float or type(Wk) == np.float64 )
+                    assert (type(Wk) == float)
                     assert Wk >= 0
 
     data, meta = load_data_from_github(PATH + "xclara.arff")
@@ -67,3 +78,18 @@ def test__compute_Wk():
         assert (type(Wk) == float)
         assert Wk >= 0
 
+def test__dist_centroids_to_global():
+    N = 30
+    C = get_clusterings(N)
+    l_w = [1, 2, 3, 5]
+    l_d = [1, 2]
+    l_DTW = [True, False]
+    for w_t in l_w:
+        for d in l_d:
+            for DTW in l_DTW:
+                X = get_X(N, d, w_t, DTW)
+                for clusters in C.values():
+                    dist = _dist_centroids_to_global(X, clusters)
+                    assert type(dist) == list
+                    assert type(dist[0]) == float
+                    assert len(dist) == len(clusters)
