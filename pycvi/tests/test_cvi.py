@@ -1,11 +1,33 @@
 import numpy as np
 import pytest
 
-from ..cvi import _compute_Wk
+from ..cvi import (
+    _compute_Wk, _clusters_from_uniform
+)
 from ..utils import load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
+
+def get_X(
+    N:int  = 5,
+    d:int  = 2,
+    w_t:int  = 3,
+) -> np.ndarray:
+    return np.random.normal(size=N*d*w_t).reshape((N, w_t, d))
+
+def test__clusters_from_uniform():
+    X_DTW = get_X()
+    (N, w_t, d) = X_DTW.shape
+    X = X_DTW.reshape((N, w_t, d))
+    for data in [X, X_DTW]:
+        for n_clusters in [1, 2, 3, N]:
+            clusters = _clusters_from_uniform(data, n_clusters)
+            assert type(clusters) == list
+            assert type(clusters[0]) == list
+            assert type(clusters[0][0]) == int
+            assert int(np.sum([len(c) for c in clusters])) == N
+
 
 def test__compute_Wk():
     l_T = [1, 3]
@@ -42,6 +64,6 @@ def test__compute_Wk():
     ]
     for clusters in l_clusters:
         Wk = _compute_Wk(data, clusters)
-        assert ( type(Wk) == float or type(Wk) == np.float64 )
+        assert (type(Wk) == float)
         assert Wk >= 0
 
