@@ -107,11 +107,12 @@ class Score():
             score_type = self.score_type
         # For monotonous scores
         if score_type == "monotonous":
+            scores_valid = {k: s for k,s in scores.items() if s is not None}
             selected_k = None
             max_diff = 0
 
-            list_k = list(scores.keys())
-            last_relevant_score = scores[list_k[0]]
+            list_k = list(scores_valid.keys())
+            last_relevant_score = scores_valid[list_k[0]]
             last_relevant_k = list_k[0]
 
             # If it is improving compare last to current
@@ -125,32 +126,32 @@ class Score():
                 # Special case if the score couldn't be computed
                 # either because this score doesn't allow this k
                 # or because the clustering model didn't converge
-                if scores[k] is None:
+                if scores_valid[k] is None:
                     continue
                 # Special case for example for Hartigan where
                 # we don't use k=0 as a reference score if k=0 is more
                 # relevant than k=1
                 elif (i==0 and self.ignore0 and not self.is_relevant(
-                        scores[k], k,
+                        scores_valid[k], k,
                         last_relevant_score, last_relevant_k)
                     ):
                     selected_k = 1
                     last_relevant_k = 1
-                    last_relevant_score = scores[k]
+                    last_relevant_score = scores_valid[k]
                 elif (
                     (i==0 and not self.ignore0)
                     or self.is_relevant(
-                        scores[k], k,
+                        scores_valid[k], k,
                         last_relevant_score, last_relevant_k
                     )
                 ):
-                    diff = abs(scores[k] - last_relevant_score)
+                    diff = abs(scores_valid[k] - last_relevant_score)
                     if max_diff < diff:
                         selected_k = k
                         max_diff = diff
 
                     last_relevant_k = k
-                    last_relevant_score = scores[k]
+                    last_relevant_score = scores_valid[k]
         # For absolute scores
         elif score_type == "absolute":
             #
