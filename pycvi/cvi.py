@@ -181,6 +181,33 @@ def _dist_between_centroids(
         dist += dist
     return dist
 
+def _dist_to_centroids(
+    X: np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs: dict = {},
+) -> List[np.ndarray]:
+    """
+    Helper function for some scores.
+
+    List of distances arrays to cluster centroid.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: List of pairwise distances between cluster centroids.
+    :rtype: List[np.ndarray]
+    """
+
+    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+    dist = [
+        f_cdist(X[cluster], center, dist_kwargs=dist_kwargs)
+        for cluster, center in zip(clusters, centers)
+    ]
+    return dist
+
 def gap_statistic(
     X : np.ndarray,
     clusters: List[List[int]],
@@ -506,8 +533,9 @@ def MB(
         I = 0.
     else:
 
-        E1 = sqrt(_compute_Wk(X, [np.arange(N)]))
-        Ek = sqrt(_compute_Wk(X, clusters))
+        dist_kwargs_Ek = {"metric" : "euclidean"}
+        E1 = _compute_Wk(X, [np.arange(N)], dist_kwargs=dist_kwargs_Ek)
+        Ek = _compute_Wk(X, clusters, dist_kwargs=dist_kwargs_Ek)
 
         Dk = np.amax(_dist_between_centroids(X, clusters, dist_kwargs))
 
@@ -563,19 +591,54 @@ def _dis(
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
     :param clusters: List of members for each cluster.
     :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
     :return: The "Dis" term of the SD index.
     :rtype: float
     """
+    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
     d_btw_centroids = _dist_between_centroids(
-        X, clusters=clusters, all=True, dist_kwargs=dist_kwargs
+        X, clusters=clusters, all=False, dist_kwargs=dist_kwargs
     )
+
+    # For each center, compute the sum of distances to all other centers
+    dis_aux = [
+        np.sum(f_cdist(np.concatenate(centers, axis=0), c)) for c in centers
+    ]
 
     dis = float(
         (np.amax(d_btw_centroids) / np.amin(d_btw_centroids))
-        * (1 / np.sum(d_btw_centroids))
+        * np.sum([1 / d_aux for d_aux in dis_aux])
     )
 
     return dis
+
+def _scat(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs = {},
+) -> float:
+    """
+    Helper function for the SD and SDbw indices.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The "Scat" term of the SD and SDbw indices.
+    :rtype: float
+    """
+    N = len(X)
+    k = len(clusters)
+    total_var = np.linalg.norm(_var(X))
+
+    scat = float(1/k * np.sum([
+        np.linalg.norm(_var(X[c]))/total_var
+        for c in clusters
+    ]))
+    return scat
 
 def SD_index(
     X : np.ndarray,
@@ -592,26 +655,117 @@ def SD_index(
     :type clusters: List[List[int]]
     :param alpha: The constant in the SD index formula (=Dis(k_max)).
     :type alpha: float
-    :return: The Maulik-Bandyopadhyay index
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The SD index
     :rtype: float
     """
-    N = len(X)
-    k = len(clusters)
-    W1 = _compute_Wk(X, [np.arange(N)]) / N
-
-    scat = 1/k * 1/W1 * np.sum(
-        [np.mean(f_pdist(X[c], dist_kwargs)**2) for c in clusters]
-    )
+    scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
 
     if alpha is None:
+
+        alpha_aux = [
+            np.sum(f_cdist(X, np.expand_dims(x, 0))) for x in X
+        ]
 
         d_intra = f_pdist(X, dist_kwargs=dist_kwargs)
         alpha = float(
             (np.amax(d_intra) / np.amin(d_intra))
-            * (1 / np.sum(d_intra))
+            * np.sum([1 / a_aux for a_aux in alpha_aux])
         )
     dis = _dis(X, clusters=clusters, dist_kwargs=dist_kwargs)
 
     res = float(alpha * scat + dis)
     return res
 
+def SDbw_index(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs = {},
+) -> float:
+    """
+    Compute the SDbw index for a given clustering.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The SDbw  index
+    :rtype: float
+    """
+    k = len(clusters)
+
+    scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
+
+    # Get centroids
+    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+
+    # Get each (i-j) pair in a flat list and get each pair only once
+    nested_ijs = [
+        [
+            (i, j) for j in range(i+1, k)
+        ] for i in range(k-1)
+    ]
+
+    ijs = sum(nested_ijs, [])
+
+    # Get the list of midpoints between each pair of cluster center i and j
+    # note that u_ij = u_ji and all terms then appear twice
+    # We decide to keep each element only once
+    u_ijs = [(centers[i] + centers[j])/2 for (i,j) in ijs]
+
+    # Concatenate datapoints corresponding to each u_ij
+    # (i.e. datapoints in C_i and C_j)
+    X_ijs = [
+        np.concatenate((X[clusters[i]], X[clusters[j]]), axis=0)
+        for (i,j) in ijs
+    ]
+
+    # k (nix1)-arrays of distances to centroids for each cluster
+    dist_kwargs_stdev = {"metric" : "sqeuclidean"}
+    d_to_centroids = _dist_to_centroids(X, clusters, dist_kwargs_stdev)
+
+    # Referred as "the average standard deviation of clusters" in the
+    # article
+    stdev = float(1/k * np.sqrt(np.sum([
+        np.linalg.norm(_var(X[c]))
+        for c in clusters
+    ])))
+
+    # List of (n_ij) arrays of distances to midpoints for each pair of cluster
+    # which means the final sum is the double of the list with no
+    # duplicates
+    d_to_midpoints = [
+        f_cdist(X_ij, u_ij, dist_kwargs=dist_kwargs)
+        for X_ij, u_ij in zip(X_ijs, u_ijs)
+    ]
+
+    # For each pair of cluster ij, count how many datapoints have s
+    # distance to u_ij smaller than stdev
+    # each d_m is a (n_ij) array of distances to the midpoint u_ij
+    densities_ij = [
+        np.sum(np.where( d_m <= stdev, np.ones_like(d_m), np.zeros_like(d_m)))
+        for d_m in d_to_midpoints
+    ]
+
+    # density of each clusters
+    # d_i is the (nix1)-array of distances between elements of Ci and ci
+    densities_i = [
+        np.sum(np.where( d_i <= stdev, np.ones_like(d_i), np.zeros_like(d_i)))
+        for d_i in d_to_centroids
+    ]
+    max_densities_ij = [
+        np.amax([densities_i[i], densities_i[j]]) for (i,j) in ijs
+    ]
+
+    # The factor 2 is because a term for the pair ij is the same as for ji
+    # And we computed only pairs with i<j
+    dens_bw = 1/(k*(k-1)) * 2 * np.sum([
+        d_ij/max_d_ij
+        for (d_ij, max_d_ij) in zip(densities_ij, max_densities_ij)
+    ])
+
+    res = float(scat + dens_bw)
+    return res
