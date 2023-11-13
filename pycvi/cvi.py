@@ -670,7 +670,7 @@ def SD_index(
     if alpha is None:
 
         alpha_aux = [
-            np.sum(f_cdist(X, np.expand_dims(x, 0)), dist_kwargs=dist_kwargs)
+            np.sum(f_cdist(X, np.expand_dims(x, 0), dist_kwargs=dist_kwargs))
             for x in X
         ]
 
@@ -773,4 +773,58 @@ def SDbw_index(
     ])
 
     res = float(scat + dens_bw)
+    return res
+
+def dunn(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs = {},
+) -> float:
+    """
+    Compute the Dunn index for a given clustering.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The Dunn index
+    :rtype: float
+    """
+    k=len(clusters)
+    N = len(X)
+
+    # This score is not defined for k=N or k=1
+    if k == N:
+        return 0.
+
+    # Get each (i-j) pair in a flat list and get each pair only once
+    nested_ijs = [
+        [
+            (i, j) for j in range(i+1, k)
+        ] for i in range(k-1)
+    ]
+
+    ijs = sum(nested_ijs, [])
+
+    # For each ij pair, get minimum distance between x in Ci and y in Cj
+    min_dist_between_ij = [
+        np.amin(
+            f_cdist(X[clusters[i]], X[clusters[j]], dist_kwargs=dist_kwargs)
+        ) for (i, j) in ijs
+    ]
+    # Get the min distance between the 2 closest clusters.
+    numerator = np.amin(min_dist_between_ij)
+
+    # For each cluster, get its diameter if it is not a singleton
+    diam_i = [
+        np.amax(f_pdist(X[c], dist_kwargs=dist_kwargs))
+        for c in clusters if len(c) > 1
+    ]
+    # Get the max diameter of clusters
+    denominator = np.amax(diam_i)
+
+    res = float( numerator / denominator)
+
     return res
