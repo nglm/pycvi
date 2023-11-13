@@ -603,7 +603,8 @@ def _dis(
 
     # For each center, compute the sum of distances to all other centers
     dis_aux = [
-        np.sum(f_cdist(np.concatenate(centers, axis=0), c)) for c in centers
+        np.sum(f_cdist(np.concatenate(centers, axis=0), c, dist_kwargs))
+        for c in centers
     ]
 
     dis = float(
@@ -632,10 +633,13 @@ def _scat(
     """
     N = len(X)
     k = len(clusters)
-    total_var = np.linalg.norm(_var(X))
+    # Note that the use of np.linalg.norm is possible here, regardless
+    # of whether DTW and/or time series are used because _var always
+    # return a vector of shape (d,)
+    total_var = np.linalg.norm(_var(X, dist_kwargs=dist_kwargs))
 
     scat = float(1/k * np.sum([
-        np.linalg.norm(_var(X[c]))/total_var
+        np.linalg.norm(_var(X[c], dist_kwargs=dist_kwargs))/total_var
         for c in clusters
     ]))
     return scat
@@ -662,10 +666,12 @@ def SD_index(
     """
     scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
 
+    # If alpha is None, assume that k_max = N
     if alpha is None:
 
         alpha_aux = [
-            np.sum(f_cdist(X, np.expand_dims(x, 0))) for x in X
+            np.sum(f_cdist(X, np.expand_dims(x, 0)), dist_kwargs=dist_kwargs)
+            for x in X
         ]
 
         d_intra = f_pdist(X, dist_kwargs=dist_kwargs)
@@ -724,8 +730,7 @@ def SDbw_index(
     ]
 
     # k (nix1)-arrays of distances to centroids for each cluster
-    dist_kwargs_stdev = {"metric" : "sqeuclidean"}
-    d_to_centroids = _dist_to_centroids(X, clusters, dist_kwargs_stdev)
+    d_to_centroids = _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
 
     # Referred as "the average standard deviation of clusters" in the
     # article
