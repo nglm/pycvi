@@ -4,7 +4,7 @@ import pytest
 
 from ..cvi import (
     _compute_Wk, _clusters_from_uniform, _dist_centroids_to_global,
-    _dist_between_centroids,
+    _dist_between_centroids, _var
 )
 from ..utils import load_data_from_github
 from ..datasets import mini, normal, get_clusterings
@@ -117,3 +117,20 @@ def test__dist_between_centroids():
                     assert type(dist_all[0]) == float
                     assert 2*N_dist == N_dist_all
                     assert isclose(2*np.sum(dist), np.sum(dist_all))
+
+def test__var():
+    N = 30
+    l_w = [1, 2, 3, 5]
+    l_d = [1, 2]
+    l_DTW = [True, False]
+    for w_t in l_w:
+        for d in l_d:
+            for DTW in l_DTW:
+                X = get_X(N, d, w_t, DTW)
+                var = _var(X)
+                assert type(var) == np.ndarray
+                if DTW:
+                    assert var.shape == (d, )
+                else:
+                    assert var.shape == (d*w_t, )
+                assert type(var[0]) == np.float64

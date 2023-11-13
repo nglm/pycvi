@@ -517,6 +517,40 @@ def MB(
 
     return I
 
+def _var(
+    X : np.ndarray,
+    dist_kwargs = {},
+) -> np.ndarray:
+    """
+    Helper function for the SD index, computing the "Var" vector.
+
+    Var is a vector of shape (d,) (or (d*w_t,) if not DTW) of variances
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: "Var" vector of the SD index.
+    :rtype: np.ndarray, shape: (d)
+    """
+    dist_kwargs.setdefault("metric", "sqeuclidean")
+    center = np.expand_dims(compute_center(X), 0)
+    if len(X.shape) == 2:
+        Var = [
+            # shape is then (N, 1*w_t) or (N, w_t, 1)
+            np.mean(f_cdist(X[:, d:d+1], center[:, d:d+1], dist_kwargs))
+            for d in range(X.shape[-1])
+        ]
+    elif len(X.shape) == 3:
+        Var = [
+            # shape is then (N, 1*w_t) or (N, w_t, 1)
+            np.mean(f_cdist(X[:, :, d:d+1], center[:, :, d:d+1], dist_kwargs))
+            for d in range(X.shape[-1])
+        ]
+    return np.array(Var)
+
 def _dis(
     X : np.ndarray,
     clusters: List[List[int]],
