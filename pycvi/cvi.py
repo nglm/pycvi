@@ -339,13 +339,12 @@ def hartigan(
     # We can't compute using the next clustering, but in any case,
     # we'll have Wk=0
     if k == N:
-        hartigan = 0.
-    # Because of the factor (N-k-1)
+        return None
     elif k == N-1:
-        hartigan = 0.
+        return None
     # If we haven't computed the case k+1
     elif clusters_next is None:
-        hartigan = 0.
+        return None
     elif k == 0:
         # X0 shape: (N, d*w_t) or (N, w_t, d)
         if X1 is None:
@@ -359,14 +358,18 @@ def hartigan(
         Wk = np.mean(l_Wk)
         Wk_next = _compute_Wk(X1, clusters)
         # We use the normal formula but with k=1 so that we get the
-        hartigan = (Wk/Wk_next - 1)*(N-1-1)
+        res = (Wk/Wk_next - 1)*(N-1-1)
     # Regular case
     else:
         Wk = _compute_Wk(X, clusters)
         Wk_next = _compute_Wk(X, clusters_next)
-        hartigan = (Wk/Wk_next - 1)*(N-k-1)
+        if Wk_next == 0:
+            res = np.inf
+        else:
+            res = (Wk/Wk_next - 1)*(N-k-1)
 
-    return hartigan
+    res = float(res)
+    return res
 
 def silhouette(
     X : np.ndarray,
@@ -488,7 +491,11 @@ def CH(
         comp = np.sum([
             f_inertia(X1[c], dist_kwargs) for c in clusters
         ])
-        CH = - N * (sep / comp)
+
+        if comp == 0:
+            CH = -np.inf
+        else:
+            CH = - N * (sep / comp)
     elif k == N:
         CH=0.
     # Normal case
@@ -500,7 +507,10 @@ def CH(
 
         comp = np.sum([ f_inertia(X[c], dist_kwargs) for c in clusters ])
 
-        CH = (N-k) / (k-1) * (sep / comp)
+        if comp == 0:
+            CH = np.inf
+        else:
+            CH = (N-k) / (k-1) * (sep / comp)
 
     CH = float(CH)
     return CH
@@ -539,7 +549,10 @@ def MB(
 
         Dk = np.amax(_dist_between_centroids(X, clusters, dist_kwargs))
 
-        I = (1/k * E1/Ek * Dk)**p
+        if Ek == 0:
+            I = np.inf
+        else:
+            I = (1/k * E1/Ek * Dk)**p
 
     I = float(I)
 
@@ -609,7 +622,7 @@ def _dis(
 
     dis = float(
         (np.amax(d_btw_centroids) / np.amin(d_btw_centroids))
-        * np.sum([1 / d_aux for d_aux in dis_aux])
+        * np.sum([1 / d_aux if d_aux != 0 else np.inf for d_aux in dis_aux])
     )
 
     return dis
@@ -677,7 +690,9 @@ def SD_index(
         d_intra = f_pdist(X, dist_kwargs=dist_kwargs)
         alpha = float(
             (np.amax(d_intra) / np.amin(d_intra))
-            * np.sum([1 / a_aux for a_aux in alpha_aux])
+            * np.sum(
+                [1 / a_aux if a_aux != 0 else np.inf for a_aux in alpha_aux]
+            )
         )
     dis = _dis(X, clusters=clusters, dist_kwargs=dist_kwargs)
 
@@ -768,7 +783,7 @@ def SDbw_index(
     # The factor 2 is because a term for the pair ij is the same as for ji
     # And we computed only pairs with i<j
     dens_bw = 1/(k*(k-1)) * 2 * np.sum([
-        d_ij/max_d_ij
+        d_ij/max_d_ij if max_d_ij!=0 else np.inf
         for (d_ij, max_d_ij) in zip(densities_ij, max_densities_ij)
     ])
 
@@ -825,6 +840,117 @@ def dunn(
     # Get the max diameter of clusters
     denominator = np.amax(diam_i)
 
-    res = float( numerator / denominator)
+    if denominator == 0:
+        res = np.inf
+    else:
+        res = float( numerator / denominator)
 
     return res
+
+def xie_beni(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs = {},
+) -> float:
+    """
+    Compute the Xie-Beni index for a given clustering.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The Xie-Beni index
+    :rtype: float
+    """
+
+    N = len(X)
+    k = len(clusters)
+    if N == k:
+        XB = np.inf
+    else:
+
+        dist_kwargs.setdefault("metric", "sqeuclidean")
+        dist_between_centroids = _dist_between_centroids(
+            X, clusters, dist_kwargs=dist_kwargs,
+        )
+
+        dist_to_centroids = [
+            np.sum(d)
+            for d in _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
+        ]
+
+        denominator = np.amin(dist_between_centroids)
+
+        if denominator == 0:
+            XB = np.inf
+        else:
+            XB = (1/N) * (np.sum(dist_to_centroids) / denominator)
+
+    XB = float(XB)
+    return XB
+
+def xie_beni_star(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs = {},
+) -> float:
+    """
+    Compute the Xie-Beni* (XB*) index for a given clustering.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The Xie-Beni* (XB*) index
+    :rtype: float
+    """
+
+    N = len(X)
+    k = len(clusters)
+    if N == k:
+        XB = np.inf
+    else:
+
+        dist_kwargs.setdefault("metric", "sqeuclidean")
+        dist_between_centroids = _dist_between_centroids(
+            X, clusters, dist_kwargs=dist_kwargs,
+        )
+
+        dist_to_centroids = [
+            np.mean(d)
+            for d in _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
+        ]
+
+        denominator = np.amin(dist_between_centroids)
+
+        if denominator == 0:
+            XB = np.inf
+        else:
+            XB = np.amax(dist_to_centroids) / denominator
+
+    XB = float(XB)
+    return XB
+
+def davies_bouldin(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    dist_kwargs = {},
+) -> float:
+    """
+    Compute the Davies-Bouldin (DB) index for a given clustering.
+
+    :param X: Values of all members.
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of members for each cluster.
+    :type clusters: List[List[int]]
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: TheDavies-Bouldin (DB) index
+    :rtype: float
+    """
+    dist_kwargs.setdefault("metric", "sqeuclidean")
+    # S_is =

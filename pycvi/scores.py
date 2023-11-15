@@ -6,7 +6,7 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .cvi import (
     gap_statistic, silhouette, score_function, CH, hartigan, MB, SD_index,
-    SDbw_index, dunn
+    SDbw_index, dunn, xie_beni, xie_beni_star,
 )
 from .compute_scores import (
     best_score, better_score, worst_score, argbest, argworst, compute_score,
@@ -283,10 +283,14 @@ class Hartigan(Score):
             selected_k = min(valid_k)
         else:
             # Otherwise, choose the $k$ whose difference in Hartigan for
-            # $k$ and $k+1$ is the smallest
+            # $k$ and $k+1$ is the smallest, or when
+            # hartigan(k)<hartigan(k+1)
             ks = sorted([k for k in scores.keys() if scores[k] is not None])
             arg_selected_k = np.argmin(
-                [abs(scores[ks[i+1]]-scores[ks[i]]) for i in range(len(ks)-1)]
+                [
+                    max(scores[ks[i]]-scores[ks[i+1]], 0)
+                    for i in range(len(ks)-1)
+                ]
             )
             selected_k = ks[arg_selected_k]
         return selected_k
@@ -549,6 +553,12 @@ class SD(Score):
     def __init__(self, score_type: str = "absolute") -> None:
         """
         The case k=1 is not possible.
+
+        Note that if two clusters have equal centroids, then `SD = inf`
+        which means that this clustering is irrelevant, which works as
+        intended (even though two clusters could be well separated and
+        still have equal centroids, as in the case of two concentric
+        circles).
         """
         super().__init__(
             score_function=SD_index,
@@ -579,6 +589,12 @@ class SDbw(Score):
     def __init__(self, score_type: str = "absolute") -> None:
         """
         The case k=1 is not possible.
+
+        Note that if two clusters have all datapoints further away to
+        their respective centroids than what is called in the original
+        paper "the average standard deviation of clusters", then `SDbw =
+        inf`, which means that this clustering is irrelevant, which
+        works as intended.
         """
         super().__init__(
             score_function=SDbw_index,
@@ -609,6 +625,45 @@ class Dunn(Score):
 
     def __str__(self) -> str:
         return 'Dunn'
+
+class XB(Score):
+
+    score_types: List[str] = ["absolute"]
+
+    def __init__(self, score_type: str = "absolute") -> None:
+        """
+        The case k=1 is not possible.
+        """
+        super().__init__(
+            score_function=xie_beni,
+            maximise=False,
+            improve=True,
+            score_type=score_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'XB'
+
+class XBStar(Score):
+
+    score_types: List[str] = ["absolute"]
+
+    def __init__(self, score_type: str = "absolute") -> None:
+        """
+        The case k=1 is not possible.
+        """
+        super().__init__(
+            score_function=xie_beni_star,
+            maximise=False,
+            improve=True,
+            score_type=score_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'XB_star'
+
 class Inertia(Score):
 
     score_types: List[str] = ["monotonous"]
@@ -698,6 +753,9 @@ SCORES = [
     SD,
     SDbw,
     Dunn,
+    XB,
+    XBStar,
+    # DB,
     Inertia,
     Diameter,
 ]
