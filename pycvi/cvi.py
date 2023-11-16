@@ -125,7 +125,7 @@ def _dist_centroids_to_global(
         float(f_cdist(
             center,
             global_center,
-            dist_kwargs
+            dist_kwargs=dist_kwargs
         ))
         for center in centers
     ]
@@ -136,7 +136,7 @@ def _dist_between_centroids(
     clusters: List[List[int]],
     all: bool = False,
     dist_kwargs: dict = {},
-) -> List[float]:
+) -> Union[List[float], List[float]]:
     """
     Helper function for some scores.
 
@@ -155,30 +155,44 @@ def _dist_between_centroids(
     :param dist_kwargs: kwargs for the distance function, defaults to {}
     :type dist_kwargs: dict, optional
     :return: List of pairwise distances between cluster centroids.
-    :rtype: List[float]
+    :rtype: Union[List[float], List[float]]
     """
     if len(clusters) == 1:
-        dist = [0.]
+        if all:
+            dist = [[0.]]
+        else:
+            dist = [0.]
     else:
         centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
-        nested_dist = [
-            [
-            # pairwise distances between cluster centroids.
-                float(f_cdist(
-                    center1,
-                    center2,
-                    dist_kwargs
-                ))
-                for j, center2 in enumerate(centers[i+1:])
-            ] for i, center1 in enumerate(centers[:-1])
-        ]
+        if all:
+            dist = [
+                [
+                # pairwise distances between cluster centroids.
+                    float(f_cdist(
+                        center1,
+                        center2,
+                        dist_kwargs=dist_kwargs
+                    )) if i != j else 0.
+                    for j, center2 in enumerate(centers)
+                ] for i, center1 in enumerate(centers)
+            ]
+        else:
+            nested_dist = [
+                [
+                # pairwise distances between cluster centroids.
+                    float(f_cdist(
+                        center1,
+                        center2,
+                        dist_kwargs=dist_kwargs
+                    ))
+                    for j, center2 in enumerate(centers[i+1:])
+                ] for i, center1 in enumerate(centers[:-1])
+            ]
 
-        # Returns the sum of a default value (here []) and an iterable
-        # So it flattens the list
-        dist = sum(nested_dist, [])
+            # Returns the sum of a default value (here []) and an iterable
+            # So it flattens the list
+            dist = sum(nested_dist, [])
         # If we compute all the pairwise distances, each distance appear twice
-    if all:
-        dist += dist
     return dist
 
 def _dist_to_centroids(
@@ -297,12 +311,13 @@ def score_function(
     nis = [len(c) for c in clusters]
 
     bdc = 1/(N*k) * np.sum(
-        np.multiply(nis, _dist_centroids_to_global(X, clusters, dist_kwargs))
+        np.multiply(nis, _dist_centroids_to_global(
+            X, clusters, dist_kwargs=dist_kwargs))
     )
 
     dist_kwargs = {"metric" : 'euclidean'}
     wdc = np.sum([
-        f_inertia(X[c], dist_kwargs) / len(c)
+        f_inertia(X[c], dist_kwargs=dist_kwargs) / len(c)
         for c in clusters
     ])
 
@@ -543,11 +558,14 @@ def MB(
         I = 0.
     else:
 
-        dist_kwargs_Ek = {"metric" : "euclidean"}
-        E1 = _compute_Wk(X, [np.arange(N)], dist_kwargs=dist_kwargs_Ek)
-        Ek = _compute_Wk(X, clusters, dist_kwargs=dist_kwargs_Ek)
+        dist_kwargs.setdefault("metric", "euclidean")
+        E1 = _compute_Wk(X, [np.arange(N)], dist_kwargs=dist_kwargs)
+        Ek = _compute_Wk(X, clusters, dist_kwargs=dist_kwargs)
 
-        Dk = np.amax(_dist_between_centroids(X, clusters, dist_kwargs))
+        Dk = np.amax(
+            _dist_between_centroids(
+                X, clusters, dist_kwargs=dist_kwargs)
+            )
 
         if Ek == 0:
             I = np.inf
@@ -611,7 +629,7 @@ def _dis(
     """
     centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
     d_btw_centroids = _dist_between_centroids(
-        X, clusters=clusters, all=False, dist_kwargs=dist_kwargs
+        X, clusters=clusters, dist_kwargs=dist_kwargs
     )
 
     # For each center, compute the sum of distances to all other centers
@@ -938,6 +956,7 @@ def xie_beni_star(
 def davies_bouldin(
     X : np.ndarray,
     clusters: List[List[int]],
+    p: int = 2,
     dist_kwargs = {},
 ) -> float:
     """
@@ -952,5 +971,39 @@ def davies_bouldin(
     :return: TheDavies-Bouldin (DB) index
     :rtype: float
     """
-    dist_kwargs.setdefault("metric", "sqeuclidean")
-    # S_is =
+    k = len(clusters)
+
+    dist_kwargs_Sis = dist_kwargs.copy()
+    dist_kwargs_Sis.setdefault("metric", "minkowski")
+    dist_kwargs_Sis.setdefault("p", 1)
+
+    dist_to_centroids = _dist_to_centroids(
+        X, clusters, dist_kwargs=dist_kwargs
+    )
+
+    nis = [len(c) for c in clusters]
+    S_is = [
+        (1/ni)**(1/p) * np.sum(d**p)**(1/p)
+        for (ni, d) in zip(nis, dist_to_centroids)
+    ]
+
+    dist_kwargs_btw_centroids = dist_kwargs.copy()
+    dist_kwargs_btw_centroids.setdefault("metric", "minkowski")
+    dist_kwargs_btw_centroids.setdefault("p", p)
+
+    dist_between_centroids = _dist_between_centroids(
+        X, clusters, all=True, dist_kwargs=dist_kwargs
+    )
+
+    DB_aux = [
+        np.amax([
+            (S_is[i] + S_is[j]) / dist_between_centroids[i][j]
+            if dist_between_centroids[i][j] != 0 else np.inf
+            for j in range(k)
+        ]) for i in range(k)
+    ]
+
+    DB = (1/k) * np.sum(DB_aux)
+    DB = float(DB)
+
+    return DB

@@ -6,7 +6,7 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .cvi import (
     gap_statistic, silhouette, score_function, CH, hartigan, MB, SD_index,
-    SDbw_index, dunn, xie_beni, xie_beni_star,
+    SDbw_index, dunn, xie_beni, xie_beni_star, davies_bouldin
 )
 from .compute_scores import (
     best_score, better_score, worst_score, argbest, argworst, compute_score,
@@ -664,6 +664,25 @@ class XBStar(Score):
     def __str__(self) -> str:
         return 'XB_star'
 
+class DB(Score):
+
+    score_types: List[str] = ["absolute"]
+
+    def __init__(self, score_type: str = "absolute") -> None:
+        """
+        The case k=1 is not possible.
+        """
+        super().__init__(
+            score_function=davies_bouldin,
+            maximise=False,
+            improve=True,
+            score_type=score_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'DB'
+
 class Inertia(Score):
 
     score_types: List[str] = ["monotonous"]
@@ -755,7 +774,7 @@ SCORES = [
     Dunn,
     XB,
     XBStar,
-    # DB,
+    DB,
     Inertia,
     Diameter,
 ]

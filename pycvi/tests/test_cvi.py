@@ -106,16 +106,18 @@ def test__dist_between_centroids():
             for DTW in l_DTW:
                 X = get_X(N, d, w_t, DTW)
                 for clusters in C.values():
+                    k = len(clusters)
+
                     dist = _dist_between_centroids(X, clusters, all=False)
-                    N_dist = len(dist)
                     assert type(dist) == list
                     assert type(dist[0]) == float
 
                     dist_all = _dist_between_centroids(X, clusters, all=True)
-                    N_dist_all = len(dist_all)
                     assert type(dist_all) == list
-                    assert type(dist_all[0]) == float
-                    assert 2*N_dist == N_dist_all
+                    assert type(dist_all[0]) == list
+                    assert type(dist_all[0][0]) == float
+                    assert len(dist_all) == k
+                    assert len(dist_all[0]) == k
                     assert isclose(2*np.sum(dist), np.sum(dist_all))
 
 def test__var():
