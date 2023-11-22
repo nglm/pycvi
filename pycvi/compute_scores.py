@@ -1,6 +1,6 @@
 
 import numpy as np
-from scipy.spatial.distance import cdist, pdist
+from scipy.spatial.distance import cdist, pdist, squareform
 from sklearn.preprocessing import StandardScaler
 from tslearn.metrics import cdist_soft_dtw_normalized
 from typing import List, Sequence, Union, Any, Dict, Tuple
@@ -80,7 +80,6 @@ def f_pdist(
     :param DTW: To use DTW even in case the shape was (N, T)
     :type DTW: bool
     :return: pairwise distance within the cluster (a condensed matrix)
-        for the regular case or a (N_c, N_c) matrix for the DTW case
     :rtype: np.ndarray
     """
     dims = cluster.shape
@@ -92,13 +91,20 @@ def f_pdist(
     if len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
         (N_c, w_t, d)  = cluster.shape
-        dist = np.zeros((N_c, N_c))
+        dist_square = np.zeros((N_c, N_c))
         for m in range(1, N_c):
-            dist[m-1:m, :N_c-m] = cdist_soft_dtw_normalized(
+            # Fill the upper triangular matrix from the square dist matrix
+            dist_square[m-1:m, m:] = cdist_soft_dtw_normalized(
                 np.expand_dims(cluster[m-1], 0),
                 cluster[m:],
                 gamma=1
             )
+        # Make this matrix symmetric
+        dist_sym = dist_square + dist_square.T - np.diag(np.diag(dist_square))
+        # and condense this matrix using squareform
+        # squareform gives a square if condensed is given but gives an
+        # condensed if a square is given
+        dist = squareform(dist_sym)
 
         # Option 2: Pairwise distances between the midpoint of the barycenter
         # and the corresponding time step for each member in the cluster
