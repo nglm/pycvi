@@ -35,7 +35,7 @@ def test_prepare_data():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
-        scaler = StandardScaler().fit(data.reshape(N, -1))
+        scaler = StandardScaler().fit(data.reshape(N*T, d))
         l_w = [1, T//2, T]
 
         # Using DTW and window
@@ -161,7 +161,7 @@ def test_get_clusters():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
-        scaler = StandardScaler().fit(data.reshape(N, -1))
+        scaler = StandardScaler().fit(data.reshape(N*T, d))
         l_w = [1, T//2, T]
 
         # Using DTW and window

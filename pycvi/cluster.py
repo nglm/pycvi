@@ -231,7 +231,7 @@ def prepare_data(
 
     # Scaling for each variable and not time step wise
     if scaler is not None:
-        X_trans = scaler.transform(X_trans.reshape(N, -1)).reshape(N, T, d)
+        X_trans = scaler.transform(X_trans.reshape(N*T, d)).reshape(N, T, d)
 
     # If we use sliding windows, we return a list of extracted windows
     if window is not None:
@@ -434,7 +434,7 @@ def generate_all_clusterings(
     data_copy = set_data_shape(data)
     (N, T, d) = data_copy.shape
     if scaler is not None:
-        scaler.fit(data_copy.reshape(N, -1))
+        scaler.fit(data_copy.reshape(N*T, d))
 
     if n_clusters_range is None:
         n_clusters_range = range(N+1)

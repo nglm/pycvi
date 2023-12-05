@@ -504,7 +504,7 @@ def compute_all_scores(
     l_data0 = generate_uniform(data_copy, zero_type=zero_type, N_zero=N_zero)
     (N, T, d) = data_copy.shape
     if scaler is not None:
-        scaler.fit(data_copy.reshape(N, -1))
+        scaler.fit(data_copy.reshape(N*T, d))
 
     if time_window is not None:
         wind = sliding_window(T, time_window)
