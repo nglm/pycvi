@@ -531,6 +531,9 @@ def compute_all_scores(
     # clusters for the extracted time window t_w
     scores_t_n = [{} for _ in range(n_windows)]
 
+    # Note that in this function, "clusterings" corresponds to
+    # "clusterings_t_k" in "generate_all_clusterings" and not to
+    # "clusters" in cvi functions
     for t_w in range(n_windows):
 
         for n_clusters in clusterings[t_w].keys():

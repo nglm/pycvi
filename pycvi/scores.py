@@ -260,13 +260,17 @@ class Hartigan(Score):
         Possible score_type: monotonous, or original
         """
 
+        f_k_condition = lambda k: (
+            k>=0 if score_type == "monotonous" else k>=1
+        )
+
         super().__init__(
             score_function=hartigan,
             maximise=False,
             improve=True,
             score_type=score_type,
             criterion_function=self.f_criterion,
-            k_condition= lambda k: (k>=0),
+            k_condition= f_k_condition,
             ignore0 = True,
         )
 
@@ -331,7 +335,7 @@ class CalinskiHarabasz(Score):
 
         # Note that the case k=1 for the absolute version will always
         # give CH=0
-        k_condition = lambda k: (
+        f_k_condition = lambda k: (
             k>=0 if score_type == "monotonous" else k>=1
         )
 
@@ -344,7 +348,7 @@ class CalinskiHarabasz(Score):
             maximise=True,
             improve=True,
             score_type=score_type,
-            k_condition = k_condition,
+            k_condition = f_k_condition,
         )
 
     def get_score_kwargs(
@@ -383,7 +387,7 @@ class GapStatistic(Score):
         score_type: str = "monotonous",
     ) -> None:
 
-        k_condition = lambda k: (
+        f_k_condition = lambda k: (
             k>=0 if score_type == "monotonous" else k>=1
         )
 
@@ -392,7 +396,7 @@ class GapStatistic(Score):
             maximise=True,
             improve=True,
             score_type=score_type,
-            k_condition=k_condition,
+            k_condition=f_k_condition,
             criterion_function=self.f_criterion,
         )
 
@@ -701,7 +705,7 @@ class Inertia(Score):
         `pycvi.compute_scores.reduce`
         """
 
-        k_condition = lambda k: k>=0
+        f_k_condition = lambda k: k>=0
 
         def score_function(X, clusters):
             return reduce(compute_score(
@@ -713,7 +717,7 @@ class Inertia(Score):
             maximise=False,
             improve=True,
             score_type=score_type,
-            k_condition = k_condition,
+            k_condition = f_k_condition,
         )
 
         self.reduction = reduction
@@ -742,7 +746,7 @@ class Diameter(Score):
         `pycvi.compute_scores.reduce`
         """
 
-        k_condition = lambda k: k>=0
+        f_k_condition = lambda k: k>=0
 
         def score_function(X, clusters):
             return reduce(compute_score(
@@ -754,7 +758,7 @@ class Diameter(Score):
             maximise=False,
             improve=True,
             score_type=score_type,
-            k_condition = k_condition,
+            k_condition = f_k_condition,
         )
 
         self.reduction = reduction
