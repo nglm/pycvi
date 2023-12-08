@@ -406,12 +406,22 @@ class GapStatistic(Score):
         self,
         scores: Dict[int, float],
     ) -> int:
+        """
+        Select the smallest k such that "Gap(k) >= Gap(k+1) - s(k+1)"
+        """
+        # Keep only k corresponding to scores that are not None
         ks = sorted([k for k in scores.keys() if scores[k] is not None])
-        selected_k = int(np.amin([
+        # Get all k such that "Gap(k) >= Gap(k+1) - s(k+1)"
+        selected_k_tmp = [
             ks[k] for k in range(len(ks)-1)
             # Gap(k) >= Gap(k+1) - s(k+1)
             if scores[ks[k]] >= scores[ks[k+1]] - self.s[ks[k+1]]
-        ]))
+        ]
+        # Find the smallest k such that "Gap(k) >= Gap(k+1) - s(k+1)"
+        if selected_k_tmp:
+            selected_k = int(np.amin(selected_k_tmp))
+        else:
+            selected_k = None
         return selected_k
 
     def get_score_kwargs(
