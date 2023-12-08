@@ -290,13 +290,16 @@ class Hartigan(Score):
             # $k$ and $k+1$ is the smallest, or when
             # hartigan(k)<hartigan(k+1)
             ks = sorted([k for k in scores.keys() if scores[k] is not None])
-            arg_selected_k = np.argmin(
-                [
-                    max(scores[ks[i]]-scores[ks[i+1]], 0)
-                    for i in range(len(ks)-1)
-                ]
-            )
-            selected_k = ks[arg_selected_k]
+            if len(ks) > 1:
+                arg_selected_k = np.argmin(
+                    [
+                        max(scores[ks[i]]-scores[ks[i+1]], 0)
+                        for i in range(len(ks)-1)
+                    ]
+                )
+                selected_k = ks[arg_selected_k]
+            else:
+                selected_k = None
         return selected_k
 
     def get_score_kwargs(
