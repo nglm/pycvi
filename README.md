@@ -38,4 +38,4 @@ If you are having issues, [please let me know](https://www.uib.no/en/persons/Nat
 
 The project is licensed under the MIT license.
 
-[^1]:  F. Petitjean, A. Ketterlin, and P. Gan ̧carski, “A global averaging method for dynamic time warping, with applications to clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar. 2011.
+[^1]:  F. Petitjean, A. Ketterlin, and P. Gan carski, “A global averaging method for dynamic time warping, with applications to clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar. 2011.
