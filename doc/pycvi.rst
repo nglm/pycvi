@@ -7,10 +7,7 @@ Subpackages
 .. toctree::
 
    pycvi.datasets
-   pycvi.tests
 
-Submodules
-----------
 
 pycvi.cluster module
 --------------------

@@ -1,9 +1,6 @@
 pycvi.datasets package
 ======================
 
-Submodules
-----------
-
 pycvi.datasets.mini module
 --------------------------
 

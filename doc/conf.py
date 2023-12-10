@@ -15,6 +15,7 @@ import sys
 # sys.path.insert(0, os.path.abspath('.'))
 # Because we created the sphinx project in the ./doc folder
 sys.path.insert(0, os.path.abspath('..'))
+# Because tslearn is not among the standard libraries
 autodoc_mock_imports = ["tslearn"]
 
 
@@ -33,9 +34,28 @@ release = '0.1.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+# Note that as of December 2023, if 'm2r' and 'myst_parser'
+# can not be activated simultaneously, however m2r seems to include
+# myst_parser
 extensions = [
-    'sphinx.ext.autodoc'
+    # To generate documentation from docstrings
+    'sphinx.ext.autodoc',
+    # To be able to use numpy styles or google styles of docstrings
+    'sphinx.ext.napoleon',
+    # To get only the first line of all functions and potentially use
+    # it as a toctree
+    'sphinx.ext.autosummary',
+    # To tell sphinx that we are also using markdown
+    # 'myst_parser',
+    # To be able to include md files directly in rst files
+    # adds the mdinclude directive
+    'm2r',
 ]
+
+# Uncomment if m2r is NOT included in the extension
+# But myst_parser IS
+# To tell sphinx to look also for .md files.
+# source_suffix = ['.rst', '.md']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
