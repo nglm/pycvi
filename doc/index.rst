@@ -5,13 +5,31 @@
 
 .. mdinclude:: welcome_top.md
 
+.. toctree::
+   :maxdepth: 4
+   :caption: Tutorials:
+
+   tutorials.md
+
+Main Modules
+----------------------------
+
+.. autosummary::
+   :toctree:
+   :recursive:
+   :caption: Main modules:
+
+   pycvi.scores
+   pycvi.vi
+   pycvi.cluster
+
 
 Package documentation
 -----------------------
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+   :maxdepth: 3
+   :caption: Full API:
 
    pycvi
 
