@@ -1,4 +1,4 @@
-﻿pycvi.scores
+pycvi.scores
 ============
 
 .. automodule:: pycvi.scores

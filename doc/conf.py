@@ -77,3 +77,22 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# -- Autodoc options -------------------------------------------------
+
+autodoc_default_options = {
+    # will document all class member methods and properties.
+    'members': True,
+    'member-order': 'bysource',
+    # will also generate document for the special member (__foo__)
+    #'special-members': '__init__',
+    # will also generate document for the members not having docstrings:
+    'undoc-members': True,
+    # will also generate document for private members (_ or __)
+    'private_members': False,
+    'exclude-members': '__weakref__'
+}
+
+# -- Autosummary options -------------------------------------------------
+
+#autosummary_generate = True  # Turn on sphinx.ext.autosummary

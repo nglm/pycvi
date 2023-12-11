@@ -1,7 +1,10 @@
 PyCVI
 =====
 
-.. toctree::
-   :maxdepth: 4
+.. autosummary::
+   :toctree:
+   :recursive:
+   :template: module.rst
+   :caption: Full API:
 
    pycvi

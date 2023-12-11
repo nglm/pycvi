@@ -1,4 +1,4 @@
-﻿pycvi.datasets
+pycvi.datasets
 ==============
 
 .. automodule:: pycvi.datasets

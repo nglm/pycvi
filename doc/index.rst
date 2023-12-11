@@ -3,20 +3,23 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. mdinclude:: welcome_top.md
+.. mdinclude:: md/welcome_top.md
 
 .. toctree::
    :maxdepth: 4
    :caption: Tutorials:
 
-   tutorials.md
+   md/tutorials.md
 
 Main Modules
 ----------------------------
 
+The main features of PyCVI are defined here:
+
 .. autosummary::
    :toctree:
    :recursive:
+   :template: module.rst
    :caption: Main modules:
 
    pycvi.scores
@@ -31,9 +34,9 @@ Package documentation
    :maxdepth: 3
    :caption: Full API:
 
-   pycvi
+   modules
 
-.. mdinclude:: welcome_bottom.md
+.. mdinclude:: md/welcome_bottom.md
 
 Indices and tables
 -------------------

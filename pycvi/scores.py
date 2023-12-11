@@ -564,19 +564,26 @@ class MaulikBandyopadhyay(Score):
         return f'MaulikBandyopadhyay_{self.score_type}'
 
 class SD(Score):
+    """
+    Compute the SD index.
+
+    Note that if two clusters have equal centroids, then `SD = inf`
+    which means that this clustering is irrelevant, which works as
+    intended (even though two clusters could be well separated and still
+    have equal centroids, as in the case of two concentric circles).
+
+    The case :math:`k=1` is not possible.
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute"]
 
     def __init__(self, score_type: str = "absolute") -> None:
-        """
-        The case k=1 is not possible.
-
-        Note that if two clusters have equal centroids, then `SD = inf`
-        which means that this clustering is irrelevant, which works as
-        intended (even though two clusters could be well separated and
-        still have equal centroids, as in the case of two concentric
-        circles).
-        """
         super().__init__(
             score_function=SD_index,
             maximise=False,
