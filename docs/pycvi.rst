@@ -24,6 +24,7 @@
 .. rubric:: Modules
 
 .. autosummary::
+   :nosignatures:
    :toctree:
    :recursive:
 

@@ -15,6 +15,47 @@ from .compute_scores import (
 from .exceptions import InvalidKError
 
 class Score():
+    """
+    Base class for all Cluster Validity Indices in PyCVI.
+
+    To create a custom CVI class, inherit from this class with well
+    defined parameters.
+
+    Parameters
+    ----------
+    score_function : callable, optional
+        Function used to assess each clustering, by default None
+    maximise : bool, optional
+        Determines whether higher values mean better clustering
+        quality according to this CVI , by default True
+    improve : bool, optional
+        Determines whether the quality of the clustering is expected
+        to improve with increasing values of :math:`k` (concerns
+        only monotone CVIs), by default True
+    score_type : str, optional
+        Determines whether the score is to be interpreted as being
+        "absolute", "monotonous" or "original" (note that not all
+        CVIs can have these 3 interpretations), by default
+        "monotonous"
+    criterion_function : callable, optional
+        Determines how the best clustering should be selected
+        according to their corresponding CVI values, by default None
+    k_condition : callable, optional
+        :math:`k` values that are compatible with this CVI, by
+        default None
+    ignore0 : bool, optional
+        Determines how to treat the special case :math:`k=0` (when
+        available) when selecting the best clustering. This is for
+        example used in the Hartigan index where we don't use
+        :math:`k=0` as a reference score if :math:`k=0` is more
+        relevant than :math:`k=1`, by default False
+
+    Raises
+    ------
+    ValueError
+        Raised if the score type given is not among the available
+        options for this score.
+    """
 
     score_types: List[str] = ["monotonous", "absolute"]
     reductions: List[str] = None
@@ -88,19 +129,67 @@ class Score():
         n_clusters: int = None,
         score_kwargs: dict = {},
     ) -> Union[dict, None]:
+        """
+        Get the kwargs parameters specific to the CVI.
+
+        Base method to override when defining a CVI if the CVI function
+        requires additional parameters than the standard `X` and
+        `clusters` representing respectively the data values (already
+        processed) and the partition representing the clustering.
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
         return score_kwargs
 
     def criterion(
         self,
         scores: Dict[int, float],
         score_type: str = None,
-    ) -> int:
+    ) -> Union[int, None]:
         """
-        Treats the regular cases .
-        Cases included monotonous/absolute/pseudo-monotonous and
+        The default selection method for regular cases.
+
+        Regular cases included monotonous/absolute/pseudo-monotonous and
         maximise=True/False with improve=True/False.
 
-        Does not take into account rules that are specific to a score.
+        Does not take into account rules that are specific to a CVI,
+        such as the Gap statistic, Hartigan, etc.
+
+        Parameters
+        ----------
+        scores : Dict[int, float]
+            The CVI values obtained for the provided :math:`k` range.
+        score_type : str, optional
+            The type of score to use in the selection scheme. Note that
+            for most cases it is redundant with the attribute
+            `Score.score_type` but it may facilitate the selection for
+            scores that use base cases with small adjustments, by
+            default None.
+
+        Returns
+        -------
+        Union[int, None]
+            The :math:`k` value corresponding to the selected
+            clustering. Returns `None` if no clustering could be
+            selected.
         """
         # Because some custom criterion_function relies on the general
         # case "monotonous"/"absolute"
@@ -171,7 +260,38 @@ class Score():
             selected_k = self.criterion_function(scores)
         return selected_k
 
-    def is_relevant(self, score, k, score_prev, k_prev) -> bool:
+    def is_relevant(
+        self,
+        score: float,
+        k: int,
+        score_prev: float,
+        k_prev: int,
+    ) -> bool:
+        """
+        Determines if a score is relevant based on the CVI properties.
+
+        This is particularly useful for pseudo-monotonous CVIs, to know
+        whether we should ignore a specific CVI value.
+
+        Parameters
+        ----------
+        score : float
+            The current CVI value.
+        k : int
+            The current :math:`k` value.
+        score_prev : float
+            The previous CVI value.
+        k_prev : int
+            The previous :math:`k` value (which must be smaller).
+
+        Returns
+        -------
+        bool
+            True is the current value is relevant, which means that it
+            is following the expected scheme of CVI values given the
+            properties of the CVI (its `score_type`, `maximise`,
+            `improve` properties).
+        """
         # A score is always relevant when it is absolute
         if self.score_type == "absolute":
             return True
@@ -191,14 +311,29 @@ class Score():
     def select(
         self,
         scores_t_k: List[Dict[int, float]]
-    ) -> List[int]:
+    ) -> List[Union[int, None]]:
         """
-        Select the best $k$ for each $t$ according to the scores given.
+        Select the best clusterings according to the CVI values given.
 
-        :param scores_t_k: _description_
-        :type scores_t_k: List[Dict[int, float]]
-        :return: _description_
-        :rtype: List[int]
+        Select the best :math:`k` for each :math:`t` according to the
+        CVI values given. If the data is not time series or if the time
+        series are clustered considering all time steps at once, then
+        the returned list has only one element.
+
+        Parameters
+        ----------
+        scores_t_k : List[Dict[int, float]]
+            The CVI values for the provided :math:`k` range and for the
+            potential number :math:`t` of iterations to consider in
+            time.
+
+        Returns
+        -------
+        List[Union[int, None]]
+            The list of :math:`k` values corresponding to the best
+            clustering for each potential number :math:`t` of iterations
+            to consider in time. Some elements can be `None` if no
+            clustering could be selected at a given iteration :math:`t`.
         """
         return [self.criterion(s_t) for s_t in scores_t_k]
 
@@ -208,6 +343,27 @@ class Score():
         score2: float,
         or_equal: bool = False
     ) -> bool:
+        """
+        Checks if a CVI value is better than another.
+
+        Takes into account the properties of the CVI (its `score_type`,
+        `maximise`, `improve` properties)
+
+        Parameters
+        ----------
+        score1 : float
+            The first CVI value
+        score2 : float
+            The second CVI value
+        or_equal : bool, optional
+            Determines whether 2 equal scores should yield `True` or
+            not, by default False
+
+        Returns
+        -------
+        bool
+            True if `score1` is better than `score2`.
+        """
         return better_score(score1, score2, self.maximise, or_equal)
 
     def argbest(
@@ -215,6 +371,23 @@ class Score():
         scores: List[float],
         ignore_None: bool = False,
     ) -> int:
+        """
+        Returns the index of the best score.
+
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+        ignore_None : bool, optional
+            If `True`, `None` values will be ignored, otherwise, a
+            `None` value will be considered as the best score, by
+            default False
+
+        Returns
+        -------
+        int
+            The index of the best score
+        """
         return argbest(scores, self.maximise, ignore_None)
 
     def best_score(
@@ -222,13 +395,42 @@ class Score():
         scores: List[float],
         ignore_None: bool = False,
     ) -> float:
+        """
+        Returns the best score.
 
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+        ignore_None : bool, optional
+            If `True`, `None` values will be ignored, otherwise, a
+            `None` value will be considered as the best score, by
+            default False
+
+        Returns
+        -------
+        float
+            The best score
+        """
         return best_score(scores, self.maximise, ignore_None)
 
     def argworst(
         self,
         scores: List[float],
     ) -> int:
+        """
+        Returns the index of the worst score.
+
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+
+        Returns
+        -------
+        int
+            The index of the worst score
+        """
         return argworst(scores, self.maximise)
 
     def worst_score(
@@ -236,11 +438,41 @@ class Score():
         scores: List[float],
     ) -> float:
         """
-        Returns worst score
+        Returns the worst score.
+
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+
+        Returns
+        -------
+        float
+            The worst score
         """
         return worst_score(scores, self.maximise)
 
 class Hartigan(Score):
+    """
+    Compute the Hartigan index.
+
+    According to de Amorim and Hennig [2015] "In the original paper, the
+    lowest :math:`k`to yield Hartigan :math:`<= 10` was proposed as the
+    optimal choice. However, if no :math:`k` meets this criteria, choose
+    the :math:`k` whose difference in Hartigan for :math:`k` and
+    :math:`k+1` is the smallest". According to Tibshirani et al. [2001]
+    it is "the estimated number of clusters is the smallest :math:`k`
+    such that Hartigan :math:`<= 10` and :math:`k=1` could then be
+    possible.
+
+    Possible `score_type` values: "monotonous" or "original".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
+    """
 
     score_types: List[str] = ["monotonous", "original"]
 
@@ -248,18 +480,6 @@ class Hartigan(Score):
         self,
         score_type: str = "monotonous"
     ) -> None:
-        """
-        According to de Amorim and Hennig [2015] "In the original paper,
-        the lowest $k$ to yield Hartigan $<= 10$ was proposed as the
-        optimal choice. However, if no $k$ meets this criteria, choose
-        the $k$ whose difference in Hartigan for $k$ and $k+1$ is the
-        smallest". According to Tibshirani et al. [2001] it is "the
-        estimated number of clusters is the smallest k such that
-        Hartigan $<= 10$ and $k=1$ could then be possible.
-
-        Possible score_type: monotonous, or original
-        """
-
         f_k_condition = lambda k: (
             k>=0 if score_type == "monotonous" else k>=1
         )
@@ -269,12 +489,12 @@ class Hartigan(Score):
             maximise=False,
             improve=True,
             score_type=score_type,
-            criterion_function=self.f_criterion,
+            criterion_function=self._f_criterion,
             k_condition= f_k_condition,
             ignore0 = True,
         )
 
-    def f_criterion(
+    def _f_criterion(
         self,
         scores: Dict[int, float],
     ) -> int:
@@ -309,6 +529,39 @@ class Hartigan(Score):
         n_clusters: int = None,
         score_kwargs: dict = {}
     ) -> None:
+        """
+        Get the kwargs parameters specific to Hartigan.
+
+        Hartigan has 3 additional parameters:
+
+        - `k`: the current number of clusters
+        - `clusters_next`: the clustering for the next :math:`k` value
+          considered
+        - `X1`: the dataset to cluster (already processed). This is
+          needed for the case :math:`k=0`, and in that case `X_clus` is
+          sampled from a uniform distribution with similar parameters as
+          the original distribution
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
         s_kw = {}
         s_kw["k"] = n_clusters
         if n_clusters < len(X_clus):
@@ -572,7 +825,7 @@ class SD(Score):
     intended (even though two clusters could be well separated and still
     have equal centroids, as in the case of two concentric circles).
 
-    The case :math:`k=1` is not possible.
+
 
     Parameters
     ----------
@@ -607,19 +860,29 @@ class SD(Score):
         return 'SD'
 
 class SDbw(Score):
+    """
+    Compute the SDbw index.
+
+    The case :math:`k=1` is not possible.
+
+    Note that if two clusters have all datapoints further away to
+    their respective centroids than what is called in the original
+    paper "the average standard deviation of clusters", then `SDbw =
+    inf`, which means that this clustering is irrelevant, which
+    works as intended.
+
+    Possible `score_type` values: "absolute".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute"]
 
     def __init__(self, score_type: str = "absolute") -> None:
-        """
-        The case k=1 is not possible.
-
-        Note that if two clusters have all datapoints further away to
-        their respective centroids than what is called in the original
-        paper "the average standard deviation of clusters", then `SDbw =
-        inf`, which means that this clustering is irrelevant, which
-        works as intended.
-        """
         super().__init__(
             score_function=SDbw_index,
             maximise=False,

@@ -21,6 +21,7 @@ The main features of PyCVI are defined here:
    :recursive:
    :template: module.rst
    :caption: Main modules:
+   :nosignatures:
 
    pycvi.scores
    pycvi.vi
