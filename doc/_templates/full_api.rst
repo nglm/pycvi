@@ -66,4 +66,3 @@
    {% for item in modules %}
    {{ item }}
    {%- endfor %}
-   {% endif %}
