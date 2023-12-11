@@ -6,7 +6,7 @@
 # no ipynb checkpoints
 *.ipynb_checkpoints*
 # no generated html files
-*doc/_build/*
+*docs/_build/*
 # no tmp files
 tmp/*
 

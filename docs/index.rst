@@ -27,14 +27,11 @@ The main features of PyCVI are defined here:
    pycvi.cluster
 
 
-Package documentation
------------------------
-
 .. toctree::
    :maxdepth: 3
    :caption: Full API:
 
-   modules
+   api
 
 .. mdinclude:: md/welcome_bottom.md
 
