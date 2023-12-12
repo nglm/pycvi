@@ -1,5 +1,5 @@
 """
-PyCVI implementation of internal CVIs.
+Python implementation of state-of the-art internal CVIs.
 
 .. [Hartigan] D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
    Biometrics, vol. 31, p. 793, sep 1975.
