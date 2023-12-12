@@ -461,6 +461,14 @@ def CH(
         then the values of all members when sampled from a uniform
         distribution.
     :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param zero_type: Determines how to parametrize the uniform
+        distribution to sample from in the case :math:`k=0`. Possible
+        options:
+        - `"variance"`: the uniform distribution is defined such that it
+        has the same variance and mean as the original data.
+        - `"bounds"`: the uniform distribution is defined such that it
+        has the same bounds as the original data.
+    :type zero_type: str, optional
     :param dist_kwargs: kwargs for the distance function, defaults to {}
     :type dist_kwargs: dict, optional
     :return: The CH index

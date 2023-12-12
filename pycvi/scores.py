@@ -456,6 +456,9 @@ class Hartigan(Score):
     """
     Compute the Hartigan index.
 
+    Originally, this index is absolute and the selection criteria is as
+    follow:
+
     According to de Amorim and Hennig [2015] "In the original paper, the
     lowest :math:`k`to yield Hartigan :math:`<= 10` was proposed as the
     optimal choice. However, if no :math:`k` meets this criteria, choose
@@ -464,6 +467,8 @@ class Hartigan(Score):
     it is "the estimated number of clusters is the smallest :math:`k`
     such that Hartigan :math:`<= 10` and :math:`k=1` could then be
     possible.
+
+    A monotonous approach can also be taken.
 
     Possible `score_type` values: "monotonous" or "original".
 
@@ -534,13 +539,15 @@ class Hartigan(Score):
 
         Hartigan has 3 additional parameters:
 
-        - `k`: the current number of clusters
-        - `clusters_next`: the clustering for the next :math:`k` value
-          considered
-        - `X1`: the dataset to cluster (already processed). This is
-          needed for the case :math:`k=0`, and in that case `X_clus` is
-          sampled from a uniform distribution with similar parameters as
-          the original distribution
+        - `k` (int): the current number of clusters.
+        - `clusters_next` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t,
+            d))`: the clustering for the next :math:`k` value
+            considered.
+        - `X1` (np.ndarray, shape: (N, d*w_t) or (N, w_t, d)): the
+            dataset to cluster (already processed). This is needed for
+            the case :math:`k=0`, and in that case `X_clus` is sampled
+            from a uniform distribution with similar parameters as the
+            original distribution.
 
         Parameters
         ----------
@@ -575,6 +582,22 @@ class Hartigan(Score):
         return 'Hartigan_{}'.format(self.score_type)
 
 class CalinskiHarabasz(Score):
+    """
+    Compute the Calinski-Harabasz index.
+
+    Originally, this index is absolute and has to be maximised to find
+    the best :math:`k`. A monotonous approach can also be taken, so that
+    the case k=1 can be selected, with CH(1) = 0 and CH(0) extended (see
+    `pycvi.cvi.CH`)
+
+    Possible `score_type` values: "monotonous" or "original".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
+    """
 
     score_types: List[str] = ["monotonous", "original", "absolute"]
 
@@ -582,13 +605,6 @@ class CalinskiHarabasz(Score):
         self,
         score_type: str = "monotonous"
     ) -> None:
-        """
-        Originally this index is absolute and has to be maximised to
-        find the best $k$. A monotonous approach can also be taken, so
-        that the case k=1 can be selected, with CH(1) = 0 and CH(0)
-        extended (see `pycvi.cvi.CH`)
-        """
-
         # Note that the case k=1 for the absolute version will always
         # give CH=0
         f_k_condition = lambda k: (
@@ -614,7 +630,45 @@ class CalinskiHarabasz(Score):
         n_clusters: int = None,
         score_kwargs: dict = {}
     ) -> None:
+        """
+        Get the kwargs parameters specific to Calinski-Harabasz.
 
+        Calinski-Harabasz has 3 additional parameters:
+
+        - `k` (int): the current number of clusters.
+        - `X1` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t,
+            d)): the dataset to cluster (already processed). This is
+            needed for the case :math:`k=0`, and in that case `X_clus`
+            is sampled from a uniform distribution with similar
+            parameters as the original distribution
+        - `zero_type` (str): determines how to parametrize the uniform
+            distribution to sample from in the case :math:`k=0`.
+            Possible options:
+            - `"variance"`: the uniform distribution is defined such
+            that it has the same variance and mean as the original data.
+            - `"bounds"`: the uniform distribution is defined such that
+            it has the same bounds as the original data.
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
         s_kw = {}
         s_kw["k"] = n_clusters
         if n_clusters == 0:
@@ -635,8 +689,24 @@ class CalinskiHarabasz(Score):
         return 'CalinskiHarabasz_{}'.format(score_type)
 
 class GapStatistic(Score):
+    """
+    Compute the Gap statistic.
 
-    score_types: List[str] = ["monotonous", "absolute", "original"]
+    Originally, this index is absolute and the selection criteria is as
+    follow:
+
+    A monotonous approach can also be taken.
+
+    Possible `score_type` values: "monotonous", or "original".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
+    """
+
+    score_types: List[str] = ["monotonous", "original"]
 
     def __init__(
         self,
