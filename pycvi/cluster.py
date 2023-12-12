@@ -1,3 +1,7 @@
+"""
+To generate clusterings and compute clustering-related information.
+"""
+
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from tslearn.metrics import dtw_path
@@ -8,10 +12,32 @@ from .exceptions import ShapeError, NoClusterError
 
 def compute_center(
     cluster: np.ndarray,
-):
+) -> np.ndarray:
     """
-    Compute the center of a cluster (mean or barycenter if using DTW)
-    The "n_samples" dimension is not included in the result.
+    Compute the center of a cluster.
+
+    For non time-series data, this is simply the average of all
+    datapoints in the given cluster, but for time-series data and when
+    DTW is used as the distance measure, then the cluster center is
+    defined as the DBA (DTW barycentric average) as defined by Petitjean
+    et al [DBA]_.
+
+    Note that the `"N"` dimension is not included in the result.
+
+    .. [DBA] F. Petitjean, A. Ketterlin, and P. Gan carski, “A global
+       averaging method for dynamic time warping, with applications to
+       clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
+       2011.
+
+    Parameters
+    ----------
+    cluster : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`
+        Data values in this cluster.
+
+    Returns
+    -------
+    np.ndarray, shape `(d*w_t)` or `(w_t, d)` if DTW is used.
+        The cluster center.
     """
     dims = cluster.shape
 
@@ -40,10 +66,33 @@ def generate_uniform(
     N_zero: int = 10,
 ) -> List[np.ndarray]:
     """
-    Generate N_zero samples from a uniform distribution based on data.
+    Generate `N_zero` samples from a uniform distribution based on data.
 
-    data and each element of l_data0 have the same shape, either
-    `(N, T, d)` or `(N, T*d)`
+    `data` and each element of the returned `l_data0` have the same
+    shape, either `(N, T, d)` or `(N, T*d)` if DTW is used.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        The original dataset
+    zero_type : str, optional
+        Determines how to parametrize the uniform
+        distribution to sample from in the case :math:`k=0`, by default
+        "bounds". Possible options:
+
+        - `"variance"`: the uniform distribution is defined such that it
+          has the same variance and mean as the original data.
+        - `"bounds"`: the uniform distribution is defined such that it
+          has the same bounds as the original data.
+
+    N_zero : int, optional
+        Number of uniform distributions sampled, by default 10
+
+    Returns
+    -------
+    List[np.ndarray]
+        A list of samples from a uniform distribution, parametrized
+        according to the original dataset given `data`
     """
     # Determines how to measure the score of the 0th component
     if zero_type == 'variance':
@@ -84,16 +133,18 @@ def prepare_data(
     """
     Data to be used for cluster, scores and params
 
-    The index that should be used to compute cluster params
-    of clustering that were computed using `X_clus` is called
-    "midpoint_w" in the window dictionary
+    The index that should be used to compute cluster params of
+    clustering that were computed using `X_clus` is called "midpoint_w"
+    in the window dictionary
 
-    Scaler has to be fit beforehand on the original data (even for)
-    the case k=0.
+    Scaler has to be fit beforehand on the original data (even for) the
+    case k=0.
 
     X_clus is:
+
     - a list of T (N, w_t, d) arrays if sliding window and DTW was used
-    - a list of T (N, w_t*d) arrays if sliding window was used but not DTW
+    - a list of T (N, w_t*d) arrays if sliding window was used but not
+      DTW
     - a list of 1 (N, T, d) array  if DTW is used but not sliding window
     - a list of 1 (N, T*d) array if DTW and sliding window were not used
 
@@ -153,10 +204,11 @@ def sliding_window(T: int, w: int) -> dict:
     Windows extracted are shorter when considering the beginning and the
     end of the array. Which means that a padding is implicitly included.
 
-    When the time window `w` is an *even* number, favor future time steps, i.e.,
-    when extracting a time window around the datapoint t, the time window
-    indices are [t - (w-1)//2, ... t, ..., t + w/2].
-    When `w` is odd then the window is [t - (w-1)/2, ... t, ..., t + (w-1)/2]
+    When the time window `w` is an *even* number, favor future time
+    steps, i.e., when extracting a time window around the datapoint t,
+    the time window indices are [t - (w-1)//2, ... t, ..., t + w/2].
+    When `w` is odd then the window is [t - (w-1)/2, ... t, ..., t +
+    (w-1)/2]
 
     Which means that the padding is as follows:
 
@@ -166,33 +218,36 @@ def sliding_window(T: int, w: int) -> dict:
     And that the original indices are as follows:
 
     - [0, ..., t + w//2], until t = (w-1)//2
-    - [t - (w-1)//2, ..., t, ..., t + w//2] for datapoints in
-    [(w-1)//2, ..., T-1 - w//2]
+    - [t - (w-1)//2, ..., t, ..., t + w//2] for datapoints in [(w-1)//2,
+      ..., T-1 - w//2]
     - [t - (w-1)//2, ..., T-1] from t = T-1 - w//2
-    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas apply.
-    - Note also that the left side of the end case is the same as the left
-    side of the base case
+    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas
+      apply.
+    - Note also that the left side of the end case is the same as the
+      left side of the base case
 
     Window sizes:
 
     - (1 + w//2) at t=0, then t + (1 + w//2) until t = (w-1)//2
     - All datapoints from [(w-1)//2, ..., T-1 - w//2] have a normal
-    window size.
+      window size.
     - (w+1)//2 at t=T-1, then T-1-t + (w+1)//2 from t = T-1 - w//2
-    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas apply
+    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas
+      apply
 
-    Consider an extracted time window of length w_real (with w_real <= w,
-    if the window was extracted at the beginning or the end of the array).
-    The midpoint of the extracted window (i.e. the index in that window
-    that corresponds to the datapoint around which the time window was
-    extracted in the original array is:
+    Consider an extracted time window of length w_real (with w_real <=
+    w, if the window was extracted at the beginning or the end of the
+    array). The midpoint of the extracted window (i.e. the index in that
+    window that corresponds to the datapoint around which the time
+    window was extracted in the original array is:
 
     - 0 at t=0, then t, until t = pad_left, i.e. t = (w-1)//2
     - For all datapoints between, [(w-1)//2, ..., (T-1 - w//2)], the
-    midpoint is (w-1)//2 (so it is the same as the base case)
+      midpoint is (w-1)//2 (so it is the same as the base case)
     - w_real-1 at t=T-1, then w_real - (T-t), from t=T-1-pad_right, i.e.
-    from t = (T-1 - w//2)
-    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas apply.
+      from t = (T-1 - w//2)
+    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas
+      apply.
 
     The midpoint in the original array is actually simply t
 
@@ -204,6 +259,7 @@ def sliding_window(T: int, w: int) -> dict:
     - `midpoint_w`: Midpoint in the window reference
     - `midpoint_o`: Midpoint in the origin reference
     - `origin`: Original indices
+
     """
     # Boundaries between regular cases and extreme ones
     ind_start = (w-1)//2
@@ -258,14 +314,18 @@ def get_clusters(
     """
     Generate a clustering instance with the given model/fit parameters
 
-    :param fit_predict_kw: Dict of kw for the fit_predict method,
-    defaults to {}
-    :type fit_predict_kw: dict, optional
-    :param model_class_kw: To know how X and n_clusters args are called in this
-    model class, defaults to {}
-    :type model_class_kw: dict, optional
-    :return: Members affiliation to the generated clustering
-    :rtype: List[List[int]]
+    Parameters
+    ----------
+    fit_predict_kw : dict, optional
+        Dict of kw for the fit_predict method, defaults to {}
+    model_class_kw : dict, optional
+        To know how X and n_clusters args are called in this model
+        class, defaults to {}
+
+    Returns
+    -------
+    List[List[int]]
+        Members affiliation to the generated clustering
     """
     n_clusters = model_kw[model_class_kw.get("k_arg_name", "n_clusters")]
     X = fit_predict_kw[model_class_kw.get("X_arg_name", "X")]
