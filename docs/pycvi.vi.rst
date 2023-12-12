@@ -14,11 +14,10 @@
    .. autosummary::
    
       P_clusters
-      align_clusterings
       contingency_matrix
       entropy
       mutual_information
-      variational_information
+      variation_information
    
    
 

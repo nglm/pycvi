@@ -1,3 +1,35 @@
+"""
+Variation of Information [2]_, to evaluate clusterings and internal CVIs.
+
+Variation of Information (VI) can be used to evaluate clusterings and
+internal CVIs when the true clustering is known.
+
+the most naive approach to evaluate a given CVI is to count how
+many time the CVI has selected a clustering with the right number of
+clusters on benchmarking datasets where the number of clusters is known.
+This approach has several flaws. Indeed, a CVI can only pick from a set
+of pre-computed clusterings, if all clusterings are of poor quality (for
+example when KMeans is used on concentric circles), then the fact that
+the CVI finds or doesn't find the right number of clusters doesn't give
+any information on the quality of the CVI.
+
+One solution can then be to use the VI to weight this count of correctly
+selected number of clusters by a given CVI. The weight can be defined by
+computing the VI between the true clustering and the selected clustering
+or the true clustering and the clustering obtained with the given
+clustering method when the true number of clusters is given as a
+parameter, or a combination of both. Thus, a CVI won't be penalised when
+it couldn't find the right number of clusters when none of the
+clusterings was faithfully representing the clusters. Similarly CVIs
+won't be rewarded for finding the right number of clusters do not
+represent well the original distribution of the data.
+
+.. [1] T. M. Cover and J. A. Thomas, Elements of Information Theory.
+   Wiley, Apr. 2005.
+.. [2] M. Meil ̆a, Comparing Clusterings by the Variation of Information,
+   p. 173–187. Springer Berlin Heidelberg, 2003.
+"""
+
 import numpy as np
 from typing import List, Tuple
 
@@ -7,7 +39,7 @@ def P_clusters(
     clustering: List[List[int]]
 ) -> List[float]:
     """
-    List of probability of the outcome being in cluster i
+    List of probability of the outcome being in cluster i.
 
     :param clustering: A given clustering
     :type clustering: List[List[int]]
@@ -24,13 +56,13 @@ def entropy(
     """
     Entropy of the given clustering
 
-    Conventions: (see "Elements of Information Theory" by Cover and
-    Thomas), section 2.3
+    Conventions: see "Elements of Information Theory" by Cover and
+    Thomas, section 2.3 [1]_.
 
-    - log is in base 2 and entropy is count in bits
-    - $0 log(0/0) = 0$
-    - $0 log(0/q) = 0$
-    - $p log(p/0) = +inf$
+    - :math:`\\log` is in base 2 and entropy is count in bits.
+    - :math:`0 \\times \\log(0/0) = 0`.
+    - :math:`0 \\times \\log(0/q) = 0`.
+    - :math:`p \\times \\log(p/0) = +\\infty`.
 
     :param clustering: A given clustering
     :type clustering: List[List[int]]
@@ -70,13 +102,13 @@ def mutual_information(
     """
     Mutual information between two clusterings.
 
-    Conventions: (see "Elements of Information Theory" by Cover and
-    Thomas), section 2.3
+    Conventions: see "Elements of Information Theory" by Cover and
+    Thomas, section 2.3 [1]_.
 
-    - log is in base 2 and entropy is count in bits
-    - $0 log(0/0) = 0$
-    - $0 log(0/q) = 0$
-    - $p log(p/0) = +inf$
+    - :math:`\\log` is in base 2 and entropy is count in bits.
+    - :math:`0 \\times \\log(0/0) = 0`.
+    - :math:`0 \\times \\log(0/q) = 0`.
+    - :math:`p \\times \\log(p/0) = +\\infty`.
 
     :param clustering1: First clustering
     :type clustering1: List[List[int]]
@@ -103,7 +135,7 @@ def variation_information(
     clustering2: List[List[int]],
 ) -> float:
     """
-    Variational information between two clusterings.
+    Variation of information between two clusterings. [2]_
 
     :param clustering1: First clustering
     :type clustering1: List[List[int]]
