@@ -5,6 +5,12 @@
 
    
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SCORES
+   
    
 
    

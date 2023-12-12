@@ -1,3 +1,6 @@
+"""
+PyCVI implementation of internal CVIs.
+"""
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
@@ -93,7 +96,7 @@ class Score():
         score_kwargs: dict = {},
     ) -> float:
         """
-        Compute the score of the clustering.
+        Computes the score of the clustering.
 
         :param X: Values of all members
         :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
@@ -454,10 +457,10 @@ class Score():
 
 class Hartigan(Score):
     """
-    Compute the Hartigan index.
+    Computes the Hartigan index.
 
     Originally, this index is absolute and the selection criteria is as
-    follow:
+    follows:
 
     According to de Amorim and Hennig [2015] "In the original paper, the
     lowest :math:`k`to yield Hartigan :math:`<= 10` was proposed as the
@@ -541,13 +544,13 @@ class Hartigan(Score):
 
         - `k` (int): the current number of clusters.
         - `clusters_next` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t,
-            d))`: the clustering for the next :math:`k` value
-            considered.
+          d))`: the clustering for the next :math:`k` value
+          considered.
         - `X1` (np.ndarray, shape: (N, d*w_t) or (N, w_t, d)): the
-            dataset to cluster (already processed). This is needed for
-            the case :math:`k=0`, and in that case `X_clus` is sampled
-            from a uniform distribution with similar parameters as the
-            original distribution.
+          dataset to cluster (already processed). This is needed for
+          the case :math:`k=0`, and in that case `X_clus` is sampled
+          from a uniform distribution with similar parameters as the
+          original distribution.
 
         Parameters
         ----------
@@ -583,7 +586,7 @@ class Hartigan(Score):
 
 class CalinskiHarabasz(Score):
     """
-    Compute the Calinski-Harabasz index.
+    Computes the Calinski-Harabasz index.
 
     Originally, this index is absolute and has to be maximised to find
     the best :math:`k`. A monotonous approach can also be taken, so that
@@ -636,17 +639,18 @@ class CalinskiHarabasz(Score):
         Calinski-Harabasz has 3 additional parameters:
 
         - `k` (int): the current number of clusters.
-        - `X1` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t,
-            d)): the dataset to cluster (already processed). This is
-            needed for the case :math:`k=0`, and in that case `X_clus`
-            is sampled from a uniform distribution with similar
-            parameters as the original distribution
+        - `X1` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`): the
+          dataset to cluster (already processed). This is
+          needed for the case :math:`k=0`, and in that case `X_clus`
+          is sampled from a uniform distribution with similar
+          parameters as the original distribution
         - `zero_type` (str): determines how to parametrize the uniform
-            distribution to sample from in the case :math:`k=0`.
-            Possible options:
-            - `"variance"`: the uniform distribution is defined such
-            that it has the same variance and mean as the original data.
-            - `"bounds"`: the uniform distribution is defined such that
+          distribution to sample from in the case :math:`k=0`. Possible
+          options:
+
+          - `"variance"`: the uniform distribution is defined such that
+            it has the same variance and mean as the original data.
+          - `"bounds"`: the uniform distribution is defined such that
             it has the same bounds as the original data.
 
         Parameters
@@ -690,10 +694,13 @@ class CalinskiHarabasz(Score):
 
 class GapStatistic(Score):
     """
-    Compute the Gap statistic.
+    Computes the Gap statistic.
 
     Originally, this index is absolute and the selection criteria is as
     follow:
+
+    Take the smallest :math:`k` such that :math:`Gap(k) \\geq Gap(k+1) -
+    s(k+1)`.
 
     A monotonous approach can also be taken.
 
@@ -703,14 +710,14 @@ class GapStatistic(Score):
     ----------
     score_type : str, optional
         Determines how the index should be interpreted, when selecting
-        the best clustering, by default "monotonous".
+        the best clustering, by default "original".
     """
 
     score_types: List[str] = ["monotonous", "original"]
 
     def __init__(
         self,
-        score_type: str = "monotonous",
+        score_type: str = "original",
     ) -> None:
 
         f_k_condition = lambda k: (
@@ -723,12 +730,12 @@ class GapStatistic(Score):
             improve=True,
             score_type=score_type,
             k_condition=f_k_condition,
-            criterion_function=self.f_criterion,
+            criterion_function=self._f_criterion,
         )
 
         self.s = {}
 
-    def f_criterion(
+    def _f_criterion(
         self,
         scores: Dict[int, float],
     ) -> int:
@@ -757,6 +764,45 @@ class GapStatistic(Score):
         n_clusters: int = None,
         score_kwargs: dict = {}
     ) -> None:
+        """
+        Get the kwargs parameters specific to Gap statistic.
+
+        Gap statistic has 4 additional parameters:
+
+        - `k` (int): the current number of clusters.
+        - `B` (int): the number of uniform samples drawn.
+        - `zero_type` (str): determines how to parametrize the uniform
+          distribution to sample from in the case :math:`k=0`. Possible
+          options:
+
+          - `"variance"`: the uniform distribution is defined such that
+            it has the same variance and mean as the original data.
+          - `"bounds"`: the uniform distribution is defined such that
+            it has the same bounds as the original data.
+
+        - `return_s` (bool): determines whether the s value should also
+          be returned
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
         s_kw = {"B" : 10}
         s_kw["k"] = n_clusters
         if self.score_type == "original":
@@ -787,6 +833,20 @@ class GapStatistic(Score):
         return 'GapStatistic_{}'.format(self.score_type)
 
 class Silhouette(Score):
+    """
+    Computes the Silhouette score.
+
+    This index is absolute, bounded in :math:`[-1, 1]` range and has to
+    be maximised.
+
+    Possible `score_type` values: "absolute".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute"]
 
@@ -806,34 +866,45 @@ class Silhouette(Score):
         return 'Silhouette'
 
 class ScoreFunction(Score):
+    """
+    Computes the Score function.
+
+    This index has to be maximised to find the best clustering, but the
+    original paper Saitta et al. [2007] adds special cases:
+
+    - if the score always increases, then the number :math:`k = 1` is
+      chosen.
+    - if a maximum is found, outside the extreme :math:`k` values, then
+      the argument of this maximum is chosen.
+    - it is empirically decided that if :math:`(SF_2 − SF_1) \\times d
+      \\leq 0.2` then, :math:`k = 1` is also chosen (:math:`d` being the
+      dimensionality of the data).
+
+    The absolute case can also be chosen (i.e. special case are
+    ignored).
+
+    Possible `score_type` values: "monotonous", or "original".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "original".
+    """
 
     score_types: List[str] = ["absolute", "original"]
 
     def __init__(self, score_type: str = "original") -> None:
-        """
-        Originally this index has to be maximised to find the best $k$,
-        but the original paper Saitta et al. [2007] adds special cases:
-
-        - if the score always increases, then the number $k=1$ is chosen
-        - if a maximum is found, outside the extreme $k$ values, then
-          the argument of this maximum is chosen.
-        - it is empirically decided that if $(SF2 − SF1) \times d <=
-          0.2$ then, $k = 1$ is also chosen (d being the dimensionality
-          of the data)
-
-        The absolute case can also be chosen (i.e. special case are
-        ignored)
-        """
         super().__init__(
             score_function=score_function,
             maximise=True,
             improve=None,
             score_type=score_type,
-            criterion_function=self.f_criterion,
+            criterion_function=self._f_criterion,
             k_condition= lambda k: (k>=1)
         )
 
-    def f_criterion(
+    def _f_criterion(
         self,
         scores: Dict[int, float],
     ) -> int:
@@ -853,16 +924,28 @@ class ScoreFunction(Score):
         return 'ScoreFunction'
 
 class MaulikBandyopadhyay(Score):
+    """
+    Computes the Maulik-Bandyopadhyay index.
+
+    Originally, this index is absolute and has to be maximised to find
+    the best :math:`k`.
+
+    A monotonous approach can also be taken.
+
+    Possible `score_type` values: "monotonous", or "absolute".
+
+    Note that the case :math:`k=1` always returns 0.
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute", "monotonous"]
 
-    def __init__(self, score_type: str = "original") -> None:
-        """
-        Originally this index has to be maximised to find the best $k$.
-        The monotonous case can also be chosen.
-
-        The case k=1 always returns 0.
-        """
+    def __init__(self, score_type: str = "absolute") -> None:
         super().__init__(
             score_function=MB,
             maximise=True,
@@ -888,14 +971,19 @@ class MaulikBandyopadhyay(Score):
 
 class SD(Score):
     """
-    Compute the SD index.
+    Computes the SD index.
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
 
     Note that if two clusters have equal centroids, then `SD = inf`
     which means that this clustering is irrelevant, which works as
     intended (even though two clusters could be well separated and still
     have equal centroids, as in the case of two concentric circles).
 
+    The case :math:`k=1` is not possible.
 
+    Possible `score_type` values: "absolute".
 
     Parameters
     ----------
@@ -931,15 +1019,18 @@ class SD(Score):
 
 class SDbw(Score):
     """
-    Compute the SDbw index.
+    Computes the SDbw index.
 
-    The case :math:`k=1` is not possible.
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
 
     Note that if two clusters have all datapoints further away to
     their respective centroids than what is called in the original
     paper "the average standard deviation of clusters", then `SDbw =
     inf`, which means that this clustering is irrelevant, which
     works as intended.
+
+    The case :math:`k=1` is not possible.
 
     Possible `score_type` values: "absolute".
 
@@ -965,13 +1056,26 @@ class SDbw(Score):
         return 'SDbw'
 
 class Dunn(Score):
+    """
+    Computes the Dunn index.
+
+    This index is absolute and has to be maximised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `score_type` values: "absolute".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute"]
 
     def __init__(self, score_type: str = "absolute") -> None:
-        """
-        The case k=1 is not possible.
-        """
         super().__init__(
             score_function=dunn,
             maximise=True,
@@ -984,6 +1088,22 @@ class Dunn(Score):
         return 'Dunn'
 
 class XB(Score):
+    """
+    Computes the Xie-Beni index.
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `score_type` values: "absolute".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute"]
 
@@ -1003,13 +1123,26 @@ class XB(Score):
         return 'XB'
 
 class XBStar(Score):
+    """
+    Computes the Xie-Beni* index.
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `score_type` values: "absolute".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute"]
 
     def __init__(self, score_type: str = "absolute") -> None:
-        """
-        The case k=1 is not possible.
-        """
         super().__init__(
             score_function=xie_beni_star,
             maximise=False,
@@ -1022,6 +1155,22 @@ class XBStar(Score):
         return 'XB_star'
 
 class DB(Score):
+    """
+    Computes the Davies-Bouldin index.
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `score_type` values: "absolute".
+
+    Parameters
+    ----------
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
 
     score_types: List[str] = ["absolute"]
 
@@ -1041,6 +1190,26 @@ class DB(Score):
         return 'DB'
 
 class Inertia(Score):
+    """
+    Computes the inertia of a clustering.
+
+    This index is monotonous and and smaller values are considered
+    better.
+
+    Possible `score_type` values: "monotonous".
+
+    Parameters
+    ----------
+    reduction : str, optional
+        Determines how to combine the inertia values of each cluster to
+        compute the inertia of the whole clustering, by default "sum".
+        Available options: `"sum"`, `"mean"`, `"max"`, `"median"`,
+        `"min"`, `""`, `None` or a callable. See
+        `pycvi.compute_scores.reduce` for more information.
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
+    """
 
     score_types: List[str] = ["monotonous"]
     reductions: List[str] = [
@@ -1052,11 +1221,6 @@ class Inertia(Score):
         reduction: Union[str, callable] = "sum",
         score_type: str = "monotonous",
     ) -> None:
-        """
-        reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
-        `"min"`, `""`, `None` or a callable. See
-        `pycvi.compute_scores.reduce`
-        """
 
         f_k_condition = lambda k: k>=0
 
@@ -1082,6 +1246,26 @@ class Inertia(Score):
             return 'Inertia'
 
 class Diameter(Score):
+    """
+    Computes the Diameter of a clustering.
+
+    This index is monotonous and and smaller values are considered
+    better.
+
+    Possible `score_type` values: "monotonous".
+
+    Parameters
+    ----------
+    reduction : str, optional
+        Determines how to combine the diameter values of each cluster to
+        compute the diameter of the whole clustering, by default "sum".
+        Available options: `"sum"`, `"mean"`, `"max"`, `"median"`,
+        `"min"`, `""`, `None` or a callable. See
+        `pycvi.compute_scores.reduce` for more information.
+    score_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
+    """
 
     score_types: List[str] = ["monotonous"]
     reductions: List[str] = [
@@ -1093,11 +1277,6 @@ class Diameter(Score):
         reduction: Union[str, callable] = "max",
         score_type: str = "monotonous",
     ) -> None:
-        """
-        reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
-        `"min"`, `""`, `None` or a callable. See
-        `pycvi.compute_scores.reduce`
-        """
 
         f_k_condition = lambda k: k>=0
 
@@ -1135,3 +1314,6 @@ SCORES = [
     Inertia,
     Diameter,
 ]
+"""
+List of available CVI indices in PyCVI
+"""
