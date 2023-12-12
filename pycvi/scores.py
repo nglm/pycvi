@@ -1,6 +1,10 @@
 """
 Python implementation of state-of the-art internal CVIs.
 
+Internal CVIs are used to select the best clustering among a set of
+pre-computed clustering when no information about the true clusters nor
+the number of clusters is available.
+
 .. [Hartigan] D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
    Biometrics, vol. 31, p. 793, sep 1975.
 .. [CH] T. Calinski and J. Harabasz, “A dendrite method for cluster
