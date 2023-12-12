@@ -4,7 +4,7 @@ import pytest
 
 from ..vi import (
     P_clusters, entropy, contingency_matrix, mutual_information,
-    variational_information, align_clusterings,
+    variation_information, _align_clusterings,
 )
 from ..datasets import mini, normal, get_clusterings
 
@@ -111,7 +111,7 @@ def test_mutual_information():
                 I_sym = mutual_information(C2, C1)
                 assert I == pytest.approx(I_sym)
 
-def test_variational_information():
+def test_variation_information():
     for multivariate in [True, False]:
         Cs, data, time = clusterings(multivariate=multivariate)
         list_keys = list(Cs.keys())
@@ -121,7 +121,7 @@ def test_variational_information():
             for k2 in list_keys[1:]:
                 C2 = Cs[k2]
                 # Mutual information of two different clusterings
-                vi = variational_information(C1, C2)
+                vi = variation_information(C1, C2)
 
                 assert type(vi) == float
                 # lower bound of vi
@@ -130,20 +130,20 @@ def test_variational_information():
                 assert vi <= np.log2(N)  + MARGIN
 
                 # vi is symmetric
-                vi = variational_information(C1, C2)
-                vi_sym = variational_information(C2, C1)
+                vi = variation_information(C1, C2)
+                vi_sym = variation_information(C2, C1)
                 assert vi == pytest.approx(vi_sym)
 
                 # vi is positive definite
-                assert variational_information(C1, C1) == pytest.approx(0)
+                assert variation_information(C1, C1) == pytest.approx(0)
 
     # With symmetric clusterings
     C1s = [ Cs["C2_bis"], Cs["C3_bis"], Cs["C3"]]
     C2s = [ Cs["C2_bis_shuffled"], Cs["C3_bis_shuffled"], Cs["C3_shuffled"] ]
     for C1, C2 in zip(C1s, C2s):
-        assert variational_information(C1, C1) == pytest.approx(0)
+        assert variation_information(C1, C1) == pytest.approx(0)
 
-def test_align_clusterings():
+def test__align_clusterings():
     for multivariate in [True, False]:
         Cs, data, time = clusterings(multivariate=multivariate)
         N = len(data)
@@ -152,7 +152,7 @@ def test_align_clusterings():
         for C1, C2 in zip(C1s, C2s):
 
             C1_sorted = sorted(C1, key=len, reverse = True)
-            res_c1, res_c2 = align_clusterings(C1_sorted, C2)
+            res_c1, res_c2 = _align_clusterings(C1_sorted, C2)
             for c1, c2, sorted_c1 in zip(res_c1, res_c2, C1_sorted):
                 assert c1 == c2
                 assert c1 == sorted_c1

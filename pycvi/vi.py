@@ -98,10 +98,9 @@ def mutual_information(
     I =  float(np.sum(tmp))
     return I
 
-def variational_information(
+def variation_information(
     clustering1: List[List[int]],
     clustering2: List[List[int]],
-    align: bool = False,
 ) -> float:
     """
     Variational information between two clusterings.
@@ -110,22 +109,15 @@ def variational_information(
     :type clustering1: List[List[int]]
     :param clustering2: Second clustering
     :type clustering2: List[List[int]]
-    :param align: Should the clusterings be aligned first? defaults to
-        True
-    :type align: bool, optional
-    :return: Variational information between two clusterings.
+    :return: Variation of information between two clusterings.
     :rtype: float
     """
-    if align:
-        c2 = align_clusterings(clustering1, clustering2)
-    else:
-        c2 = clustering2
     H1 = entropy(clustering1)
-    H2 = entropy(c2)
-    I = mutual_information(clustering1, c2)
+    H2 = entropy(clustering2)
+    I = mutual_information(clustering1, clustering2)
     return H1 + H2 - 2*I
 
-def align_clusterings(
+def _align_clusterings(
     clustering1: List[List[int]],
     clustering2: List[List[int]],
 ) -> Tuple[List[List[int]], List[List[int]]]:
