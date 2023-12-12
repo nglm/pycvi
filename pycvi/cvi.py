@@ -504,7 +504,7 @@ def CH(
         # Option 1: use the centroid of the uniform distribution
         # clusters0 = score_kwargs.get(
         #     "clusters0",
-        #     [compute_cluster_params(X0, score_kwargs.get("midpoint_w", 0))]
+        #     [_compute_cluster_params(X0, score_kwargs.get("midpoint_w", 0))]
         # )
         #
         # Option 2: use the original centroid
