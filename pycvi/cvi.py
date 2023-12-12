@@ -242,8 +242,8 @@ def gap_statistic(
     :param B: Number of uniform samples drawn, defaults to 10.
     :type B: int, optional
     :param zero_type: Determines how to parametrize the uniform
-      distribution to sample from in the case :math:`k=0`. Possible
-      options:
+      distribution to sample from in the case :math:`k=0`, by default
+      "variance". Possible options:
 
       - `"variance"`: the uniform distribution is defined such that it
         has the same variance and mean as the original data.
@@ -470,8 +470,8 @@ def CH(
       distribution.
     :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
     :param zero_type: Determines how to parametrize the uniform
-      distribution to sample from in the case :math:`k=0`. Possible
-      options:
+      distribution to sample from in the case :math:`k=0`, by default
+      "variance". Possible options:
 
       - `"variance"`: the uniform distribution is defined such that it
         has the same variance and mean as the original data.

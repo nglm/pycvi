@@ -1,7 +1,7 @@
 """
-Variation of Information [2]_, to evaluate clusterings and internal CVIs.
+Variation of Information, to evaluate clusterings and internal CVIs.
 
-Variation of Information (VI) can be used to evaluate clusterings and
+Variation of Information (VI) [2]_ can be used to evaluate clusterings and
 internal CVIs when the true clustering is known.
 
 the most naive approach to evaluate a given CVI is to count how
