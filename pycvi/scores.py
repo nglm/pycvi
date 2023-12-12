@@ -1,5 +1,40 @@
 """
 PyCVI implementation of internal CVIs.
+
+.. [Hartigan] D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
+   Biometrics, vol. 31, p. 793, sep 1975.
+.. [CH] T. Calinski and J. Harabasz, “A dendrite method for cluster
+   analysis,” Communications in Statistics - Theory and Methods, vol. 3,
+   no. 1, pp. 1–27, 1974.
+.. [Gap] R. Tibshirani, G. Walther, and T. Hastie, “Estimating the
+   number of clusters in a data set via the gap statistic,” Journal
+   of the Royal Statistical Society Series B: Statistical
+   Methodology, vol. 63, pp. 411–423, July 2001.
+.. [Silhouette] P. J. Rousseeuw, “Silhouettes: a graphical aid to the
+   interpretation and validation of cluster analysis,” Journal of
+   computational and applied mathematics, vol. 20, pp. 53–65, 1987.
+.. [Dunn] J. C. Dunn, “Well-separated clusters and optimal fuzzy
+   partitions,” Journal of Cybernetics, vol. 4, pp. 95–104, Jan. 1974.
+.. [DB] D. L. Davies and D. W. Bouldin, “A cluster separation measure,”
+   IEEE Transactions on Pattern Analysis and Machine Intelligence, vol.
+   PAMI-1, pp. 224–227, Apr. 1979.
+.. [SD] M. Halkidi, M. Vazirgiannis, and Y. Batistakis, “Quality scheme
+   assessment in the clustering process,” in Principles of Data Mining
+   and Knowledge Discovery, pp. 265–276, Springer Berlin Heidelberg,
+   2000
+.. [SDbw] M. Halkidi and M. Vazirgiannis, “Clustering validity
+   assessment: finding the optimal partitioning of a data set,” in
+   Proceedings 2001 IEEE International Conference on Data Mining, pp.
+   187–194, IEEE Comput. Soc, 2001.
+.. [XB] X. Xie and G. Beni, “A validity measure for fuzzy clustering,”
+   IEEE Transactions on Pattern Analysis and Machine Intelligence, vol.
+   13, no. 8, pp. 841–847, 1991.
+.. [XB*] M. Kim and R. Ramakrishna, “New indices for cluster validity
+   assessment,” Pattern Recognition Letters, vol. 26, pp. 2353–2363, Nov.
+   2005.
+.. [SF] S. Saitta, B. Raphael, and I. F. C. Smith, “A bounded index for
+   cluster validity,” in Machine Learning and Data Mining in Pattern
+   Recognition, pp. 174–187, Springer Berlin Heidelberg, 2007.
 """
 
 import numpy as np
@@ -457,7 +492,7 @@ class Score():
 
 class Hartigan(Score):
     """
-    Computes the Hartigan index.
+    The Hartigan index. [Hartigan]_
 
     Originally, this index is absolute and the selection criteria is as
     follows:
@@ -586,7 +621,7 @@ class Hartigan(Score):
 
 class CalinskiHarabasz(Score):
     """
-    Computes the Calinski-Harabasz index.
+    The Calinski-Harabasz index. [CH]_
 
     Originally, this index is absolute and has to be maximised to find
     the best :math:`k`. A monotonous approach can also be taken, so that
@@ -694,7 +729,7 @@ class CalinskiHarabasz(Score):
 
 class GapStatistic(Score):
     """
-    Computes the Gap statistic.
+    The Gap statistic. [Gap]_
 
     Originally, this index is absolute and the selection criteria is as
     follow:
@@ -834,7 +869,7 @@ class GapStatistic(Score):
 
 class Silhouette(Score):
     """
-    Computes the Silhouette score.
+    The Silhouette score. [Silhouette]_
 
     This index is absolute, bounded in :math:`[-1, 1]` range and has to
     be maximised.
@@ -867,7 +902,7 @@ class Silhouette(Score):
 
 class ScoreFunction(Score):
     """
-    Computes the Score function.
+    The Score function. [SF]_
 
     This index has to be maximised to find the best clustering, but the
     original paper Saitta et al. [2007] adds special cases:
@@ -925,7 +960,7 @@ class ScoreFunction(Score):
 
 class MaulikBandyopadhyay(Score):
     """
-    Computes the Maulik-Bandyopadhyay index.
+    The Maulik-Bandyopadhyay index.
 
     Originally, this index is absolute and has to be maximised to find
     the best :math:`k`.
@@ -971,7 +1006,7 @@ class MaulikBandyopadhyay(Score):
 
 class SD(Score):
     """
-    Computes the SD index.
+    The SD index. [SD]_
 
     This index is absolute and has to be minimised to find the best
     :math:`k`.
@@ -1019,7 +1054,7 @@ class SD(Score):
 
 class SDbw(Score):
     """
-    Computes the SDbw index.
+    The SDbw index. [SDbw]_
 
     This index is absolute and has to be minimised to find the best
     :math:`k`.
@@ -1057,7 +1092,7 @@ class SDbw(Score):
 
 class Dunn(Score):
     """
-    Computes the Dunn index.
+    The Dunn index. [Dunn]_
 
     This index is absolute and has to be maximised to find the best
     :math:`k`.
@@ -1089,7 +1124,7 @@ class Dunn(Score):
 
 class XB(Score):
     """
-    Computes the Xie-Beni index.
+    The Xie-Beni index. [XB]_
 
     This index is absolute and has to be minimised to find the best
     :math:`k`.
@@ -1124,7 +1159,7 @@ class XB(Score):
 
 class XBStar(Score):
     """
-    Computes the Xie-Beni* index.
+    The Xie-Beni* index. [XB*]_
 
     This index is absolute and has to be minimised to find the best
     :math:`k`.
@@ -1156,7 +1191,7 @@ class XBStar(Score):
 
 class DB(Score):
     """
-    Computes the Davies-Bouldin index.
+    The Davies-Bouldin index. [DB]_
 
     This index is absolute and has to be minimised to find the best
     :math:`k`.
@@ -1191,7 +1226,7 @@ class DB(Score):
 
 class Inertia(Score):
     """
-    Computes the inertia of a clustering.
+    The inertia of a clustering.
 
     This index is monotonous and and smaller values are considered
     better.
@@ -1247,7 +1282,7 @@ class Inertia(Score):
 
 class Diameter(Score):
     """
-    Computes the Diameter of a clustering.
+    The Diameter of a clustering.
 
     This index is monotonous and and smaller values are considered
     better.
