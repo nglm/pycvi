@@ -14,18 +14,23 @@
 Main Modules
 ----------------------------
 
-The main features of PyCVI are defined here:
+All implemented CVIs are available here:
 
 .. autosummary::
    :toctree:
-   :recursive:
-   :template: module.rst
-   :caption: Main modules:
-   :nosignatures:
+   :caption: Main Features
 
    pycvi.cvi
-   pycvi.vi
-   pycvi.cluster
+
+Additional functions are defined to compute clusterings, compare clusterings and evaluate clusterings:
+
+.. autosummary::
+   :toctree:
+   :template: function.rst
+
+   pycvi.cluster.generate_all_clusterings
+   pycvi.vi.variation_information
+   pycvi.compute_scores.compute_all_scores
 
 
 .. toctree::

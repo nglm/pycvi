@@ -141,7 +141,10 @@ def variation_information(
     clustering2: List[List[int]],
 ) -> float:
     """
-    Variation of information between two clusterings. [2]_
+    Variation of information between two clusterings. [VI]_
+
+    .. [VI] M. Meil ̆a, Comparing Clusterings by the Variation of Information,
+       p. 173–187. Springer Berlin Heidelberg, 2003.
 
     :param clustering1: First clustering
     :type clustering1: List[List[int]]

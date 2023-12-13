@@ -379,7 +379,7 @@ def generate_all_clusterings(
     quiet: bool = True,
 ) -> List[Dict[int, List[List[int]]]]:
     """
-    Generate and return all clusterings.
+    Generate all clusterings for the given data and clustering model.
 
     ```clusterings_t_k[t_w][k][i]``` is a list of members indices
     contained in cluster :math:`i` for the clustering that assumes

@@ -487,7 +487,7 @@ def compute_all_scores(
     score_kwargs: dict = {},
 ) -> List[Dict[int, float]]:
     """
-    Compute and return all scores
+    Compute all CVI values for the given clusterings.
 
     If some scores couldn't be computed because of the condition on k
     or because the clustering algorithm used previously didn't converged
