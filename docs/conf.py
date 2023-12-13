@@ -52,6 +52,8 @@ extensions = [
     'm2r',
     # Allow reference sections using its title
     'sphinx.ext.autosectionlabel',
+    # better math support
+    'sphinx.ext.mathjax',
 ]
 
 # Uncomment if m2r is NOT included in the extension
