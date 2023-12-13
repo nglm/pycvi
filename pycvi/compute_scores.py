@@ -6,7 +6,7 @@ from tslearn.metrics import cdist_soft_dtw_normalized
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from ._configuration import set_data_shape
-from .utils import match_dims
+from .utils import _match_dims
 from .cluster import (
     compute_center, prepare_data, sliding_window, generate_uniform
 )
@@ -129,7 +129,7 @@ def f_cdist(
     :return: pairwise distance within the cluster
     :rtype: np.ndarray, shape (NA, NB)
     """
-    clusterA, clusterB = match_dims(clusterA, clusterB)
+    clusterA, clusterB = _match_dims(clusterA, clusterB)
     dims = clusterA.shape
     if len(dims) == 2:
         dist = cdist(

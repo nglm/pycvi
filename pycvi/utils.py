@@ -5,7 +5,7 @@ from scipy.io import arff
 import io
 from .exceptions import ShapeError
 
-def check_dims(a, ndim):
+def _check_dims(a, ndim):
     dims = a.shape
     if (len(dims) == ndim - 1):
         a = np.expand_dims(a, 0)
@@ -14,7 +14,7 @@ def check_dims(a, ndim):
         raise ShapeError(msg)
     return a
 
-def match_dims(a1, a2):
+def _match_dims(a1, a2):
     """
     Make a1 and a2 have the same shape, assuming that there might
     be a dimension of size 1 missing in front of one of the arrays

@@ -13,9 +13,9 @@ pycvi.utils
 
    .. autosummary::
 
-      check_dims
+      _check_dims
       _load_data_from_github
-      match_dims
+      _match_dims
 
 
 
