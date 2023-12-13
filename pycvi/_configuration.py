@@ -7,6 +7,31 @@ from .exceptions import ShapeError
 def set_data_shape(X: np.ndarray) -> np.ndarray:
     """
     Returns a copy of the data but with the right shape (N, T, d)
+
+    Acceptable input shapes and their corresponding output shapes:
+
+    - `(N,)` -> `(N, 1, 1)`
+    - `(N, d)` -> `(N, 1, d)`
+    - `(N, T, d)` -> `(N, T, d)`
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Original data
+
+    Returns
+    -------
+    np.ndarray
+        The same data but re-shaped to match the requirements of the
+        PyCVI package
+
+    Raises
+    ------
+    ShapeError
+        Raised if only one sample was given.
+    ShapeError
+        Raised if an invalid shape dimensions was provided
+        (1<=dimensions<=3)
     """
     X_copy = np.copy(X)  #Original Data
 

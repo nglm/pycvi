@@ -8,10 +8,6 @@ The main functions of this module are:
 - :func:`pycvi.cluster.generate_all_clusterings`, that generate all clusterings for a given range of number of clusters :math:`k`.
 - :func:`pycvi.cluster.compute_center`, that computes the center of a cluster.
 
-.. [1] T. M. Cover and J. A. Thomas, Elements of Information Theory.
-   Wiley, Apr. 2005.
-.. [2] M. Meil ̆a, Comparing Clusterings by the Variation of Information,
-   p. 173–187. Springer Berlin Heidelberg, 2003.
 """
 
 import numpy as np
@@ -143,29 +139,33 @@ def prepare_data(
     scaler = StandardScaler(),
 ) -> Union[List[np.ndarray], np.ndarray]:
     """
-    Data to be used for cluster, scores and params
+    Data to be used for computing clusters and CVIs
 
-    The index that should be used to compute cluster params of
-    clustering that were computed using `X_clus` is called "midpoint_w"
-    in the window dictionary
-
-    Scaler has to be fit beforehand on the original data (even for) the
-    case k=0.
+    Scaler has to be fit beforehand on the original data (even for the
+    case :math:`k=0`).
 
     X_clus is:
 
-    - a list of T (N, w_t, d) arrays if sliding window and DTW was used
-    - a list of T (N, w_t*d) arrays if sliding window was used but not
-      DTW
-    - a list of 1 (N, T, d) array  if DTW is used but not sliding window
-    - a list of 1 (N, T*d) array if DTW and sliding window were not used
+    - a list of :math:`T` `(N, w_t, d)` arrays if sliding window and DTW
+      was used
+    - a list of :math:`T` `(N, w_t*d)` arrays if sliding window was used
+      but not DTW
+    - a list of :math:`1` `(N, T, d)` array  if DTW is used but not
+      sliding window
+    - a list of :math:`1` `(N, T*d)` array if DTW and sliding window
+      were not used
 
-    :param X: data of shape (N, T, d)
-    :type X: np.ndarray
-    :param window: _description_
-    :type window: dict
-    :return: The prepared data
-    :rtype: Union[List[np.ndarray], np.ndarray]
+    Parameters
+    ----------
+    X : np.ndarray, shape `(N, T, d)`
+        Original data
+    window : dict, optional
+        Information related to the sliding windows of time-series.
+
+    Returns
+    -------
+    Union[List[np.ndarray], np.ndarray]
+        The processed data, ready to being clustered.
     """
 
     (N, T, d) = X.shape
@@ -210,67 +210,75 @@ def prepare_data(
 
 def sliding_window(T: int, w: int) -> dict:
     """
-    Assuming that we consider an array of length `T`, and with indices
-    `[0, ..., T-1]`.
+    Compute information related to the sliding windows of time-series.
+
+    Assuming that we consider an array of length :math:`T`, and with indices
+    :math:`[0 \\cdots T-1]`.
 
     Windows extracted are shorter when considering the beginning and the
     end of the array. Which means that a padding is implicitly included.
 
-    When the time window `w` is an *even* number, favor future time
-    steps, i.e., when extracting a time window around the datapoint t,
-    the time window indices are [t - (w-1)//2, ... t, ..., t + w/2].
-    When `w` is odd then the window is [t - (w-1)/2, ... t, ..., t +
-    (w-1)/2]
+    When the time window :math:`w` is an *even* number, favor future
+    time steps, i.e., when extracting a time window around the datapoint
+    :math:`t`, the time window indices are :math:`[t - (w-1)//2, ...,
+    t, ..., t + w/2]`.
+    When `w` is odd then the window is :math:`[t - (w-1)/2 \\cdots t
+    \\cdots t + (w-1)/2]`.
 
     Which means that the padding is as follows:
 
-    - beginning: (w-1)//2
-    - end: w//2
+    - beginning: `(w-1)//2
+    - end: `w//2`
 
     And that the original indices are as follows:
 
-    - [0, ..., t + w//2], until t = (w-1)//2
-    - [t - (w-1)//2, ..., t, ..., t + w//2] for datapoints in [(w-1)//2,
-      ..., T-1 - w//2]
-    - [t - (w-1)//2, ..., T-1] from t = T-1 - w//2
-    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas
-      apply.
+    - :math:`[0, ..., t + w//2]`, until :math:`t = (w-1)//2`
+    - :math:`[t - (w-1)//2, ..., t, ..., t + w//2]` for datapoints in
+      :math:`[(w-1)//2, ..., T-1 - w//2]`
+    - :math:`[t - (w-1)//2, ..., T-1]` from :math:`t = T-1 - w//2`
+    - Note that for :math:`t = (w-1)//2` or :math:`t = (T-1 - w//2)`,
+      both formulas apply.
     - Note also that the left side of the end case is the same as the
       left side of the base case
 
     Window sizes:
 
-    - (1 + w//2) at t=0, then t + (1 + w//2) until t = (w-1)//2
-    - All datapoints from [(w-1)//2, ..., T-1 - w//2] have a normal
-      window size.
-    - (w+1)//2 at t=T-1, then T-1-t + (w+1)//2 from t = T-1 - w//2
-    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas
-      apply
+    - :math:`(1 + w//2)` at :math:`t=0`, then :math:`t + (1 + w//2)`
+      until :math:`t = (w-1)//2`
+    - All datapoints from :math:`[(w-1)//2, ..., T-1 - w//2]` have a
+      normal window size.
+    - :math:`(w+1)//2` at :math:`t=T-1`, then :math:`T-1-t + (w+1)//2`
+      from :math:`t = T-1 - w//2`
+    - Note that for :math:`t = (w-1)//2` or :math:`t = (T-1 - w//2)`,
+      both formulas apply
 
-    Consider an extracted time window of length w_real (with w_real <=
-    w, if the window was extracted at the beginning or the end of the
-    array). The midpoint of the extracted window (i.e. the index in that
-    window that corresponds to the datapoint around which the time
-    window was extracted in the original array is:
+    Consider an extracted time window of length `w_real` (with
+    :math:`w\_real \\leq w`, if the window was extracted at the
+    beginning or the end of the array). The midpoint of the extracted
+    window (i.e. the index in that window that corresponds to the
+    datapoint around which the time window was extracted in the original
+    array) is:
 
-    - 0 at t=0, then t, until t = pad_left, i.e. t = (w-1)//2
-    - For all datapoints between, [(w-1)//2, ..., (T-1 - w//2)], the
-      midpoint is (w-1)//2 (so it is the same as the base case)
-    - w_real-1 at t=T-1, then w_real - (T-t), from t=T-1-pad_right, i.e.
-      from t = (T-1 - w//2)
-    - Note that for t = (w-1)//2 or t = (T-1 - w//2), both formulas
-      apply.
+    - :math:`0` at :math:`t=0`, then :math:`t`, until :math:`t =
+      pad\_left`, i.e. :math:`t = (w-1)//2`
+    - For all datapoints between, :math:`[(w-1)//2, ..., (T-1 - w//2)]`,
+      the midpoint is :math:`(w-1)//2` (so it is the same as the base
+      case)
+    - :math:`w\_real-1` at :math:`t=T-1`, then :math:`w\_real - (T-t)`,
+      from :math:`t=T-1-pad\_right`, i.e. from :math:`t = (T-1 - w//2)`
+    - Note that for :math:`t = (w-1)//2` or :math:`t = (T-1 - w//2)`,
+      both formulas apply.
 
-    The midpoint in the original array is actually simply t
+    The midpoint in the original array is actually simply :math:`t`.
 
     Available keys:
 
-    - `padding_left`: Padding to the left
-    - `padding_right`: Padding to the right
-    - `length`: Actual length of the time window
-    - `midpoint_w`: Midpoint in the window reference
-    - `midpoint_o`: Midpoint in the origin reference
-    - `origin`: Original indices
+    - `"padding_left"`: Padding to the left
+    - `"padding_right"`: Padding to the right
+    - `"length"`: Actual length of the time window
+    - `"midpoint_w"`: Midpoint in the window reference
+    - `"midpoint_o"`: Midpoint in the origin reference
+    - `"origin"`: Original indices
 
     """
     # Boundaries between regular cases and extreme ones
@@ -363,7 +371,7 @@ def generate_all_clusterings(
     n_clusters_range: Sequence = None,
     DTW: bool = True,
     time_window: int = None,
-    transformer = None,
+    transformer: callable = None,
     scaler = StandardScaler(),
     model_kw: dict = {},
     fit_predict_kw: dict = {},
@@ -373,15 +381,61 @@ def generate_all_clusterings(
     """
     Generate and return all clusterings.
 
-    `clusterings_t_k[t_w][k][i]` is a list of members indices contained
-    in cluster i for the clustering assuming k clusters for the
-    extracted time window t_w.
+    ```clusterings_t_k[t_w][k][i]``` is a list of members indices
+    contained in cluster :math:`i` for the clustering that assumes
+    :math:`k` clusters for the extracted time window :math:`t\_w`.
 
     If some clusterings couldn't be defined because the clustering
-    algorithm didn't converged then `clusterings_t_k[t_w][n_clusters] =
-    None`
+    algorithm didn't converged then ```clusterings_t_k[t_w][n_clusters]
+    = None```.
 
-    :rtype: List[Dict[int, List[List[int]]]]
+    Parameters
+    ----------
+    data : np.ndarray,
+        Original data. Acceptable input shapes and their corresponding
+        output shapes in the PyCVI package:
+
+        - `(N,)` -> `(N, 1, 1)`
+        - `(N, d)` -> `(N, 1, d)`
+        - `(N, T, d)` -> `(N, T, d)`
+    model_class : A sklearn-like clustering class
+        A class implementing a clustering algorithm.
+    n_clusters_range : Sequence, optional
+        Assumptions on the number of clusters to try out, by default
+        None. If None, `n_clusters_range=range(N+1)`.
+    DTW : bool, optional
+        Determines if DTW should be used as the distance measure
+        (concerns only time series data), by default True.
+    time_window : int, optional
+        Length of the sliding window (concerns only time-series data),
+        by default None. If None, no sliding window is used, and the
+        time series is considered as a whole.
+    transformer : callable, optional
+        A potential additional preprocessing step, by default None. If
+        None, no transformation is applied on the data
+    scaler : A sklearn-like scaler model, optional
+        A data scaler, by default StandardScaler(). If None, so scaling
+        is applied on the data.
+    model_kw : dict, optional
+        Specific kwargs to give to `model_class` init method, by default
+        {}
+    fit_predict_kw : dict, optional
+        Specific kwargs to give to the `fit_predict` method of the
+        `model_class` clustering model, by default {}.
+    model_class_kw : dict, optional
+        Dictionary that contains the argument names of the number of
+        clusters and the data to give to the clustering model, by
+        default {}, which then updated as follows: `{"k_arg_name" :
+        "n_clusters", "X_arg_name" : "X" }` to follow sklean
+        conventions.
+    quiet : bool, optional
+        Controls the verbosity of the function, by default True.
+
+    Returns
+    -------
+    List[Dict[int, List[List[int]]]]
+        All clusterings for the given range on the number of clusters
+        and for the potential sliding windows if applicable.
     """
     # --------------------------------------------------------------
     # --------------------- Preliminary ----------------------------
