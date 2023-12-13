@@ -6,8 +6,8 @@ from ..cvi import (
     _compute_Wk, _clusters_from_uniform, _dist_centroids_to_global,
     _dist_between_centroids, _var
 )
-from ..utils import _load_data_from_github
-from ..datasets import mini, normal, get_clusterings
+from .._utils import _load_data_from_github
+from .._datasets import mini, normal, get_clusterings
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"

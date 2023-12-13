@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from typing import List
 
-from ..datasets import mini
+from .._datasets import mini
 from ..cluster import (
     sliding_window, prepare_data, _get_clusters, generate_all_clusterings,
     generate_uniform

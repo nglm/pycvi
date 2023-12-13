@@ -6,7 +6,7 @@ from ..vi import (
     P_clusters, entropy, contingency_matrix, mutual_information,
     variation_information, _align_clusterings,
 )
-from ..datasets import mini, normal, get_clusterings
+from .._datasets import mini, normal, get_clusterings
 
 MARGIN = 1e-6
 

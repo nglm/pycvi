@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from ..scores import Inertia, GapStatistic
 
-from ..datasets import mini
+from .._datasets import mini
 from ..compute_scores import (
     better_score, argbest, best_score, argworst, worst_score,
     compute_score, f_cdist, f_pdist, f_intra, f_inertia, compute_all_scores,
@@ -14,7 +14,7 @@ from ..compute_scores import (
 )
 from ..cvi import silhouette, CH
 from ..cluster import generate_all_clusterings
-from ..utils import _load_data_from_github
+from .._utils import _load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"

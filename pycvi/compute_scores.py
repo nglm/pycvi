@@ -6,7 +6,7 @@ from tslearn.metrics import cdist_soft_dtw_normalized
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from ._configuration import set_data_shape
-from .utils import _match_dims
+from ._utils import _match_dims
 from .cluster import (
     compute_center, prepare_data, sliding_window, generate_uniform
 )
