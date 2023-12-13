@@ -1,15 +1,3 @@
-
-    # :param X: Values of all members.
-    # :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    # :param clusters: List of members for each cluster.
-    # :type clusters: List[List[int]]
-    # :param k: Number of clusters.
-    # :type k: int, optional
-    # :param dist_kwargs: kwargs for the distance function, defaults to {}
-    # :type dist_kwargs: dict, optional
-    # :return:
-    # :rtype: float
-
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
