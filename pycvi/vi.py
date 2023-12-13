@@ -24,6 +24,12 @@ clusterings was faithfully representing the clusters. Similarly CVIs
 won't be rewarded for finding the right number of clusters do not
 represent well the original distribution of the data.
 
+.. rubric:: Main function
+
+The main function of this module is
+:func:`pycvi.vi.variation_information` that computes the variation of
+information between two clusterings.
+
 .. [1] T. M. Cover and J. A. Thomas, Elements of Information Theory.
    Wiley, Apr. 2005.
 .. [2] M. Meil ̆a, Comparing Clusterings by the Variation of Information,

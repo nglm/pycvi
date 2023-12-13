@@ -1,5 +1,17 @@
 """
-To generate clusterings and compute clustering-related information.
+Generate clusterings and compute clustering-related information.
+
+.. rubric:: Main functions
+
+The main functions of this module are:
+
+- :func:`pycvi.cluster.generate_all_clusterings`, that generate all clusterings for a given range of number of clusters :math:`k`.
+- :func:`pycvi.cluster.compute_center`, that computes the center of a cluster.
+
+.. [1] T. M. Cover and J. A. Thomas, Elements of Information Theory.
+   Wiley, Apr. 2005.
+.. [2] M. Meil ̆a, Comparing Clusterings by the Variation of Information,
+   p. 173–187. Springer Berlin Heidelberg, 2003.
 """
 
 import numpy as np

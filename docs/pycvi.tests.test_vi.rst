@@ -1,4 +1,4 @@
-﻿pycvi.tests.test\_vi
+pycvi.tests.test\_vi
 ====================
 
 .. automodule:: pycvi.tests.test_vi

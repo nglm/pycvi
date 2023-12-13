@@ -13,9 +13,9 @@ pycvi.tests.test\_cluster
 
    .. autosummary::
    
+      test__get_clusters
       test_generate_all_clusterings
       test_generate_uniform
-      test_get_clusters
       test_prepare_data
       test_sliding_window
    

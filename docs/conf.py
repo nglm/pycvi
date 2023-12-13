@@ -50,6 +50,8 @@ extensions = [
     # To be able to include md files directly in rst files
     # adds the mdinclude directive
     'm2r',
+    # Allow reference sections using its title
+    'sphinx.ext.autosectionlabel',
 ]
 
 # Uncomment if m2r is NOT included in the extension
@@ -93,6 +95,14 @@ autodoc_default_options = {
     'exclude-members': '__weakref__'
 }
 
-# -- Autosummary options -------------------------------------------------
+# -- Autosummary options -----------------------------------------------
 
 #autosummary_generate = True  # Turn on sphinx.ext.autosummary
+
+# -- Autosectionlabl options -------------------------------------------
+
+# If true, the syntax is
+# :ref:`my_document:My section`
+# Otherwise:
+# :ref:`My section`
+autosectionlabel_prefix_document = True

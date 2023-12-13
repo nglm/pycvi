@@ -16,7 +16,6 @@
       compute_center
       generate_all_clusterings
       generate_uniform
-      get_clusters
       prepare_data
       sliding_window
    
