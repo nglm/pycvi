@@ -1,138 +1,175 @@
 import numpy as np
-from math import isclose
+from numpy.testing import assert_array_equal
 import pytest
+from tslearn.clustering import TimeSeriesKMeans
+from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.preprocessing import StandardScaler
 
-from ..cvi import (
-    _compute_Wk, _clusters_from_uniform, _dist_centroids_to_global,
-    _dist_between_centroids, _var
+from ..cvi import CVIs, CVI
+from .._datasets import mini
+from ..compute_scores import (
+    compute_all_scores,
 )
+from ..cluster import generate_all_clusterings
 from .._utils import _load_data_from_github
-from .._datasets import mini, normal, get_clusterings
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
 
-def get_X(
-    N:int = 30,
-    d:int = 2,
-    w_t:int  = 3,
-    DTW: bool = False,
-) -> np.ndarray:
-    if DTW:
-        shape = (N, w_t, d)
-    else:
-        shape = (N, w_t*d)
-    return np.random.normal(size=N*d*w_t).reshape(shape)
+def test_Scores():
+    # ---------------- Test on toy datasets ----------------------------
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
+        (N, T, d) = data.shape
 
-def test__clusters_from_uniform():
-    N = 5
-    l_w = [1, 2, 3, 5]
-    l_d = [1, 2]
-    l_DTW = [True, False]
-    for w_t in l_w:
-        for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
-                for n_clusters in [1, 2, 3, N]:
-                    clusters = _clusters_from_uniform(X, n_clusters)
-                    assert type(clusters) == list
-                    assert type(clusters[0]) == list
-                    assert type(clusters[0][0]) == int
-                    assert int(np.sum([len(c) for c in clusters])) == N
+        # Using DTW but not window
+        model = TimeSeriesKMeans
+        DTW = True
+        clusterings_t_k = generate_all_clusterings(
+                data, model,
+                DTW=DTW, time_window=None, transformer=None,
+                scaler=StandardScaler(),
+                model_kw={}, fit_predict_kw={}, model_class_kw={}
+            )
 
+        for score in CVIs:
+            for cvi_type in score.cvi_types:
+                s = score(cvi_type=cvi_type)
+                scores_t_k = compute_all_scores(
+                    s, data, clusterings_t_k,
+                    transformer=None, scaler=StandardScaler(), DTW=DTW,
+                    time_window=None
+                )
 
-def test__compute_Wk():
-    l_T = [1, 3]
-    l_d = [1, 2]
-    N = 5
-    mins = [-1, 0.1]
-    maxs = [0.05, 3.]
-    l_clusters = [
-        [[i for i in range(N)]],
-        [[0, 3, 1], [2, 4]],
-        [[0, 3, 1, 4], [2]],
-    ]
-    for d in l_d:
-        for T in l_T:
-            for DTW in [True, False]:
-                for clusters in l_clusters:
+                # T_w = 1
+                assert (len(scores_t_k) == 1)
+                for k in range(N+1):
+                    # all clusterings were computed
+                    assert k in scores_t_k[0]
+                # List[Dict[int, float]]
+                assert (type(scores_t_k) == list)
+                assert (type(scores_t_k[0]) == dict)
+                assert (
+                    type(scores_t_k[0][0]) == float
+                    or type(scores_t_k[0][0]) == np.float64
+                    # returns None when the score was used with an
+                    # incompatible number of clusters
+                    or type(scores_t_k[0][0]) == type(None))
 
-                    X = np.random.uniform(
-                        low=mins[:d], high= maxs[:d], size=(N, T, d)
-                    )
-                    if not DTW:
-                        X = np.reshape(X, (N, T*d))
+        # Not using DTW nor window
+        DTW = False
+        model = KMeans
+        clusterings_t_k = generate_all_clusterings(
+                data, model,
+                DTW=DTW, time_window=None, transformer=None,
+                scaler=None,
+                model_kw={}, fit_predict_kw={}, model_class_kw={}
+            )
 
-                    Wk = _compute_Wk(X, clusters)
-                    assert (type(Wk) == float)
-                    assert Wk >= 0
+        for score in CVIs:
+            for cvi_type in score.cvi_types:
+                s = score(cvi_type=cvi_type)
+                scores_t_k = compute_all_scores(
+                    s, data, clusterings_t_k,
+                    transformer=None, scaler=None, DTW=DTW,
+                    time_window=None
+                )
 
+                # T_w = 1
+                assert (len(scores_t_k) == 1)
+                for k in range(N+1):
+                    # all clusterings were computed
+                    assert k in scores_t_k[0]
+                # List[Dict[int, float]]
+                assert (type(scores_t_k) == list)
+                assert (type(scores_t_k[0]) == dict)
+                assert (
+                    type(scores_t_k[0][0]) == float
+                    or type(scores_t_k[0][0]) == np.float64
+                    # returns None when the score was used with an
+                    # incompatible number of clusters
+                    or type(scores_t_k[0][0]) == type(None))
+
+    # ---------- Test on clustering benchmark dataset ------------------
+    DTW = False
+    model = AgglomerativeClustering
     data, meta = _load_data_from_github(PATH + "xclara.arff")
-    N = len(data)
-    l_clusters = [
-        [[i for i in range(N)]],
-        [[i for i in range(N//2)], [i for i in range(N//2, N)]],
-        [[i for i in range(N-1)], [N-1]],
+    n_clusters_range = [i for i in range(15)]
+
+    clusterings_t_k = generate_all_clusterings(
+            data, model, n_clusters_range=n_clusters_range,
+            DTW=DTW, time_window=None, transformer=None,
+            scaler=StandardScaler(),
+            model_kw={}, fit_predict_kw={}, model_class_kw={}
+        )
+    for score in CVIs:
+        for cvi_type in score.cvi_types:
+            s = score(cvi_type=cvi_type)
+
+            scores_t_k = compute_all_scores(
+                s, data, clusterings_t_k,
+                transformer=None, scaler=StandardScaler(), DTW=DTW,
+                time_window=None
+            )
+
+            k = s.select(scores_t_k)
+
+            print(score, k)
+
+def test_is_relevant():
+    l_score1 = [-1.,  -1., -1.,  1.,  1.,  1.]
+    l_score2 = [-2., -0.5, 0.5, -1., 0.5,  2.]
+    # True when s2 is lower
+    exp_res_mono_min_imp = [
+        s2 < s1 for s1, s2 in zip(l_score1, l_score2)
     ]
-    for clusters in l_clusters:
-        Wk = _compute_Wk(data, clusters)
-        assert (type(Wk) == float)
-        assert Wk >= 0
+    # Typically inertia
+    S_monotone = CVI(
+        maximise=False, improve=True, cvi_type="monotonous"
+    )
+    # Typically Silhouette score
+    S_abs = CVI(
+        cvi_type="absolute"
+    )
+    k1 = 2
+    k2 = 4
 
-def test__dist_centroids_to_global():
-    N = 30
-    C = get_clusterings(N)
-    l_w = [1, 2, 3, 5]
-    l_d = [1, 2]
-    l_DTW = [True, False]
-    for w_t in l_w:
-        for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
-                for clusters in C.values():
-                    dist = _dist_centroids_to_global(X, clusters)
-                    assert type(dist) == list
-                    assert type(dist[0]) == float
-                    assert len(dist) == len(clusters)
+    for i, (s1, s2) in enumerate(zip(l_score1, l_score2)):
+        assert type(S_abs.is_relevant(s1, k1, s2, k2)) == bool
+        assert S_abs.is_relevant(s1, k1, s2, k2)
+        assert S_abs.is_relevant(s1, k2, s2, k1)
+        assert S_abs.is_relevant(s2, k2, s1, k1)
 
-def test__dist_between_centroids():
-    N = 30
-    C = get_clusterings(N)
-    l_w = [1, 2, 3, 5]
-    l_d = [1, 2]
-    l_DTW = [True, False]
-    for w_t in l_w:
-        for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
-                for clusters in C.values():
-                    k = len(clusters)
+        assert S_monotone.is_relevant(s1, k1, s2, k2) == exp_res_mono_min_imp[i]
+        assert S_monotone.is_relevant(s1, k2, s2, k1) != exp_res_mono_min_imp[i]
+        assert S_monotone.is_relevant(s2, k2, s1, k1) == exp_res_mono_min_imp[i]
+        assert S_monotone.is_relevant(s2, k1, s1, k2) != exp_res_mono_min_imp[i]
 
-                    dist = _dist_between_centroids(X, clusters, all=False)
-                    assert type(dist) == list
-                    assert type(dist[0]) == float
-
-                    dist_all = _dist_between_centroids(X, clusters, all=True)
-                    assert type(dist_all) == list
-                    assert type(dist_all[0]) == list
-                    assert type(dist_all[0][0]) == float
-                    assert len(dist_all) == k
-                    assert len(dist_all[0]) == k
-                    assert isclose(2*np.sum(dist), np.sum(dist_all))
-
-def test__var():
-    N = 30
-    l_w = [1, 2, 3, 5]
-    l_d = [1, 2]
-    l_DTW = [True, False]
-    for w_t in l_w:
-        for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
-                var = _var(X)
-                assert type(var) == np.ndarray
-                if DTW:
-                    assert var.shape == (d, )
-                else:
-                    assert var.shape == (d*w_t, )
-                assert type(var[0]) == np.float64
+def test_select():
+    l_score_mono = [
+        {0: 10000, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
+    ]
+    l_score_mono_ignore0 = [
+        {0: 100, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
+    ]
+    l_score_abs  = [ {1: 12000, 2: 5000, 3: 15000, 5: -40000} ]
+    # Typically inertia
+    S_monotone = CVI(
+        maximise=False, improve=True, cvi_type="monotonous"
+    )
+    # Typically Hartigan
+    S_monotone_ignore0 = CVI(
+        maximise=False, improve=True, cvi_type="monotonous",
+        ignore0=True
+    )
+    # Typically Silhouette score
+    S_abs_max = CVI(
+        cvi_type="absolute", maximise=True
+    )
+    S_abs_min = CVI(
+        cvi_type="absolute", maximise=False
+    )
+    assert S_monotone.select(l_score_mono) == [4]
+    assert S_monotone_ignore0.select(l_score_mono_ignore0) == [4]
+    assert S_abs_max.select(l_score_abs) == [3]
+    assert S_abs_min.select(l_score_abs) == [5]

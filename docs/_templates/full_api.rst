@@ -56,18 +56,10 @@
 
 .. autosummary::
    :nosignatures:
-   :toctree:
    :recursive:
+   :toctree:
 {% for item in modules %}
    {{ item }}
 {%- endfor %}
 {% endif %}
 {% endblock %}
-
-.. toctree::
-   :maxdepth: 3
-   :caption: Full API:
-
-   {% for item in modules %}
-   {{ item }}
-   {%- endfor %}

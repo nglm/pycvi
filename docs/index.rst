@@ -23,7 +23,7 @@ The main features of PyCVI are defined here:
    :caption: Main modules:
    :nosignatures:
 
-   pycvi.scores
+   pycvi.cvi
    pycvi.vi
    pycvi.cluster
 

@@ -1,1015 +1,1358 @@
-from typing import List, Sequence, Union, Any, Dict, Tuple
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-from tslearn.clustering import TimeSeriesKMeans
+"""
+Python implementation of state-of the-art internal CVIs.
+
+Internal CVIs are used to select the best clustering among a set of
+pre-computed clustering when no information about the true clusters nor
+the number of clusters is available.
+
+.. [Hartigan] D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
+   Biometrics, vol. 31, p. 793, sep 1975.
+.. [CH] T. Calinski and J. Harabasz, “A dendrite method for cluster
+   analysis,” Communications in Statistics - Theory and Methods, vol. 3,
+   no. 1, pp. 1–27, 1974.
+.. [Gap] R. Tibshirani, G. Walther, and T. Hastie, “Estimating the
+   number of clusters in a data set via the gap statistic,” Journal
+   of the Royal Statistical Society Series B: Statistical
+   Methodology, vol. 63, pp. 411–423, July 2001.
+.. [Silhouette] P. J. Rousseeuw, “Silhouettes: a graphical aid to the
+   interpretation and validation of cluster analysis,” Journal of
+   computational and applied mathematics, vol. 20, pp. 53–65, 1987.
+.. [Dunn] J. C. Dunn, “Well-separated clusters and optimal fuzzy
+   partitions,” Journal of Cybernetics, vol. 4, pp. 95–104, Jan. 1974.
+.. [DB] D. L. Davies and D. W. Bouldin, “A cluster separation measure,”
+   IEEE Transactions on Pattern Analysis and Machine Intelligence, vol.
+   PAMI-1, pp. 224–227, Apr. 1979.
+.. [SD] M. Halkidi, M. Vazirgiannis, and Y. Batistakis, “Quality scheme
+   assessment in the clustering process,” in Principles of Data Mining
+   and Knowledge Discovery, pp. 265–276, Springer Berlin Heidelberg,
+   2000
+.. [SDbw] M. Halkidi and M. Vazirgiannis, “Clustering validity
+   assessment: finding the optimal partitioning of a data set,” in
+   Proceedings 2001 IEEE International Conference on Data Mining, pp.
+   187–194, IEEE Comput. Soc, 2001.
+.. [XB] X. Xie and G. Beni, “A validity measure for fuzzy clustering,”
+   IEEE Transactions on Pattern Analysis and Machine Intelligence, vol.
+   13, no. 8, pp. 841–847, 1991.
+.. [XB*] M. Kim and R. Ramakrishna, “New indices for cluster validity
+   assessment,” Pattern Recognition Letters, vol. 26, pp. 2353–2363, Nov.
+   2005.
+.. [SF] S. Saitta, B. Raphael, and I. F. C. Smith, “A bounded index for
+   cluster validity,” in Machine Learning and Data Mining in Pattern
+   Recognition, pp. 174–187, Springer Berlin Heidelberg, 2007.
+"""
+
 import numpy as np
-from math import sqrt
+from scipy.spatial.distance import cdist, pdist
+from tslearn.metrics import cdist_soft_dtw
+from typing import List, Sequence, Union, Any, Dict, Tuple
 
+from .cvi_func import (
+    gap_statistic, silhouette, score_function, CH, hartigan, MB, SD_index,
+    SDbw_index, dunn, xie_beni, xie_beni_star, davies_bouldin
+)
 from .compute_scores import (
-    f_inertia, f_pdist, f_cdist,
+    best_score, better_score, worst_score, argbest, argworst, compute_score,
+    reduce
 )
-from .cluster import (
-    compute_center, generate_uniform,
-)
-from .exceptions import NoClusterError, ShapeError
+from .exceptions import InvalidKError
 
-def _clusters_from_uniform(
-    X,
-    n_clusters,
-) -> List[List[int]]:
+class CVI():
     """
-    Helper function for "compute_gap_statistic"
+    Base class for all Cluster Validity Indices in PyCVI.
 
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param n_clusters: Number of clusters.
-    :type n_clusters: int, optional
-    :return:
-    :rtype: List[List[int]]
+    To create a custom CVI class, inherit from this class with well
+    defined parameters.
+
+    Parameters
+    ----------
+    score_function : callable, optional
+        Function used to assess each clustering, by default None
+    maximise : bool, optional
+        Determines whether higher values mean better clustering
+        quality according to this CVI , by default True
+    improve : bool, optional
+        Determines whether the quality of the clustering is expected
+        to improve with increasing values of :math:`k` (concerns
+        only monotone CVIs), by default True
+    cvi_type : str, optional
+        Determines whether the score is to be interpreted as being
+        "absolute", "monotonous" or "original" (note that not all
+        CVIs can have these 3 interpretations), by default
+        "monotonous"
+    criterion_function : callable, optional
+        Determines how the best clustering should be selected
+        according to their corresponding CVI values, by default None
+    k_condition : callable, optional
+        :math:`k` values that are compatible with this CVI, by
+        default None
+    ignore0 : bool, optional
+        Determines how to treat the special case :math:`k=0` (when
+        available) when selecting the best clustering. This is for
+        example used in the Hartigan index where we don't use
+        :math:`k=0` as a reference score if :math:`k=0` is more
+        relevant than :math:`k=1`, by default False
+
+    Raises
+    ------
+    ValueError
+        Raised if the score type given is not among the available
+        options for this score.
     """
-    N = len(X)
 
-    # DTW case
-    if len(X.shape) == 3:
-        model = TimeSeriesKMeans(n_clusters=n_clusters)
-    elif len(X.shape) == 2:
-        model = KMeans(n_clusters=n_clusters)
-    else:
-        raise ShapeError("X must have shape (N, T, d) or (N, T*d)")
+    cvi_types: List[str] = ["monotonous", "absolute"]
+    reductions: List[str] = None
 
-    # Fit a KMeans model to the sample from a uniform distribution
-    labels = model.fit_predict(X)
-
-    # Sort members into the different clusters and compute their
-    # cluster info
-    clusters = []
-    for label_i in range(n_clusters):
-
-        # Members belonging to that clusters
-        members = [m for m in range(N) if labels[m] == label_i]
-        if members == []:
-            raise NoClusterError('No members in cluster')
-
-        clusters.append(members)
-
-    return clusters
-
-def _compute_Wk(
-    X: np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs: dict = {},
-) -> float:
-    """
-    Helper function for some scores (gap, hartigan, CH, etc.)
-
-    X is the entire data to be clustered and clusters contains the
-    cluster memberships. X can be of shape (N, T, d) or (N, T*d)
-
-    Pooled within-cluster sum of squares around the cluster means (WCSS)
-    There are two ways to compute it, using distance to centroid or
-    pairwise, we use pairwise, to avoid using barycenters.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: Pooled within-cluster sum of squares around cluster means
-        (WCSS)
-    :rtype: float
-    """
-    dist_kwargs.setdefault("metric", "sqeuclidean")
-    # Compute the log of the within-cluster dispersion of the clustering
-    nis = [len(c) for c in clusters]
-    d_intra = [np.sum(f_pdist(X[c], dist_kwargs)) for c in clusters]
-    Wk = float(np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)]))
-    return Wk
-
-def _dist_centroids_to_global(
-    X: np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs: dict = {},
-) -> List[float]:
-    """
-    Helper function for some scores (CH, score function, etc.)
-
-    List of distances between cluster centroids and global centroid.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: List of distances between cluster centroids and global
-        centroid.
-    :rtype: List[float]
-    """
-    global_center = np.expand_dims(compute_center(X), 0)
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
-    dist = [
-        # Distance between the centroids and the global centroid
-        float(f_cdist(
-            center,
-            global_center,
-            dist_kwargs=dist_kwargs
-        ))
-        for center in centers
-    ]
-    return dist
-
-def _dist_between_centroids(
-    X: np.ndarray,
-    clusters: List[List[int]],
-    all: bool = False,
-    dist_kwargs: dict = {},
-) -> Union[List[float], List[float]]:
-    """
-    Helper function for some scores.
-
-    List of pairwise distances between cluster centroids.
-
-    If there is only one clustering, returns `[0]` (or `[0, 0]` if `all`
-    is `True`)
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param all: Should all pairwise distances be returned (all distances
-        appear twice) or should distance appear only once?
-    :type all: bool, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: List of pairwise distances between cluster centroids.
-    :rtype: Union[List[float], List[float]]
-    """
-    if len(clusters) == 1:
-        if all:
-            dist = [[0.]]
+    def __init__(
+        self,
+        score_function: callable = None,
+        maximise: bool = True,
+        improve: bool = True,
+        cvi_type: str = "monotonous",
+        criterion_function: callable = None,
+        k_condition: callable = None,
+        ignore0: bool = False,
+    ) -> None:
+        self.function = score_function
+        self.criterion_function = criterion_function
+        self.maximise = maximise
+        # If cvi_type == "absolute", 'improve' is irrelevant
+        self.improve = improve
+        if cvi_type in self.cvi_types:
+            self.cvi_type = cvi_type
         else:
-            dist = [0.]
-    else:
-        centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
-        if all:
-            dist = [
-                [
-                # pairwise distances between cluster centroids.
-                    float(f_cdist(
-                        center1,
-                        center2,
-                        dist_kwargs=dist_kwargs
-                    )) if i != j else 0.
-                    for j, center2 in enumerate(centers)
-                ] for i, center1 in enumerate(centers)
-            ]
-        else:
-            nested_dist = [
-                [
-                # pairwise distances between cluster centroids.
-                    float(f_cdist(
-                        center1,
-                        center2,
-                        dist_kwargs=dist_kwargs
-                    ))
-                    for j, center2 in enumerate(centers[i+1:])
-                ] for i, center1 in enumerate(centers[:-1])
-            ]
-
-            # Returns the sum of a default value (here []) and an iterable
-            # So it flattens the list
-            dist = sum(nested_dist, [])
-        # If we compute all the pairwise distances, each distance appear twice
-    return dist
-
-def _dist_to_centroids(
-    X: np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs: dict = {},
-) -> List[np.ndarray]:
-    """
-    Helper function for some scores.
-
-    List of distances arrays to cluster centroid.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: List of pairwise distances between cluster centroids.
-    :rtype: List[np.ndarray]
-    """
-
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
-    dist = [
-        f_cdist(X[cluster], center, dist_kwargs=dist_kwargs)
-        for cluster, center in zip(clusters, centers)
-    ]
-    return dist
-
-def gap_statistic(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    k: int = None,
-    B: int = 10,
-    zero_type: str = "variance",
-    return_s: bool = False,
-) -> Union[float, Tuple[float, float]]:
-    """
-    Compute the Gap statistics for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param B: Number of uniform samples drawn, defaults to 10.
-    :type B: int, optional
-    :param zero_type: Determines how to parametrize the uniform
-      distribution to sample from in the case :math:`k=0`, by default
-      "variance". Possible options:
-
-      - `"variance"`: the uniform distribution is defined such that it
-        has the same variance and mean as the original data.
-      - `"bounds"`: the uniform distribution is defined such that it
-        has the same bounds as the original data.
-
-    :type zero_type: str, optional
-    :param return_s: Should s be returned as well?
-    :type return_s: bool, optional
-    :return: The gap statistics
-    :rtype: Union[float, Tuple[float, float]]
-    """
-    if k == 0:
-        gap = 0.
-    else:
-        # Compute the log of the within-cluster dispersion of the clustering
-        wcss = np.log(_compute_Wk(X, clusters))
-
-        # Generate B random datasets with the same shape as the input data
-        # and the same parameters
-        random_datasets = generate_uniform(X, zero_type=zero_type, N_zero=B)
-
-        # Compute the log of the within-cluster dispersion for each random dataset
-        wcss_rand = []
-        for X_rand in random_datasets:
-            clusters_rand = _clusters_from_uniform(X_rand, k)
-            wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand)))
-
-        # Compute the gap statistic for the current clustering
-        mean_wcss_rand = np.mean(wcss_rand)
-        gap = float(mean_wcss_rand - wcss)
-
-        # To address the case of singletons. Note that gap=0 means that the
-        # clustering is irrelevant.
-        if gap == -np.inf:
-            gap = 0.
-            s = 0.
-        # To address the case where both are -np.inf which yield gap=nan
-        elif mean_wcss_rand == -np.inf and wcss == -np.inf:
-            gap = 0.
-            s = 0.
-        elif return_s:
-            # Compute standard deviation of wcss of the references dataset
-            sd = np.sqrt( (1/B) * np.sum(
-                [(wcss_rand - mean_wcss_rand)**2]
-            ))
-            # Apply formula
-            s = float(np.sqrt(1+(1/B)) * sd)
-
-    if return_s:
-        return gap, s
-    else:
-        return gap
-
-def score_function(
-    X : np.ndarray,
-    clusters: List[List[int]],
-) -> float:
-    """
-    Compute the score function for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :return: The score function index
-    :rtype: float
-    """
-    N = len(X)
-    k = len(clusters)
-    dist_kwargs = {"metric" : 'sqeuclidean'}
-
-    nis = [len(c) for c in clusters]
-
-    bdc = 1/(N*k) * np.sum(
-        np.multiply(nis, _dist_centroids_to_global(
-            X, clusters, dist_kwargs=dist_kwargs))
-    )
-
-    dist_kwargs = {"metric" : 'euclidean'}
-    wdc = np.sum([
-        f_inertia(X[c], dist_kwargs=dist_kwargs) / len(c)
-        for c in clusters
-    ])
-
-    sf = float(1 - (1 / (np.exp(np.exp(bdc - wdc)))))
-
-    return sf
-
-def hartigan(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    k:int = None,
-    clusters_next: List[List[int]] = None,
-    X1: np.ndarray = None,
-) -> float:
-    """
-    Compute the hartigan index for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param clusters_next: List of members for each cluster.
-    :type clusters_next: List[List[int]]
-    :param X1: Values of all members, assuming that k=0 and that X is
-        then the values of all members when sampled from a uniform
-        distribution.
-    :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :return: The hartigan index
-    :rtype: float
-    """
-    N = len(X)
-    # We can't compute using the next clustering, but in any case,
-    # we'll have Wk=0
-    if k == N:
-        return None
-    elif k == N-1:
-        return None
-    # If we haven't computed the case k+1
-    elif clusters_next is None:
-        return None
-    elif k == 0:
-        # X0 shape: (N, d*w_t) or (N, w_t, d)
-        if X1 is None:
-            l_X0 = generate_uniform(X, zero_type="bounds", N_zero=1)
-            X1 = X
-        else:
-            l_X0 = [X]
-        l_Wk = []
-        for X0 in l_X0:
-            l_Wk.append(_compute_Wk(X0, clusters))
-        Wk = np.mean(l_Wk)
-        Wk_next = _compute_Wk(X1, clusters)
-        # We use the normal formula but with k=1 so that we get the
-        res = (Wk/Wk_next - 1)*(N-1-1)
-    # Regular case
-    else:
-        Wk = _compute_Wk(X, clusters)
-        Wk_next = _compute_Wk(X, clusters_next)
-        if Wk_next == 0:
-            res = np.inf
-        else:
-            res = (Wk/Wk_next - 1)*(N-k-1)
-
-    res = float(res)
-    return res
-
-def silhouette(
-    X : np.ndarray,
-    clusters: List[List[int]],
-) -> float:
-    """
-    Compute the silhouette score for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :return: The silhouette score
-    :rtype: float
-    """
-
-    S_i1 = []
-    nis = [len(c) for c in clusters]
-
-    for i1, c1 in enumerate(clusters):
-
-        # --- Compute 'a' for all x (=X[m]) in c1 (excluding x in c1) --
-        # Case in which there is only x in a
-        if nis[i1] == 1:
-            a = [0]
-        # It is usually written as a mean, but since we have to exclude
-        # x in c1, we don't get the same number of operations
-        else:
-            a = [
-                (1/(nis[i1]-1)) * np.sum(f_cdist(X[c1], X[m]))
-                for m in c1
-            ]
-
-        # Compute 'b' for all x (=X[m]) in c1
-        b = [np.amin([
-                np.mean(f_cdist(X[c2], np.expand_dims(X[m], 0)))
-                for i2, c2 in enumerate(clusters) if i1 != i2
-            ]) for m in c1]
-
-        # Silhouette score for cluster c1
-        # The usual formula is written a sum divided by the number of x,
-        # which is the mean
-        S_i1.append(np.mean(
-            [
-                (b_x - a_x) / (np.amax([b_x, a_x]))
-                # To address the case of 2 singletons being equal
-                if (a_x != 0 or b_x != 0) else 0
-                for (a_x, b_x) in zip(a, b)]
-        ))
-
-    # Silhouette score of the clustering
-    # The usual formula is written a sum divided by k, which is the mean
-    S = float(np.mean(S_i1))
-    return S
-
-def CH(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    k: int = None,
-    X1: np.ndarray = None,
-    zero_type: str = "variance",
-    dist_kwargs: dict = {},
-) -> float:
-    """
-    Compute the Calinski–Harabasz (CH) index  for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param X1: Values of all members, assuming that k=0 and that X is
-      then the values of all members when sampled from a uniform
-      distribution.
-    :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param zero_type: Determines how to parametrize the uniform
-      distribution to sample from in the case :math:`k=0`, by default
-      "variance". Possible options:
-
-      - `"variance"`: the uniform distribution is defined such that it
-        has the same variance and mean as the original data.
-      - `"bounds"`: the uniform distribution is defined such that it
-        has the same bounds as the original data.
-
-    :type zero_type: str, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The CH index
-    :rtype: float
-    """
-    N = len(X)
-    dist_kwargs.setdefault("metric", "sqeuclidean")
-
-    # If we forget about the (N-k) / (k-1) factor, CH is defined and
-    # is equal to 0
-    if k == 1:
-        CH = 0.
-    # Very special case for the case k=0
-    elif k == 0:
-
-        # X0 shape: (N, d*w_t) or (N, w_t, d)
-        if X1 is None:
-            X0 = generate_uniform(X, zero_type=zero_type, N_zero=1)[0]
-            X1 = X
-        else:
-            X0 = X
-        #
-        # Option 1: use the centroid of the uniform distribution
-        # clusters0 = score_kwargs.get(
-        #     "clusters0",
-        #     [_compute_cluster_params(X0, score_kwargs.get("midpoint_w", 0))]
-        # )
-        #
-        # Option 2: use the original centroid
-        #
-        # The numerator can be seen as the distance between the global
-        # centroid and N singletons uniformly distributed
-        # Which can be seen as d(C0, c)
-        sep = np.sum(
-            f_cdist(X0, np.expand_dims(compute_center(X1), 0), dist_kwargs)
-        )
-
-        # The denominator can be seen as the distance between the
-        # original data and its centroid, which would correspond to the
-        # denominator or the case k=1 (which is not used because CH(1) =
-        # 0)
-        # Note that the list has actually only one element
-        comp = np.sum([
-            f_inertia(X1[c], dist_kwargs) for c in clusters
-        ])
-
-        if comp == 0:
-            CH = -np.inf
-        else:
-            CH = - N * (sep / comp)
-    elif k == N:
-        CH=0.
-    # Normal case
-    else:
-        nis = [len(c) for c in clusters]
-        sep = np.sum(
-            np.multiply(nis, _dist_centroids_to_global(X, clusters, dist_kwargs))
-        )
-
-        comp = np.sum([ f_inertia(X[c], dist_kwargs) for c in clusters ])
-
-        if comp == 0:
-            CH = np.inf
-        else:
-            CH = (N-k) / (k-1) * (sep / comp)
-
-    CH = float(CH)
-    return CH
-
-def MB(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    k: int = None,
-    p: int = 2,
-    dist_kwargs = {},
-) -> float:
-    """
-    Compute the Maulik-Bandyopadhyay index for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param p: power of the equation
-    :type p: int, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Maulik-Bandyopadhyay index
-    :rtype: float
-    """
-    N = len(X)
-    if k == 1 or k==N:
-        I = 0.
-    else:
-
-        dist_kwargs.setdefault("metric", "euclidean")
-        E1 = _compute_Wk(X, [np.arange(N)], dist_kwargs=dist_kwargs)
-        Ek = _compute_Wk(X, clusters, dist_kwargs=dist_kwargs)
-
-        Dk = np.amax(
-            _dist_between_centroids(
-                X, clusters, dist_kwargs=dist_kwargs)
+            raise ValueError(
+                "cvi_type {} invalid for {}. Please choose among {}".format(cvi_type, str(self), self.cvi_types)
             )
+        self.k_condition = k_condition
+        self.ignore0 = ignore0
+        self.N = None
+        self.d = None
 
-        if Ek == 0:
-            I = np.inf
+    def __call__(
+        self,
+        X: np.ndarray,
+        clusters: List[List[int]],
+        score_kwargs: dict = {},
+    ) -> float:
+        """
+        Computes the score of the clustering.
+
+        :param X: Values of all members
+        :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+        :param clusters: List of (members, info) tuples
+        :type clusters: List[List[int]]
+        :param score_kwargs: kwargs specific for the score, defaults to
+            {}
+        :type score_kwargs: dict, optional
+        :raises InvalidKError: _description_
+        :return: _description_
+        :rtype: float
+        """
+        dims = X.shape
+        self.N = dims[0]
+        self.d = dims[-1]
+        if "k" in score_kwargs:
+            n_clusters = score_kwargs["k"]
         else:
-            I = (1/k * E1/Ek * Dk)**p
-
-    I = float(I)
-
-    return I
-
-def _var(
-    X : np.ndarray,
-    dist_kwargs = {},
-) -> np.ndarray:
-    """
-    Helper function for the SD index, computing the "Var" vector.
-
-    Var is a vector of shape (d,) (or (d*w_t,) if not DTW) of variances
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: "Var" vector of the SD index.
-    :rtype: np.ndarray, shape: (d)
-    """
-    dist_kwargs.setdefault("metric", "sqeuclidean")
-    center = np.expand_dims(compute_center(X), 0)
-    if len(X.shape) == 2:
-        Var = [
-            # shape is then (N, 1*w_t) or (N, w_t, 1)
-            np.mean(f_cdist(X[:, d:d+1], center[:, d:d+1], dist_kwargs))
-            for d in range(X.shape[-1])
-        ]
-    elif len(X.shape) == 3:
-        Var = [
-            # shape is then (N, 1*w_t) or (N, w_t, 1)
-            np.mean(f_cdist(X[:, :, d:d+1], center[:, :, d:d+1], dist_kwargs))
-            for d in range(X.shape[-1])
-        ]
-    return np.array(Var)
-
-def _dis(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs = {},
-) -> float:
-    """
-    Helper function for the SD index, computing the "Dis" term.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The "Dis" term of the SD index.
-    :rtype: float
-    """
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
-    d_btw_centroids = _dist_between_centroids(
-        X, clusters=clusters, dist_kwargs=dist_kwargs
-    )
-
-    # For each center, compute the sum of distances to all other centers
-    dis_aux = [
-        np.sum(f_cdist(np.concatenate(centers, axis=0), c, dist_kwargs))
-        for c in centers
-    ]
-
-    dis = float(
-        (np.amax(d_btw_centroids) / np.amin(d_btw_centroids))
-        * np.sum([1 / d_aux if d_aux != 0 else np.inf for d_aux in dis_aux])
-    )
-
-    return dis
-
-def _scat(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs = {},
-) -> float:
-    """
-    Helper function for the SD and SDbw indices.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The "Scat" term of the SD and SDbw indices.
-    :rtype: float
-    """
-    N = len(X)
-    k = len(clusters)
-    # Note that the use of np.linalg.norm is possible here, regardless
-    # of whether DTW and/or time series are used because _var always
-    # return a vector of shape (d,)
-    total_var = np.linalg.norm(_var(X, dist_kwargs=dist_kwargs))
-
-    scat = float(1/k * np.sum([
-        np.linalg.norm(_var(X[c], dist_kwargs=dist_kwargs))/total_var
-        for c in clusters
-    ]))
-    return scat
-
-def SD_index(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    alpha: float = None,
-    dist_kwargs = {},
-) -> float:
-    """
-    Compute the SD index for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param alpha: The constant in the SD index formula (=Dis(k_max)).
-    :type alpha: float
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The SD index
-    :rtype: float
-    """
-    scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
-
-    # If alpha is None, assume that k_max = N
-    if alpha is None:
-
-        alpha_aux = [
-            np.sum(f_cdist(X, np.expand_dims(x, 0), dist_kwargs=dist_kwargs))
-            for x in X
-        ]
-
-        d_intra = f_pdist(X, dist_kwargs=dist_kwargs)
-        alpha = float(
-            (np.amax(d_intra) / np.amin(d_intra))
-            * np.sum(
-                [1 / a_aux if a_aux != 0 else np.inf for a_aux in alpha_aux]
+            n_clusters = len(clusters)
+        if self.k_condition(n_clusters):
+            return self.function(X, clusters, **score_kwargs)
+        else:
+            msg = (
+                f"{self.__class__} called with an incompatible number of "
+                + f"clusters: {n_clusters}"
             )
-        )
-    dis = _dis(X, clusters=clusters, dist_kwargs=dist_kwargs)
+            raise InvalidKError(msg)
 
-    res = float(alpha * scat + dis)
-    return res
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {},
+    ) -> Union[dict, None]:
+        """
+        Get the kwargs parameters specific to the CVI.
 
-def SDbw_index(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs = {},
-) -> float:
-    """
-    Compute the SDbw index for a given clustering.
+        Base method to override when defining a CVI if the CVI function
+        requires additional parameters than the standard `X` and
+        `clusters` representing respectively the data values (already
+        processed) and the partition representing the clustering.
 
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The SDbw  index
-    :rtype: float
-    """
-    k = len(clusters)
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
 
-    scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
+        return score_kwargs
 
-    # Get centroids
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+    def criterion(
+        self,
+        scores: Dict[int, float],
+        cvi_type: str = None,
+    ) -> Union[int, None]:
+        """
+        The default selection method for regular cases.
 
-    # Get each (i-j) pair in a flat list and get each pair only once
-    nested_ijs = [
-        [
-            (i, j) for j in range(i+1, k)
-        ] for i in range(k-1)
-    ]
+        Regular cases included monotonous/absolute/pseudo-monotonous and
+        maximise=True/False with improve=True/False.
 
-    ijs = sum(nested_ijs, [])
+        Does not take into account rules that are specific to a CVI,
+        such as the Gap statistic, Hartigan, etc.
 
-    # Get the list of midpoints between each pair of cluster center i and j
-    # note that u_ij = u_ji and all terms then appear twice
-    # We decide to keep each element only once
-    u_ijs = [(centers[i] + centers[j])/2 for (i,j) in ijs]
+        Parameters
+        ----------
+        scores : Dict[int, float]
+            The CVI values obtained for the provided :math:`k` range.
+        cvi_type : str, optional
+            The type of score to use in the selection scheme. Note that
+            for most cases it is redundant with the attribute
+            `CVI.cvi_type` but it may facilitate the selection for
+            scores that use base cases with small adjustments, by
+            default None.
 
-    # Concatenate datapoints corresponding to each u_ij
-    # (i.e. datapoints in C_i and C_j)
-    X_ijs = [
-        np.concatenate((X[clusters[i]], X[clusters[j]]), axis=0)
-        for (i,j) in ijs
-    ]
+        Returns
+        -------
+        Union[int, None]
+            The :math:`k` value corresponding to the selected
+            clustering. Returns `None` if no clustering could be
+            selected.
+        """
+        # Because some custom criterion_function relies on the general
+        # case "monotonous"/"absolute"
+        if cvi_type is None:
+            cvi_type = self.cvi_type
+        # For monotonous CVIs
+        if cvi_type == "monotonous":
+            scores_valid = {k: s for k,s in scores.items() if s is not None}
+            selected_k = None
+            max_diff = 0
 
-    # k (nix1)-arrays of distances to centroids for each cluster
-    d_to_centroids = _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
+            list_k = list(scores_valid.keys())
+            last_relevant_score = scores_valid[list_k[0]]
+            last_relevant_k = list_k[0]
 
-    # Referred as "the average standard deviation of clusters" in the
-    # article
-    stdev = float(1/k * np.sqrt(np.sum([
-        np.linalg.norm(_var(X[c]))
-        for c in clusters
-    ])))
+            # If it is improving compare last to current
+            # Otherwise compare current to next
+            if self.improve:
+                list_k_compare = list_k[1:]
+            else:
+                list_k_compare = list_k[:-1]
+            # Find the biggest increase / drop
+            for i, k in enumerate(list_k_compare):
+                # Special case if the score couldn't be computed
+                # either because this score doesn't allow this k
+                # or because the clustering model didn't converge
+                if scores_valid[k] is None:
+                    continue
+                # Special case for example for Hartigan where
+                # we don't use k=0 as a reference score if k=0 is more
+                # relevant than k=1
+                elif (i==0 and self.ignore0 and not self.is_relevant(
+                        scores_valid[k], k,
+                        last_relevant_score, last_relevant_k)
+                    ):
+                    selected_k = 1
+                    last_relevant_k = 1
+                    last_relevant_score = scores_valid[k]
+                elif (
+                    (i==0 and not self.ignore0)
+                    or self.is_relevant(
+                        scores_valid[k], k,
+                        last_relevant_score, last_relevant_k
+                    )
+                ):
+                    diff = abs(scores_valid[k] - last_relevant_score)
+                    if max_diff < diff:
+                        selected_k = k
+                        max_diff = diff
 
-    # List of (n_ij) arrays of distances to midpoints for each pair of cluster
-    # which means the final sum is the double of the list with no
-    # duplicates
-    d_to_midpoints = [
-        f_cdist(X_ij, u_ij, dist_kwargs=dist_kwargs)
-        for X_ij, u_ij in zip(X_ijs, u_ijs)
-    ]
-
-    # For each pair of cluster ij, count how many datapoints have s
-    # distance to u_ij smaller than stdev
-    # each d_m is a (n_ij) array of distances to the midpoint u_ij
-    densities_ij = [
-        np.sum(np.where( d_m <= stdev, np.ones_like(d_m), np.zeros_like(d_m)))
-        for d_m in d_to_midpoints
-    ]
-
-    # density of each clusters
-    # d_i is the (nix1)-array of distances between elements of Ci and ci
-    densities_i = [
-        np.sum(np.where( d_i <= stdev, np.ones_like(d_i), np.zeros_like(d_i)))
-        for d_i in d_to_centroids
-    ]
-    max_densities_ij = [
-        np.amax([densities_i[i], densities_i[j]]) for (i,j) in ijs
-    ]
-
-    # The factor 2 is because a term for the pair ij is the same as for ji
-    # And we computed only pairs with i<j
-    dens_bw = 1/(k*(k-1)) * 2 * np.sum([
-        d_ij/max_d_ij if max_d_ij!=0 else np.inf
-        for (d_ij, max_d_ij) in zip(densities_ij, max_densities_ij)
-    ])
-
-    res = float(scat + dens_bw)
-    return res
-
-def dunn(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs = {},
-) -> float:
-    """
-    Compute the Dunn index for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Dunn index
-    :rtype: float
-    """
-    k=len(clusters)
-    N = len(X)
-
-    # This score is not defined for k=N or k=1
-    if k == N:
-        return 0.
-
-    # Get each (i-j) pair in a flat list and get each pair only once
-    nested_ijs = [
-        [
-            (i, j) for j in range(i+1, k)
-        ] for i in range(k-1)
-    ]
-
-    ijs = sum(nested_ijs, [])
-
-    # For each ij pair, get minimum distance between x in Ci and y in Cj
-    min_dist_between_ij = [
-        np.amin(
-            f_cdist(X[clusters[i]], X[clusters[j]], dist_kwargs=dist_kwargs)
-        ) for (i, j) in ijs
-    ]
-    # Get the min distance between the 2 closest clusters.
-    numerator = np.amin(min_dist_between_ij)
-
-    # For each cluster, get its diameter if it is not a singleton
-    diam_i = [
-        np.amax(f_pdist(X[c], dist_kwargs=dist_kwargs))
-        for c in clusters if len(c) > 1
-    ]
-    # Get the max diameter of clusters
-    denominator = np.amax(diam_i)
-
-    if denominator == 0:
-        res = np.inf
-    else:
-        res = float( numerator / denominator)
-
-    return res
-
-def xie_beni(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs = {},
-) -> float:
-    """
-    Compute the Xie-Beni index for a given clustering.
-
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Xie-Beni index
-    :rtype: float
-    """
-
-    N = len(X)
-    k = len(clusters)
-    if N == k:
-        XB = np.inf
-    else:
-
-        dist_kwargs.setdefault("metric", "sqeuclidean")
-        dist_between_centroids = _dist_between_centroids(
-            X, clusters, dist_kwargs=dist_kwargs,
-        )
-
-        dist_to_centroids = [
-            np.sum(d)
-            for d in _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
-        ]
-
-        denominator = np.amin(dist_between_centroids)
-
-        if denominator == 0:
-            XB = np.inf
+                    last_relevant_k = k
+                    last_relevant_score = scores_valid[k]
+        # For absolute CVIs
+        elif cvi_type == "absolute":
+            #
+            scores_valid = {k: s for k,s in scores.items() if s is not None}
+            # Special case if None if all scores were None (because of
+            # the condition on k or because the model didn't converge)
+            if scores_valid == {}:
+                selected_k = None
+            else:
+                if self.maximise:
+                    selected_k = max(scores_valid, key=scores_valid.get)
+                else:
+                    selected_k = min(scores_valid, key=scores_valid.get)
+        # For CVIs with a special selection process
         else:
-            XB = (1/N) * (np.sum(dist_to_centroids) / denominator)
+            selected_k = self.criterion_function(scores)
+        return selected_k
 
-    XB = float(XB)
-    return XB
+    def is_relevant(
+        self,
+        score: float,
+        k: int,
+        score_prev: float,
+        k_prev: int,
+    ) -> bool:
+        """
+        Determines if a score is relevant based on the CVI properties.
 
-def xie_beni_star(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    dist_kwargs = {},
-) -> float:
+        This is particularly useful for pseudo-monotonous CVIs, to know
+        whether we should ignore a specific CVI value.
+
+        Parameters
+        ----------
+        score : float
+            The current CVI value.
+        k : int
+            The current :math:`k` value.
+        score_prev : float
+            The previous CVI value.
+        k_prev : int
+            The previous :math:`k` value (which must be smaller).
+
+        Returns
+        -------
+        bool
+            True is the current value is relevant, which means that it
+            is following the expected scheme of CVI values given the
+            properties of the CVI (its `cvi_type`, `maximise`,
+            `improve` properties).
+        """
+        # A score is always relevant when it is absolute
+        if self.cvi_type == "absolute":
+            return True
+        else:
+            # When relative:
+            if self.improve:
+                # better "and" greater or worse and lesser
+                return (
+                    self.better_score(score, score_prev) == (k > k_prev)
+                )
+            else:
+                # worse "and" greater or better and lesser
+                return (
+                    self.better_score(score_prev, score) == (k_prev > k)
+                )
+
+    def select(
+        self,
+        scores_t_k: List[Dict[int, float]]
+    ) -> List[Union[int, None]]:
+        """
+        Select the best clusterings according to the CVI values given.
+
+        Select the best :math:`k` for each :math:`t` according to the
+        CVI values given. If the data is not time series or if the time
+        series are clustered considering all time steps at once, then
+        the returned list has only one element.
+
+        Parameters
+        ----------
+        scores_t_k : List[Dict[int, float]]
+            The CVI values for the provided :math:`k` range and for the
+            potential number :math:`t` of iterations to consider in
+            time.
+
+        Returns
+        -------
+        List[Union[int, None]]
+            The list of :math:`k` values corresponding to the best
+            clustering for each potential number :math:`t` of iterations
+            to consider in time. Some elements can be `None` if no
+            clustering could be selected at a given iteration :math:`t`.
+        """
+        return [self.criterion(s_t) for s_t in scores_t_k]
+
+    def better_score(
+        self,
+        score1: float,
+        score2: float,
+        or_equal: bool = False
+    ) -> bool:
+        """
+        Checks if a CVI value is better than another.
+
+        Takes into account the properties of the CVI (its `cvi_type`,
+        `maximise`, `improve` properties)
+
+        Parameters
+        ----------
+        score1 : float
+            The first CVI value
+        score2 : float
+            The second CVI value
+        or_equal : bool, optional
+            Determines whether 2 equal scores should yield `True` or
+            not, by default False
+
+        Returns
+        -------
+        bool
+            True if `score1` is better than `score2`.
+        """
+        return better_score(score1, score2, self.maximise, or_equal)
+
+    def argbest(
+        self,
+        scores: List[float],
+        ignore_None: bool = False,
+    ) -> int:
+        """
+        Returns the index of the best score.
+
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+        ignore_None : bool, optional
+            If `True`, `None` values will be ignored, otherwise, a
+            `None` value will be considered as the best score, by
+            default False
+
+        Returns
+        -------
+        int
+            The index of the best score
+        """
+        return argbest(scores, self.maximise, ignore_None)
+
+    def best_score(
+        self,
+        scores: List[float],
+        ignore_None: bool = False,
+    ) -> float:
+        """
+        Returns the best score.
+
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+        ignore_None : bool, optional
+            If `True`, `None` values will be ignored, otherwise, a
+            `None` value will be considered as the best score, by
+            default False
+
+        Returns
+        -------
+        float
+            The best score
+        """
+        return best_score(scores, self.maximise, ignore_None)
+
+    def argworst(
+        self,
+        scores: List[float],
+    ) -> int:
+        """
+        Returns the index of the worst score.
+
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+
+        Returns
+        -------
+        int
+            The index of the worst score
+        """
+        return argworst(scores, self.maximise)
+
+    def worst_score(
+        self,
+        scores: List[float],
+    ) -> float:
+        """
+        Returns the worst score.
+
+        Parameters
+        ----------
+        scores : List[float]
+            A list of CVI values
+
+        Returns
+        -------
+        float
+            The worst score
+        """
+        return worst_score(scores, self.maximise)
+
+class Hartigan(CVI):
     """
-    Compute the Xie-Beni* (XB*) index for a given clustering.
+    The Hartigan index. [Hartigan]_
 
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Xie-Beni* (XB*) index
-    :rtype: float
+    Originally, this index is absolute and the selection criteria is as
+    follows:
+
+    According to de Amorim and Hennig [2015] "In the original paper, the
+    lowest :math:`k`to yield Hartigan :math:`<= 10` was proposed as the
+    optimal choice. However, if no :math:`k` meets this criteria, choose
+    the :math:`k` whose difference in Hartigan for :math:`k` and
+    :math:`k+1` is the smallest". According to Tibshirani et al. [2001]
+    it is "the estimated number of clusters is the smallest :math:`k`
+    such that Hartigan :math:`<= 10` and :math:`k=1` could then be
+    possible.
+
+    A monotonous approach can also be taken.
+
+    Possible `cvi_type` values: "monotonous" or "original".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
     """
 
-    N = len(X)
-    k = len(clusters)
-    if N == k:
-        XB = np.inf
-    else:
+    cvi_types: List[str] = ["monotonous", "original"]
 
-        dist_kwargs.setdefault("metric", "sqeuclidean")
-        dist_between_centroids = _dist_between_centroids(
-            X, clusters, dist_kwargs=dist_kwargs,
+    def __init__(
+        self,
+        cvi_type: str = "monotonous"
+    ) -> None:
+        f_k_condition = lambda k: (
+            k>=0 if cvi_type == "monotonous" else k>=1
         )
 
-        dist_to_centroids = [
-            np.mean(d)
-            for d in _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
-        ]
+        super().__init__(
+            score_function=hartigan,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            criterion_function=self._f_criterion,
+            k_condition= f_k_condition,
+            ignore0 = True,
+        )
 
-        denominator = np.amin(dist_between_centroids)
-
-        if denominator == 0:
-            XB = np.inf
+    def _f_criterion(
+        self,
+        scores: Dict[int, float],
+    ) -> int:
+        valid_k = {
+            k: s for k,s in scores.items()
+            if ((s is not None) and (s<=10))
+        }
+        if valid_k:
+            # Take the lowest $k$ to yield Hartigan $<= 10$
+            selected_k = min(valid_k)
         else:
-            XB = np.amax(dist_to_centroids) / denominator
+            # Otherwise, choose the $k$ whose difference in Hartigan for
+            # $k$ and $k+1$ is the smallest, or when
+            # hartigan(k)<hartigan(k+1)
+            ks = sorted([k for k in scores.keys() if scores[k] is not None])
+            if len(ks) > 1:
+                arg_selected_k = np.argmin(
+                    [
+                        max(scores[ks[i]]-scores[ks[i+1]], 0)
+                        for i in range(len(ks)-1)
+                    ]
+                )
+                selected_k = ks[arg_selected_k]
+            else:
+                selected_k = None
+        return selected_k
 
-    XB = float(XB)
-    return XB
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        """
+        Get the kwargs parameters specific to Hartigan.
 
-def davies_bouldin(
-    X : np.ndarray,
-    clusters: List[List[int]],
-    p: int = 2,
-    dist_kwargs = {},
-) -> float:
+        Hartigan has 3 additional parameters:
+
+        - `k` (int): the current number of clusters.
+        - `clusters_next` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t,
+          d))`: the clustering for the next :math:`k` value
+          considered.
+        - `X1` (np.ndarray, shape: (N, d*w_t) or (N, w_t, d)): the
+          dataset to cluster (already processed). This is needed for
+          the case :math:`k=0`, and in that case `X_clus` is sampled
+          from a uniform distribution with similar parameters as the
+          original distribution.
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
+        s_kw = {}
+        s_kw["k"] = n_clusters
+        if n_clusters < len(X_clus):
+            s_kw["clusters_next"] = clusterings_t.get(n_clusters+1, None)
+        if n_clusters == 0:
+            s_kw["X1"] = X_clus
+        s_kw.update(score_kwargs)
+        return s_kw
+
+    def __str__(self) -> str:
+        return 'Hartigan_{}'.format(self.cvi_type)
+
+class CalinskiHarabasz(CVI):
     """
-    Compute the Davies-Bouldin (DB) index for a given clustering.
+    The Calinski-Harabasz index. [CH]_
 
-    :param X: Values of all members.
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of members for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: TheDavies-Bouldin (DB) index
-    :rtype: float
+    Originally, this index is absolute and has to be maximised to find
+    the best :math:`k`. A monotonous approach can also be taken, so that
+    the case k=1 can be selected, with CH(1) = 0 and CH(0) extended (see
+    `pycvi.cvi.CH`)
+
+    Possible `cvi_type` values: "monotonous" or "original".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
     """
-    k = len(clusters)
 
-    dist_kwargs_Sis = dist_kwargs.copy()
-    dist_kwargs_Sis.setdefault("metric", "minkowski")
-    dist_kwargs_Sis.setdefault("p", 1)
+    cvi_types: List[str] = ["monotonous", "original", "absolute"]
 
-    dist_to_centroids = _dist_to_centroids(
-        X, clusters, dist_kwargs=dist_kwargs
-    )
+    def __init__(
+        self,
+        cvi_type: str = "monotonous"
+    ) -> None:
+        # Note that the case k=1 for the absolute version will always
+        # give CH=0
+        f_k_condition = lambda k: (
+            k>=0 if cvi_type == "monotonous" else k>=1
+        )
 
-    nis = [len(c) for c in clusters]
-    S_is = [
-        (1/ni)**(1/p) * np.sum(d**p)**(1/p)
-        for (ni, d) in zip(nis, dist_to_centroids)
+        # original and absolute are the same
+        if cvi_type == "original":
+            cvi_type = "absolute"
+
+        super().__init__(
+            score_function=CH,
+            maximise=True,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition = f_k_condition,
+        )
+
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        """
+        Get the kwargs parameters specific to Calinski-Harabasz.
+
+        Calinski-Harabasz has 3 additional parameters:
+
+        - `k` (int): the current number of clusters.
+        - `X1` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`): the
+          dataset to cluster (already processed). This is
+          needed for the case :math:`k=0`, and in that case `X_clus`
+          is sampled from a uniform distribution with similar
+          parameters as the original distribution
+        - `zero_type` (str): determines how to parametrize the uniform
+          distribution to sample from in the case :math:`k=0`. Possible
+          options:
+
+          - `"variance"`: the uniform distribution is defined such that
+            it has the same variance and mean as the original data.
+          - `"bounds"`: the uniform distribution is defined such that
+            it has the same bounds as the original data.
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
+        s_kw = {}
+        s_kw["k"] = n_clusters
+        if n_clusters == 0:
+            s_kw["X1"] = X_clus
+        if "zero_type" not in s_kw or s_kw["zero_type"] == None:
+            if len(X_clus) > 100:
+                s_kw["zero_type"] = "variance"
+            else:
+                s_kw["zero_type"] = "bounds"
+        s_kw.update(score_kwargs)
+        return s_kw
+
+    def __str__(self) -> str:
+        cvi_type = self.cvi_type
+        # original and absolute are the same
+        if cvi_type == "absolute":
+            cvi_type = "original"
+        return 'CalinskiHarabasz_{}'.format(cvi_type)
+
+class GapStatistic(CVI):
+    """
+    The Gap statistic. [Gap]_
+
+    Originally, this index is absolute and the selection criteria is as
+    follow:
+
+    Take the smallest :math:`k` such that :math:`Gap(k) \\geq Gap(k+1) -
+    s(k+1)`.
+
+    A monotonous approach can also be taken.
+
+    Possible `cvi_type` values: "monotonous", or "original".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "original".
+    """
+
+    cvi_types: List[str] = ["monotonous", "original"]
+
+    def __init__(
+        self,
+        cvi_type: str = "original",
+    ) -> None:
+
+        f_k_condition = lambda k: (
+            k>=0 if cvi_type == "monotonous" else k>=1
+        )
+
+        super().__init__(
+            score_function= gap_statistic,
+            maximise=True,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition=f_k_condition,
+            criterion_function=self._f_criterion,
+        )
+
+        self.s = {}
+
+    def _f_criterion(
+        self,
+        scores: Dict[int, float],
+    ) -> int:
+        """
+        Select the smallest k such that "Gap(k) >= Gap(k+1) - s(k+1)"
+        """
+        # Keep only k corresponding to scores that are not None
+        ks = sorted([k for k in scores.keys() if scores[k] is not None])
+        # Get all k such that "Gap(k) >= Gap(k+1) - s(k+1)"
+        selected_k_tmp = [
+            ks[k] for k in range(len(ks)-1)
+            # Gap(k) >= Gap(k+1) - s(k+1)
+            if scores[ks[k]] >= scores[ks[k+1]] - self.s[ks[k+1]]
+        ]
+        # Find the smallest k such that "Gap(k) >= Gap(k+1) - s(k+1)"
+        if selected_k_tmp:
+            selected_k = int(np.amin(selected_k_tmp))
+        else:
+            selected_k = None
+        return selected_k
+
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        """
+        Get the kwargs parameters specific to Gap statistic.
+
+        Gap statistic has 4 additional parameters:
+
+        - `k` (int): the current number of clusters.
+        - `B` (int): the number of uniform samples drawn.
+        - `zero_type` (str): determines how to parametrize the uniform
+          distribution to sample from in the case :math:`k=0`. Possible
+          options:
+
+          - `"variance"`: the uniform distribution is defined such that
+            it has the same variance and mean as the original data.
+          - `"bounds"`: the uniform distribution is defined such that
+            it has the same bounds as the original data.
+
+        - `return_s` (bool): determines whether the s value should also
+          be returned
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
+        s_kw = {"B" : 10}
+        s_kw["k"] = n_clusters
+        if self.cvi_type == "original":
+            s_kw["return_s"] = True
+        s_kw.update(score_kwargs)
+        if "zero_type" not in s_kw or s_kw["zero_type"] == None:
+            if len(X_clus) > 100:
+                s_kw["zero_type"] = "variance"
+            else:
+                s_kw["zero_type"] = "bounds"
+        return s_kw
+
+    def __call__(
+        self,
+        X: np.ndarray,
+        clusters: List[List[int]],
+        score_kwargs: dict = {}
+    ) -> float:
+        if self.cvi_type == "original":
+            gap, s =  super().__call__(X, clusters, score_kwargs)
+            k = score_kwargs["k"]
+            self.s[k] = s
+            return gap
+        else:
+            return super().__call__(X, clusters, score_kwargs)
+
+    def __str__(self) -> str:
+        return 'GapStatistic_{}'.format(self.cvi_type)
+
+class Silhouette(CVI):
+    """
+    The Silhouette score. [Silhouette]_
+
+    This index is absolute, bounded in :math:`[-1, 1]` range and has to
+    be maximised.
+
+    Possible `cvi_type` values: "absolute".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute"]
+
+    def __init__(
+        self,
+        cvi_type: str = "absolute",
+    ) -> None:
+        super().__init__(
+            score_function=silhouette,
+            maximise=True,
+            improve=None,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'Silhouette'
+
+class ScoreFunction(CVI):
+    """
+    The Score function. [SF]_
+
+    This index has to be maximised to find the best clustering, but the
+    original paper Saitta et al. [2007] adds special cases:
+
+    - if the score always increases, then the number :math:`k = 1` is
+      chosen.
+    - if a maximum is found, outside the extreme :math:`k` values, then
+      the argument of this maximum is chosen.
+    - it is empirically decided that if :math:`(SF_2 − SF_1) \\times d
+      \\leq 0.2` then, :math:`k = 1` is also chosen (:math:`d` being the
+      dimensionality of the data).
+
+    The absolute case can also be chosen (i.e. special case are
+    ignored).
+
+    Possible `cvi_type` values: "monotonous", or "original".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "original".
+    """
+
+    cvi_types: List[str] = ["absolute", "original"]
+
+    def __init__(self, cvi_type: str = "original") -> None:
+        super().__init__(
+            score_function=score_function,
+            maximise=True,
+            improve=None,
+            cvi_type=cvi_type,
+            criterion_function=self._f_criterion,
+            k_condition= lambda k: (k>=1)
+        )
+
+    def _f_criterion(
+        self,
+        scores: Dict[int, float],
+    ) -> int:
+        # General case first
+        best_k = self.criterion(scores, cvi_type="absolute")
+        # If score always increases, then choose k=1
+        if best_k == max(scores):
+            best_k = 1
+        if (
+            (1 in scores) and (2 in scores)
+            and ((scores[2] - scores[1]) * self.d <= 0.2)
+        ):
+            best_k=1
+        return best_k
+
+    def __str__(self) -> str:
+        return 'ScoreFunction'
+
+class MaulikBandyopadhyay(CVI):
+    """
+    The Maulik-Bandyopadhyay index.
+
+    Originally, this index is absolute and has to be maximised to find
+    the best :math:`k`.
+
+    A monotonous approach can also be taken.
+
+    Possible `cvi_type` values: "monotonous", or "absolute".
+
+    Note that the case :math:`k=1` always returns 0.
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute", "monotonous"]
+
+    def __init__(self, cvi_type: str = "absolute") -> None:
+        super().__init__(
+            score_function=MB,
+            maximise=True,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=1)
+        )
+
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        s_kw = {"p" : 2}
+        s_kw["k"] = n_clusters
+        s_kw.update(score_kwargs)
+        return s_kw
+
+    def __str__(self) -> str:
+        return f'MaulikBandyopadhyay_{self.cvi_type}'
+
+class SD(CVI):
+    """
+    The SD index. [SD]_
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    Note that if two clusters have equal centroids, then `SD = inf`
+    which means that this clustering is irrelevant, which works as
+    intended (even though two clusters could be well separated and still
+    have equal centroids, as in the case of two concentric circles).
+
+    The case :math:`k=1` is not possible.
+
+    Possible `cvi_type` values: "absolute".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute"]
+
+    def __init__(self, cvi_type: str = "absolute") -> None:
+        super().__init__(
+            score_function=SD_index,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        s_kw = {"alpha" : None}
+        s_kw.update(score_kwargs)
+        return s_kw
+
+    def __str__(self) -> str:
+        return 'SD'
+
+class SDbw(CVI):
+    """
+    The SDbw index. [SDbw]_
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    Note that if two clusters have all datapoints further away to
+    their respective centroids than what is called in the original
+    paper "the average standard deviation of clusters", then `SDbw =
+    inf`, which means that this clustering is irrelevant, which
+    works as intended.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `cvi_type` values: "absolute".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute"]
+
+    def __init__(self, cvi_type: str = "absolute") -> None:
+        super().__init__(
+            score_function=SDbw_index,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'SDbw'
+
+class Dunn(CVI):
+    """
+    The Dunn index. [Dunn]_
+
+    This index is absolute and has to be maximised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `cvi_type` values: "absolute".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute"]
+
+    def __init__(self, cvi_type: str = "absolute") -> None:
+        super().__init__(
+            score_function=dunn,
+            maximise=True,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'Dunn'
+
+class XB(CVI):
+    """
+    The Xie-Beni index. [XB]_
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `cvi_type` values: "absolute".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute"]
+
+    def __init__(self, cvi_type: str = "absolute") -> None:
+        """
+        The case k=1 is not possible.
+        """
+        super().__init__(
+            score_function=xie_beni,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'XB'
+
+class XBStar(CVI):
+    """
+    The Xie-Beni* index. [XB*]_
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `cvi_type` values: "absolute".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute"]
+
+    def __init__(self, cvi_type: str = "absolute") -> None:
+        super().__init__(
+            score_function=xie_beni_star,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'XB_star'
+
+class DB(CVI):
+    """
+    The Davies-Bouldin index. [DB]_
+
+    This index is absolute and has to be minimised to find the best
+    :math:`k`.
+
+    The case :math:`k=1` is not possible.
+
+    Possible `cvi_type` values: "absolute".
+
+    Parameters
+    ----------
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "absolute".
+    """
+
+    cvi_types: List[str] = ["absolute"]
+
+    def __init__(self, cvi_type: str = "absolute") -> None:
+        """
+        The case k=1 is not possible.
+        """
+        super().__init__(
+            score_function=davies_bouldin,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition= lambda k: (k>=2)
+        )
+
+    def __str__(self) -> str:
+        return 'DB'
+
+class Inertia(CVI):
+    """
+    The inertia of a clustering.
+
+    This index is monotonous and and smaller values are considered
+    better.
+
+    Possible `cvi_type` values: "monotonous".
+
+    Parameters
+    ----------
+    reduction : str, optional
+        Determines how to combine the inertia values of each cluster to
+        compute the inertia of the whole clustering, by default "sum".
+        Available options: `"sum"`, `"mean"`, `"max"`, `"median"`,
+        `"min"`, `""`, `None` or a callable. See
+        `pycvi.compute_scores.reduce` for more information.
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
+    """
+
+    cvi_types: List[str] = ["monotonous"]
+    reductions: List[str] = [
+        "sum", "mean", "max", "median", "min", "", None
     ]
 
-    dist_kwargs_btw_centroids = dist_kwargs.copy()
-    dist_kwargs_btw_centroids.setdefault("metric", "minkowski")
-    dist_kwargs_btw_centroids.setdefault("p", p)
+    def __init__(
+        self,
+        reduction: Union[str, callable] = "sum",
+        cvi_type: str = "monotonous",
+    ) -> None:
 
-    dist_between_centroids = _dist_between_centroids(
-        X, clusters, all=True, dist_kwargs=dist_kwargs
-    )
+        f_k_condition = lambda k: k>=0
 
-    DB_aux = [
-        np.amax([
-            (S_is[i] + S_is[j]) / dist_between_centroids[i][j]
-            if dist_between_centroids[i][j] != 0 else np.inf
-            for j in range(k)
-        ]) for i in range(k)
+        def score_function(X, clusters):
+            return reduce(compute_score(
+                "list_inertia", X, clusters, dist_kwargs={}, score_kwargs={}
+                ), reduction)
+
+        super().__init__(
+            score_function=score_function,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition = f_k_condition,
+        )
+
+        self.reduction = reduction
+
+    def __str__(self) -> str:
+        if hasattr(self, "reduction"):
+            return 'Inertia_{}'.format(self.reduction)
+        else:
+            return 'Inertia'
+
+class Diameter(CVI):
+    """
+    The Diameter of a clustering.
+
+    This index is monotonous and and smaller values are considered
+    better.
+
+    Possible `cvi_type` values: "monotonous".
+
+    Parameters
+    ----------
+    reduction : str, optional
+        Determines how to combine the diameter values of each cluster to
+        compute the diameter of the whole clustering, by default "sum".
+        Available options: `"sum"`, `"mean"`, `"max"`, `"median"`,
+        `"min"`, `""`, `None` or a callable. See
+        `pycvi.compute_scores.reduce` for more information.
+    cvi_type : str, optional
+        Determines how the index should be interpreted, when selecting
+        the best clustering, by default "monotonous".
+    """
+
+    cvi_types: List[str] = ["monotonous"]
+    reductions: List[str] = [
+        "sum", "mean", "max", "median", "min", "", None
     ]
 
-    DB = (1/k) * np.sum(DB_aux)
-    DB = float(DB)
+    def __init__(
+        self,
+        reduction: Union[str, callable] = "max",
+        cvi_type: str = "monotonous",
+    ) -> None:
 
-    return DB
+        f_k_condition = lambda k: k>=0
+
+        def score_function(X, clusters):
+            return reduce(compute_score(
+                "list_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
+                ), reduction)
+
+        super().__init__(
+            score_function=score_function,
+            maximise=False,
+            improve=True,
+            cvi_type=cvi_type,
+            k_condition = f_k_condition,
+        )
+
+        self.reduction = reduction
+
+    def __str__(self) -> str:
+        return 'Diameter_{}'.format(self.reduction)
+
+CVIs = [
+    Hartigan,
+    CalinskiHarabasz,
+    GapStatistic,
+    Silhouette,
+    ScoreFunction,
+    MaulikBandyopadhyay,
+    SD,
+    SDbw,
+    Dunn,
+    XB,
+    XBStar,
+    DB,
+    Inertia,
+    Diameter,
+]
+"""
+List of available CVI indices in PyCVI
+"""

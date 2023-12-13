@@ -5,30 +5,39 @@ pycvi.cvi
 
    
    
-   
-
-   
-   
-   .. rubric:: Functions
+   .. rubric:: Module Attributes
 
    .. autosummary::
    
-      CH
-      MB
-      SD_index
-      SDbw_index
-      davies_bouldin
-      dunn
-      gap_statistic
-      hartigan
-      score_function
-      silhouette
-      xie_beni
-      xie_beni_star
+      CVIs
    
    
 
    
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CVI
+      CalinskiHarabasz
+      DB
+      Diameter
+      Dunn
+      GapStatistic
+      Hartigan
+      Inertia
+      MaulikBandyopadhyay
+      SD
+      SDbw
+      ScoreFunction
+      Silhouette
+      XB
+      XBStar
    
    
 

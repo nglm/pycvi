@@ -1,4 +1,4 @@
-﻿pycvi.vi
+pycvi.vi
 ========
 
 .. automodule:: pycvi.vi

@@ -30,6 +30,6 @@ pycvi.tests
    pycvi.tests.test_cluster
    pycvi.tests.test_compute_scores
    pycvi.tests.test_cvi
-   pycvi.tests.test_scores
+   pycvi.tests.test_cvi_func
    pycvi.tests.test_vi
 

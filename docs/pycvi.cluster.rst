@@ -1,4 +1,4 @@
-﻿pycvi.cluster
+pycvi.cluster
 =============
 
 .. automodule:: pycvi.cluster

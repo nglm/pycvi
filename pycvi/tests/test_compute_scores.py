@@ -4,7 +4,7 @@ import pytest
 from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-from ..scores import Inertia, GapStatistic
+from ..cvi import Inertia, GapStatistic
 
 from .._datasets import mini
 from ..compute_scores import (
@@ -12,7 +12,7 @@ from ..compute_scores import (
     compute_score, f_cdist, f_pdist, f_intra, f_inertia, compute_all_scores,
     compute_subscores
 )
-from ..cvi import silhouette, CH
+from ..cvi_func import silhouette, CH
 from ..cluster import generate_all_clusterings
 from .._utils import _load_data_from_github
 

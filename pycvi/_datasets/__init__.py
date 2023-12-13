@@ -1,7 +1,7 @@
 """
 Some toy datasets for examples and tests
 
-Datasets should illustrate the impact of different clustering scores,
+Datasets should illustrate the impact of different CVIs,
 different metrics and different clustering algorithm. Some should also
 be representative of a typical real life application
 """

@@ -13,12 +13,9 @@ pycvi.tests.test\_cvi
 
    .. autosummary::
    
-      get_X
-      test__clusters_from_uniform
-      test__compute_Wk
-      test__dist_between_centroids
-      test__dist_centroids_to_global
-      test__var
+      test_Scores
+      test_is_relevant
+      test_select
    
    
 

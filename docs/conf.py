@@ -99,7 +99,7 @@ autodoc_default_options = {
 
 # -- Autosummary options -----------------------------------------------
 
-#autosummary_generate = True  # Turn on sphinx.ext.autosummary
+autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
 # -- Autosectionlabl options -------------------------------------------
 

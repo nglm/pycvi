@@ -6,8 +6,8 @@
 # gap = cvi.gap_statistic(X, clusters_data)
 
 # We do that to skip the cvi file and access the functions directly)
-from .scores import SCORES
+from .cvi import CVIs
 
-from . import scores
 from . import cvi
+from . import cvi_func
 from . import cluster
