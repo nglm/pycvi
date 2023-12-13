@@ -11,7 +11,7 @@ from ..compute_scores import (
     compute_all_scores,
 )
 from ..cluster import generate_all_clusterings
-from ..utils import load_data_from_github
+from ..utils import _load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
@@ -93,7 +93,7 @@ def test_Scores():
     # ---------- Test on clustering benchmark dataset ------------------
     DTW = False
     model = AgglomerativeClustering
-    data, meta = load_data_from_github(PATH + "xclara.arff")
+    data, meta = _load_data_from_github(PATH + "xclara.arff")
     n_clusters_range = [i for i in range(15)]
 
     clusterings_t_k = generate_all_clusterings(

@@ -6,7 +6,7 @@ from ..cvi import (
     _compute_Wk, _clusters_from_uniform, _dist_centroids_to_global,
     _dist_between_centroids, _var
 )
-from ..utils import load_data_from_github
+from ..utils import _load_data_from_github
 from ..datasets import mini, normal, get_clusterings
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
@@ -67,7 +67,7 @@ def test__compute_Wk():
                     assert (type(Wk) == float)
                     assert Wk >= 0
 
-    data, meta = load_data_from_github(PATH + "xclara.arff")
+    data, meta = _load_data_from_github(PATH + "xclara.arff")
     N = len(data)
     l_clusters = [
         [[i for i in range(N)]],

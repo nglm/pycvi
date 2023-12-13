@@ -14,7 +14,7 @@ from ..compute_scores import (
 )
 from ..cvi import silhouette, CH
 from ..cluster import generate_all_clusterings
-from ..utils import load_data_from_github
+from ..utils import _load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
@@ -69,7 +69,7 @@ def test_f_pdist():
         dist = f_pdist(data)
         assert type(dist) == np.ndarray
         assert np.all(dist>=0)
-    data, meta = load_data_from_github(PATH + 'xclara.arff')
+    data, meta = _load_data_from_github(PATH + 'xclara.arff')
     dist = f_pdist(data)
     assert type(dist) == np.ndarray
     assert np.all(dist>=0)
@@ -94,7 +94,7 @@ def test_f_cdist():
         exp_shape = (N-N//2, N//2)
         assert dist.shape == exp_shape
 
-    data, meta = load_data_from_github(PATH + 'xclara.arff')
+    data, meta = _load_data_from_github(PATH + 'xclara.arff')
     dist = f_cdist(data[:N//2], data[N//2:])
     assert type(dist) == np.ndarray
     assert np.all(dist>=0)
