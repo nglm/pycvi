@@ -44,29 +44,6 @@ def reduce(
             dist = reduction(dist)
     return dist
 
-# def get_centroid(
-#     cluster: np.ndarray,
-#     cluster_info: dict = None,
-# ) -> np.ndarray:
-#     """
-#     The "n_sample" dimension is included in the output
-
-#     :param cluster: (N_c, d) array, representing a cluster of size N_c,
-#         or (N_c, w, d) if DTW is used
-#     :type cluster: np.ndarray
-#     :param cluster_info: info on the center, barycenter, etc. of
-#         the cluster
-#     :type cluster_info: dict
-#     :return: centroid of the cluster
-#     :rtype: np.ndarray
-#     """
-#     dims = cluster.shape
-#     if len(dims) == 2:
-#         centroid = cluster_info['center'].reshape(1, -1)
-#     else:
-#         centroid = np.expand_dims(cluster_info["barycenter"], 0)
-#     return centroid
-
 def f_pdist(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
