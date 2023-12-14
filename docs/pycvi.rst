@@ -33,6 +33,5 @@
    pycvi.cvi
    pycvi.cvi_func
    pycvi.exceptions
-   pycvi.tests
    pycvi.vi
 

@@ -16,8 +16,7 @@ import sys
 # Because we created the sphinx project in the ./doc folder
 sys.path.insert(0, os.path.abspath('..'))
 # Because tslearn is not among the standard libraries
-autodoc_mock_imports = ["tslearn"]
-
+autodoc_mock_imports = ["tslearn", "pycvi.tests"]
 
 # -- Project information -----------------------------------------------------
 
