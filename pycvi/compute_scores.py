@@ -1,3 +1,6 @@
+"""
+Helper module with low-level functions related to computing CVI values.
+"""
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
