@@ -3,16 +3,16 @@ pycvi.compute\_scores
 
 .. automodule:: pycvi.compute_scores
 
-   
-   
-   
 
-   
-   
+
+
+
+
+
    .. rubric:: Functions
 
    .. autosummary::
-   
+
       argbest
       argworst
       best_score
@@ -22,26 +22,26 @@ pycvi.compute\_scores
       compute_subscores
       f_cdist
       f_diameter
-      f_generalized_var
+      _f_generalized_var
       f_inertia
       f_intra
-      f_mean_dev_med
-      f_med_dev_centroid
-      f_med_dev_med
+      _f_mean_dev_med
+      _f_med_dev_centroid
+      _f_med_dev_med
       f_pdist
       get_centroid
       reduce
       worst_score
-   
-   
 
-   
-   
-   
 
-   
-   
-   
+
+
+
+
+
+
+
+
 
 
 

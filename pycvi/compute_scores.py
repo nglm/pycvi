@@ -25,8 +25,7 @@ def reduce(
 ) -> Union[float, np.ndarray]:
     """
     reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
-    `"min"`, `""`, `None` or a callable. See
-    `pycvi.compute_scores.reduce`
+    `"min"`, `""`, `None` or a callable.
     """
     if reduction is not None:
         if reduction == "sum":
@@ -47,18 +46,15 @@ def reduce(
 def f_pdist(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    DTW: bool = True
 ) -> np.ndarray:
     """
-    Compute the pairwise distance within a group of elements
+    Compute the pairwise distance within a group of elements.
 
     :param cluster: (N_c, d) array, representing a cluster of size N_c,
         or (N_c, w, d) if DTW is used
     :type cluster: np.ndarray
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
-    :param DTW: To use DTW even in case the shape was (N, T)
-    :type DTW: bool
     :return: pairwise distance within the cluster (a condensed matrix)
     :rtype: np.ndarray
     """
@@ -135,10 +131,9 @@ def f_cdist(
 def f_intra(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    score_kwargs: dict = None,
 ) -> float:
     """
-    Compute the sum of pairwise distance within a group of elements
+    Compute the sum of pairwise distance within a group of elements.
 
     :param cluster: (N_c, d) array, representing a cluster of size N_c,
         or (N_c, w, d) if DTW is used
@@ -156,10 +151,9 @@ def f_intra(
 def f_inertia(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    score_kwargs: dict = None,
 ) -> float:
     """
-    Compute the inertia within a group of elements
+    Compute the inertia within a group of elements.
 
     :param cluster: (N_c, d) array, representing a cluster of size N_c,
         or (N_c, w, d) if DTW is used
@@ -175,10 +169,9 @@ def f_inertia(
     dist = f_cdist(cluster, centroid, dist_kwargs )
     return float(np.sum(dist))
 
-def f_generalized_var(
+def _f_generalized_var(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the sample generalized variance of ONE cluster
@@ -198,10 +191,9 @@ def f_generalized_var(
         else:
             return sample_cov
 
-def f_med_dev_centroid(
+def _f_med_dev_centroid(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the median deviation around the centroid
@@ -220,10 +212,9 @@ def f_med_dev_centroid(
         dist = f_cdist(cluster, centroid, **dist_kwargs )
         return np.median(dist)
 
-def f_mean_dev_med(
+def _f_mean_dev_med(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the mean deviation around the median
@@ -242,10 +233,9 @@ def f_mean_dev_med(
         dist = f_cdist(cluster, centroid, **dist_kwargs )
         return np.mean(dist)
 
-def f_med_dev_med(
+def _f_med_dev_med(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the median deviation around the median
@@ -271,7 +261,6 @@ def f_med_dev_med(
 def f_diameter(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
-    score_kwargs: dict = None,
 ) -> float:
     """
     Compute the diameter of the given cluster
@@ -417,27 +406,27 @@ def compute_score(
         # Here it's generalized variance
         elif score_type.endswith("variance"):
             score = compute_subscores(
-                score_type, X, clusters, "variance", f_generalized_var,
+                score_type, X, clusters, "variance", _f_generalized_var,
                 dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
         # Median around mean based scores
         elif score_type.endswith("MedDevCentroid"):
             score = compute_subscores(
-                score_type, X, clusters, "MedDevCentroid", f_med_dev_centroid,
+                score_type, X, clusters, "MedDevCentroid", _f_med_dev_centroid,
                 dist_kwargs, score_kwargs
             )
         # Median around mean based scores
         elif score_type.endswith("MeanDevMed"):
             score = compute_subscores(
-                score_type, X, clusters, "MeanDevMed", f_mean_dev_med,
+                score_type, X, clusters, "MeanDevMed", _f_mean_dev_med,
                 dist_kwargs, score_kwargs
             )
         # Median around median based scores
-        # Shouldn't be used, see f_med_dev_med
+        # Shouldn't be used, see _f_med_dev_med
         elif score_type.endswith("MedDevMed"):
             score = compute_subscores(
-                score_type, X, clusters, "MedDevMed", f_med_dev_med,
+                score_type, X, clusters, "MedDevMed", _f_med_dev_med,
                 dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
