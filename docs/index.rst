@@ -3,13 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. Main welcoming text
+   ---------------------------------------
+
 .. mdinclude:: md/welcome_top.md
+
+.. Tutorials sections
+   ---------------------------------------
 
 .. toctree::
    :maxdepth: 4
    :caption: Tutorials:
 
    md/tutorials.md
+
+.. Main module section
+   ---------------------------------------
 
 Main Modules
 ----------------------------
@@ -45,11 +54,13 @@ More low-level functions are defined to perform common operations but that can h
    pycvi.compute_scores.f_inertia
    pycvi.cluster.compute_center
 
-.. toctree::
-   :maxdepth: 3
-   :caption: Full API:
+.. Full API section
+   ---------------------------------------
 
-   api
+.. include:: api.rst
+
+.. Contribute / Issues, etc.
+   ---------------------------------------
 
 .. mdinclude:: md/welcome_bottom.md
 

@@ -1,3 +1,7 @@
+"""
+Internal Cluster Validity Indices (CVIs), compatible with DTW and DBA.
+"""
+
 # We typically want:
 #
 # import pycvi as cvi
