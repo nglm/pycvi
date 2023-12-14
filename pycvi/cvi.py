@@ -51,8 +51,10 @@ from .cvi_func import (
     SDbw_index, dunn, xie_beni, xie_beni_star, davies_bouldin
 )
 from .compute_scores import (
-    best_score, better_score, worst_score, argbest, argworst, compute_score,
-    reduce
+    _compute_score, reduce
+)
+from ._compare_scores import (
+    best_score, better_score, worst_score, argbest, argworst
 )
 from .exceptions import InvalidKError
 
@@ -1264,7 +1266,7 @@ class Inertia(CVI):
         f_k_condition = lambda k: k>=0
 
         def score_function(X, clusters):
-            return reduce(compute_score(
+            return reduce(_compute_score(
                 "list_inertia", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
 
@@ -1320,7 +1322,7 @@ class Diameter(CVI):
         f_k_condition = lambda k: k>=0
 
         def score_function(X, clusters):
-            return reduce(compute_score(
+            return reduce(_compute_score(
                 "list_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
 

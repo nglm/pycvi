@@ -8,9 +8,8 @@ from ..cvi import Inertia, GapStatistic
 
 from .._datasets import mini
 from ..compute_scores import (
-    better_score, argbest, best_score, argworst, worst_score,
-    compute_score, f_cdist, f_pdist, f_intra, f_inertia, compute_all_scores,
-    compute_subscores
+    _compute_score, f_cdist, f_pdist, f_intra, f_inertia, compute_all_scores,
+    _compute_subscores
 )
 from ..cvi_func import silhouette, CH
 from ..cluster import generate_all_clusterings
@@ -18,42 +17,6 @@ from .._utils import _load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
-
-def test_comparisons():
-    maximize = False
-    score1 = [
-        -3,    -3,  -3,    0,     2,    -2,    5,    8,    -3,     3,
-        None,  None]
-    score2 = [
-        -4,    -1,   0,    0,    -2,     2,    8,    5,     None,  None,
-        2,    -2]
-    better_max = [
-        False, True, True, False, False, True, True, False, False, False,
-        True, True]
-    better_min = [
-        True, False, False, False, True, False, False, True, False, False,
-        True, True]
-    for i, (s1, s2) in enumerate(zip(score1, score2)):
-        msg = "Better score was wrong, i: {} | s1: {} | s2 {}".format(i, s1, s2)
-        out = better_score(s1, s2, maximize)
-        assert out == better_max[i], msg
-        out = better_score(s1, s2, not maximize)
-        assert out == better_min[i], msg
-
-        if better_max[i]:
-            out_exp_arg = 0
-            out_exp_score = s1
-        else:
-            out_exp_arg = 1
-            out_exp_score = s2
-        out = argbest([s1, s2], maximize)
-        msg = "argbest was wrong,      i: {} | s1: {} | s2 {}".format(i, s1, s2)
-        assert (out == out_exp_arg or s1 == s2), msg
-
-
-        out = best_score([s1, s2], maximize)
-        msg = "best_score was wrong,      i: {} | s1: {} | s2 {}".format(i, s1, s2)
-        assert (out == out_exp_score), msg
 
 def test_f_pdist():
     for multivariate in [True, False]:
@@ -133,21 +96,21 @@ def test_compute_subscores():
         c2 = [i for i in range(N//2, N)]
 
         # DTW case
-        dist = compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
+        dist = _compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
+        dist = _compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
+        dist = _compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
         assert type(dist) == list
         assert (type(dist[0]) == float or type(dist[0]) == np.float64)
 
         # Non DTW case
         data = data.reshape(N, -1)
-        dist = compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
+        dist = _compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
+        dist = _compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
+        dist = _compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
         assert type(dist) == list
         assert (type(dist[0]) == float or type(dist[0]) == np.float64)
 
@@ -162,30 +125,30 @@ def test_compute_score():
         c2 = [i for i in range(N//2, N)]
 
         # DTW case
-        dist = compute_score("inertia", data, [c1, c2])
+        dist = _compute_score("inertia", data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_score("max_inertia", data, [c1, c2])
+        dist = _compute_score("max_inertia", data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_score("list_inertia", data, [c1, c2])
+        dist = _compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
         assert (type(dist[0]) == float or type(dist[0]) == np.float64)
-        dist = compute_score(Inertia(), data, [c1, c2])
+        dist = _compute_score(Inertia(), data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_score(silhouette, data, [c1, c2])
+        dist = _compute_score(silhouette, data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
 
         # Non DTW case
         data = data.reshape(N, -1)
-        dist = compute_score("inertia", data, [c1, c2])
+        dist = _compute_score("inertia", data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_score("max_inertia", data, [c1, c2])
+        dist = _compute_score("max_inertia", data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_score("list_inertia", data, [c1, c2])
+        dist = _compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
         assert (type(dist[0]) == float or type(dist[0]) == np.float64)
-        dist = compute_score(Inertia(), data, [c1, c2])
+        dist = _compute_score(Inertia(), data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
-        dist = compute_score(silhouette, data, [c1, c2])
+        dist = _compute_score(silhouette, data, [c1, c2])
         assert (type(dist) == float or type(dist) == np.float64)
 
 def test_compute_all_scores():

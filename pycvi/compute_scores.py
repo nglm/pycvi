@@ -1,5 +1,13 @@
 """
-Helper module with low-level functions related to computing CVI values.
+Helper module with low and higher level functions to compute CVI values.
+
+.. rubric:: Main function
+
+.. autosummary::
+   :template: function.rst
+
+   pycvi.compute_scores.compute_all_scores
+
 """
 
 import numpy as np
@@ -93,7 +101,7 @@ def f_cdist(
     dist_kwargs: dict = {},
 ) -> np.ndarray:
     """
-    Compute the distance between two (group of) elements.
+    Compute the distance between two (groups of) elements.
 
     :param clusterA: (NA, d) array, representing a cluster of size NA,
         or (NA, w_t, d) if DTW is used
@@ -278,7 +286,7 @@ def f_diameter(
         pdist = f_pdist(cluster, dist_kwargs)
         return np.amax(pdist)
 
-def compute_subscores(
+def _compute_subscores(
     score_type: str,
     X : np.ndarray,
     clusters: List[List[int]],
@@ -309,7 +317,7 @@ def compute_subscores(
     N = len(X)
     prefixes = ["", "sum_", "mean_", "weighted_"]
     score_tmp = [
-            reduce(f_score(X[members], dist_kwargs, score_kwargs), reduction)
+            reduce(f_score(X[members], dist_kwargs), reduction)
             for members in clusters
         ]
     if (score_type in [p + main_score for p in prefixes] ):
@@ -345,7 +353,7 @@ def compute_subscores(
             )
     return score
 
-def compute_score(
+def _compute_score(
     score_type: Union[str, callable],
     X: np.ndarray = None,
     clusters: List[List[int]] = None,
@@ -389,13 +397,13 @@ def compute_score(
         # --------------------------------------------------------------
         # Inertia-based scores
         if (score_type.endswith("inertia")):
-            score = compute_subscores(
+            score = _compute_subscores(
                 score_type, X, clusters, "inertia", f_inertia,
                 dist_kwargs, score_kwargs
             )
         # within distance-based scores
         elif (score_type.endswith("intra")):
-            score = compute_subscores(
+            score = _compute_subscores(
                 score_type, X, clusters, "intra", f_intra,
                 dist_kwargs, score_kwargs
             )
@@ -405,33 +413,33 @@ def compute_score(
         # Don't confuse generalized variance and total variation
         # Here it's generalized variance
         elif score_type.endswith("variance"):
-            score = compute_subscores(
+            score = _compute_subscores(
                 score_type, X, clusters, "variance", _f_generalized_var,
                 dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
         # Median around mean based scores
         elif score_type.endswith("MedDevCentroid"):
-            score = compute_subscores(
+            score = _compute_subscores(
                 score_type, X, clusters, "MedDevCentroid", _f_med_dev_centroid,
                 dist_kwargs, score_kwargs
             )
         # Median around mean based scores
         elif score_type.endswith("MeanDevMed"):
-            score = compute_subscores(
+            score = _compute_subscores(
                 score_type, X, clusters, "MeanDevMed", _f_mean_dev_med,
                 dist_kwargs, score_kwargs
             )
         # Median around median based scores
         # Shouldn't be used, see _f_med_dev_med
         elif score_type.endswith("MedDevMed"):
-            score = compute_subscores(
+            score = _compute_subscores(
                 score_type, X, clusters, "MedDevMed", _f_med_dev_med,
                 dist_kwargs, score_kwargs
             )
         # --------------------------------------------------------------
         elif score_type.endswith("diameter"):
-            score = compute_subscores(
+            score = _compute_subscores(
                 score_type, X, clusters, "diameter", f_diameter,
                 dist_kwargs, score_kwargs
             )
@@ -560,92 +568,3 @@ def compute_all_scores(
             scores_t_n[t_w][n_clusters] = res_score
 
     return scores_t_n
-
-def better_score(
-    score1: float,
-    score2: float,
-    maximize: bool,
-    or_equal: bool = False
-) -> bool:
-    """
-    Determines whether `score1` is indeed better than `score2`.
-
-    If both scores are None, return a ScoreError.
-
-    It is assumed that if one (and only one) score is `None` it means
-    that it hasn't been reached yet, which means that it is probably
-    the best.
-    """
-    if score1 is None and score2 is None:
-        msg = "Better score not determined, both scores are None."
-        raise ScoreError(msg)
-    elif score1 is None:
-        return True
-    elif score2 is None:
-        return False
-    elif score1 == score2:
-        return or_equal
-    elif score1 > score2:
-        return maximize
-    elif score1 < score2:
-        return not maximize
-    else:
-        msg = "Better score could not be determined: {} | {}".format(
-            score1, score2
-        )
-        raise ScoreError(msg)
-
-def argbest(
-    scores: List[float],
-    maximize: bool,
-    ignore_None: bool = False,
-) -> int:
-    """
-    Returns index of best score
-    """
-    # In some cases we want "None" to be the best score
-    if not ignore_None:
-        try:
-            res = scores.index(None)
-            return res
-        except ValueError:
-            # If we wanted None to be the best but there is no None
-            # just continue with the regular case
-            pass
-    scores_with_nans = [s if s is not None else np.nan for s in scores]
-    if maximize:
-        return int(np.nanargmax(scores_with_nans))
-    else:
-        return int(np.nanargmin(scores_with_nans))
-
-def best_score(
-    scores: List[float],
-    maximize: bool,
-    ignore_None: bool = False,
-) -> float:
-    """
-    Returns best score
-    """
-    return scores[argbest(scores, maximize, ignore_None)]
-
-def argworst(
-    scores: List[float],
-    maximize: bool,
-) -> int:
-    """
-    Returns index of worst score
-    """
-    scores_with_nans = [s if s is not None else np.nan for s in scores]
-    if maximize:
-        return int(np.nanargmin(scores_with_nans))
-    else:
-        return int(np.nanargmax(scores_with_nans))
-
-def worst_score(
-    scores: List[float],
-    maximize: bool,
-) -> float:
-    """
-    Returns worst score
-    """
-    return scores[argworst(scores, maximize)]
