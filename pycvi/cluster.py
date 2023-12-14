@@ -155,12 +155,31 @@ def prepare_data(
     - a list of :math:`1` `(N, T*d)` array if DTW and sliding window
       were not used
 
+    This function is notably called in
+    :func:`pycvi.cluster.generate_all_clusterings`.
+
     Parameters
     ----------
     X : np.ndarray, shape `(N, T, d)`
-        Original data
+        Original data.
+    DTW : bool, optional
+        Determines whether DTW should be the distance used on the data
+        (concerns only time series data). If so, the time dimension is
+        kept, otherwise it is "merged" with the feature dimension. By
+        default, `False`.
     window : dict, optional
-        Information related to the sliding windows of time-series.
+        Information related to the sliding windows of time-series. By
+        default `None`, which means that no sliding window is done on
+        the data. For more information, see
+        :func:`pycvi.cluster.sliding_window`.
+    transformer : callable, optional
+        A potential additional preprocessing step, by default None. If
+        None, no transformation is applied on the data
+    scaler : A sklearn-like scaler model, optional
+        A data scaler, by default StandardScaler(). In the case of time
+        series data (i.e. :math:`T > 1`), all the time steps of all
+        samples of a given feature are aggregated before fitting the
+        scaler. If None, no scaling is applied on the data.
 
     Returns
     -------
@@ -280,6 +299,20 @@ def sliding_window(T: int, w: int) -> dict:
     - `"midpoint_o"`: Midpoint in the origin reference
     - `"origin"`: Original indices
 
+    This function is notably called in
+    :func:`pycvi.cluster.generate_all_clusterings`.
+
+    Parameters
+    ----------
+    T : int
+        Length of the time series.
+    w : int
+        Length of the sliding window.
+
+    Returns
+    -------
+    dict
+        The information related to the sliding windows of length :math:`w` extracted from time-series of length :math:`T`.
     """
     # Boundaries between regular cases and extreme ones
     ind_start = (w-1)//2
@@ -326,7 +359,7 @@ def sliding_window(T: int, w: int) -> dict:
     return window
 
 def _get_clusters(
-    model,
+    model_class,
     model_kw : Dict = {},
     fit_predict_kw : Dict = {},
     model_class_kw : Dict = {},
@@ -336,6 +369,11 @@ def _get_clusters(
 
     Parameters
     ----------
+    model_class : A sklearn-like clustering class
+        A class implementing a clustering algorithm.
+    model_kw : dict, optional
+        Specific kwargs to give to `model` init method, by default
+        {}.
     fit_predict_kw : dict, optional
         Dict of kw for the fit_predict method, defaults to {}
     model_class_kw : dict, optional
@@ -352,7 +390,7 @@ def _get_clusters(
     N = len(X)
 
     # ====================== Fit & predict part =======================
-    labels = model(**model_kw).fit_predict(**fit_predict_kw)
+    labels = model_class(**model_kw).fit_predict(**fit_predict_kw)
 
     # ==================== clusters ======================
     clusters = [ [] for _ in range(n_clusters)]
@@ -389,6 +427,11 @@ def generate_all_clusterings(
     algorithm didn't converged then ```clusterings_t_k[t_w][n_clusters]
     = None```.
 
+    For more information about the preprocessing steps done on the data
+    before the clustering operation, see
+    :func:`pycvi.cluster.prepare_data` and
+    :func:`pycvi.cluster.sliding_window`.
+
     Parameters
     ----------
     data : np.ndarray,
@@ -398,6 +441,7 @@ def generate_all_clusterings(
         - `(N,)` -> `(N, 1, 1)`
         - `(N, d)` -> `(N, 1, d)`
         - `(N, T, d)` -> `(N, T, d)`
+
     model_class : A sklearn-like clustering class
         A class implementing a clustering algorithm.
     n_clusters_range : Sequence, optional
@@ -414,11 +458,13 @@ def generate_all_clusterings(
         A potential additional preprocessing step, by default None. If
         None, no transformation is applied on the data
     scaler : A sklearn-like scaler model, optional
-        A data scaler, by default StandardScaler(). If None, so scaling
-        is applied on the data.
+        A data scaler, by default StandardScaler(). In the case of time
+        series data (i.e. :math:`T > 1`), all the time steps of all
+        samples of a given feature are aggregated before fitting the
+        scaler. If None, no scaling is applied on the data.
     model_kw : dict, optional
         Specific kwargs to give to `model_class` init method, by default
-        {}
+        {}.
     fit_predict_kw : dict, optional
         Specific kwargs to give to the `fit_predict` method of the
         `model_class` clustering model, by default {}.

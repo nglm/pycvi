@@ -179,7 +179,7 @@ def test__get_clusters():
             }
 
             clusters = _get_clusters(
-                model=model_DTW, model_kw=model_kw,
+                model_class=model_DTW, model_kw=model_kw,
                 fit_predict_kw=fit_predict_kw, model_class_kw={}
             )
 
@@ -202,7 +202,7 @@ def test__get_clusters():
         }
 
         clusters = _get_clusters(
-            model=model_DTW, model_kw=model_kw,
+            model_class=model_DTW, model_kw=model_kw,
             fit_predict_kw=fit_predict_kw, model_class_kw={}
         )
 
@@ -228,7 +228,7 @@ def test__get_clusters():
             }
 
             clusters = _get_clusters(
-                model=model, model_kw=model_kw,
+                model_class=model, model_kw=model_kw,
                 fit_predict_kw=fit_predict_kw, model_class_kw={}
             )
 
@@ -251,7 +251,7 @@ def test__get_clusters():
         }
 
         clusters = _get_clusters(
-            model=model, model_kw=model_kw,
+            model_class=model, model_kw=model_kw,
             fit_predict_kw=fit_predict_kw, model_class_kw={}
         )
 
