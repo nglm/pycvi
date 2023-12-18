@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from ..cvi import Inertia, GapStatistic
 
-from .._datasets import mini
+from ..datasets._mini import mini
 from ..compute_scores import (
     _compute_score, f_cdist, f_pdist, f_intra, f_inertia, compute_all_scores,
     _compute_subscores

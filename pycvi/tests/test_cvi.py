@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
 
 from ..cvi import CVIs, CVI
-from .._datasets import mini
+from ..datasets._mini import mini
 from ..compute_scores import (
     compute_all_scores,
 )
