@@ -1,16 +1,55 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List
+from matplotlib.cm import get_cmap
+from typing import List, Tuple
 from math import ceil
 
 from pycvi.cvi import CVIs
 
 # --------  Adapt the figures to the total number of scores ------------
 N_CVIs = len(CVIs)
-N_ROWS = ceil(N_CVIs / 5)
+N_ROWS = ceil((N_CVIs+2) / 5)
 N_COLS = 5
-FIGSIZE = (4*N_COLS, ceil(2.5*N_ROWS))
+FIGSIZE = (4*N_COLS, ceil(4*N_ROWS))
 # ----------------------------------------------------------------------
+
+def _get_shape_UCR(data: np.ndarray) -> Tuple[Tuple[int], bool]:
+    dims = data.shape
+    if len(dims) == 3:
+        (N, T, d) = data.shape
+        UCR = True
+    else:
+        (N, d) = data.shape
+        T = 1
+        UCR = False
+    return (N, T, d), UCR
+
+def _get_colors(name: str="Set1") -> List:
+    cmap = get_cmap(name)
+    colors = cmap.colors
+    return colors
+
+def _plot_cluster(
+    ax,
+    data: np.ndarray,
+    cluster: List[int],
+    color,
+):
+    (N, T, d), UCR = _get_shape_UCR(data)
+    if UCR:
+        x = np.arange(T)
+        y_val = data[cluster, :, 0]
+        for y in y_val:
+            ax.plot(x, y, c=color, alpha=0.2, lw=0.4)
+    else:
+        if d == 1:
+            x_val = np.zeros_like(data[cluster, 0])
+            y_val = data[cluster, 0]
+        elif d == 2:
+            x_val = data[cluster, 0]
+            y_val = data[cluster, 1]
+        ax.scatter(x_val, y_val, s=1)
+    return ax
 
 def plot_clusters(
     data: np.ndarray,
@@ -36,25 +75,22 @@ def plot_clusters(
     :return: a figure with one clustering per score (+2 plots first)
     :rtype:
     """
-    (N, d) = data.shape
+
+    colors = _get_colors()
+
     # -------  Plot the clustering selected by a given score -----------
     for i_score in range(len(clusterings_selected)):
 
-        # ------------- Find the ax corresponding to the score ---------
-        if d <= 2:
-            ax = fig.axes[i_score+2] # i+2 because there are 2 plots already
-        else:
-            return None
+        # Find the ax corresponding to the score
+        ax = fig.axes[i_score+2] # i+2 because there are 2 plots already
 
         # Add predefined title
         ax.set_title(str(titles[i_score]))
 
         # ------------------ Plot clusters one by one ------------------
         for i_label, cluster in enumerate(clusterings_selected[i_score]):
-            if d == 1:
-                ax.scatter(np.zeros_like(data[cluster, 0]), data[cluster, 0], s=1)
-            elif d == 2:
-                ax.scatter(data[cluster, 0], data[cluster, 1], s=1)
+            color = colors[i_label % len(colors)]
+            ax = _plot_cluster(ax, data, cluster, color)
 
     return fig
 
@@ -80,8 +116,8 @@ def plot_true(
     :return: _description_
     :rtype: _type_
     """
-
-    (N, d) = data.shape
+    (N, T, d), UCR = _get_shape_UCR(data)
+    colors = _get_colors()
 
     # ----------------------- Create figure ----------------
     if d <= 2:
@@ -119,15 +155,10 @@ def plot_true(
             ax = fig.axes[i_ax]
 
         # ---------------  Plot clusters one by one --------------------
-        for i in range(n_labels):
-
-            c = clusters[i_ax][i]
-            if d == 1:
-                ax.scatter(
-                    np.zeros_like(data[c, 0]), data[c, 0], s=1
-                )
-            elif d == 2:
-                ax.scatter(data[c, 0], data[c, 1], s=1)
+        for i_label in range(n_labels):
+            c = clusters[i_ax][i_label]
+            color = colors[i_label % len(colors)]
+            ax = _plot_cluster(ax, data, c, color)
 
         # Add title
         ax.set_title(ax_titles[i_ax])

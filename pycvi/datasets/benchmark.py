@@ -57,7 +57,7 @@ def load_data(
     f_data = fname + "_data.csv"
     with resources.open_text(f"pycvi.datasets.{subfolder}", f_data) as f:
         reader = csv.reader(f)
-        data = np.array(list(reader))
+        data = np.array(list(reader), dtype=float)
         # reshape to (N, T, 1) if UCR
         if subfolder == "UCR":
             data = np.expand_dims(data, -1)
@@ -70,7 +70,7 @@ def load_data(
         labels = np.array([map_classes[label] for label in labels], dtype=int)
     print((
         f"Source: {subfolder} | Dataset: {fname} | Shape: {data.shape}"
-        + f"Labels: {np.unique(labels)}"
+        + f" | Labels: {np.unique(labels)}"
     ))
 
     return data, labels
