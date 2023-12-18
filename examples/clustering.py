@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+
+import numpy as np
+from sklearn.cluster import AgglomerativeClustering, KMeans, SpectralClustering
+from sklearn.preprocessing import StandardScaler
+from sklearn_extra.cluster import KMedoids
+from tslearn.clustering import TimeSeriesKMeans
+import time
+import matplotlib.pyplot as plt
+from typing import List, Sequence, Tuple
+
+from pycvi.cluster import generate_all_clusterings
+from pycvi.cvi import CVIs
+from pycvi.compute_scores import compute_all_scores
+from pycvi.vi import variation_information
+from pycvi.datasets.benchmark import load_data
+
+from .utils import plot_true, plot_clusters
+
+import warnings
+warnings.filterwarnings("ignore")
+
+def pipeline(
+    X: np.ndarray,
+    y: np.ndarray,
+    model_class,
+    k_max: int = 25,
+    scaler = StandardScaler(),
+    DTW:bool = False,
+    fig_name: str = "",
+) -> None:
+    """
+    This function gives an example of typical pipeline using PyCVI.
+
+    In this function we:
+
+    - Generate all clusterings for a given range of number of clusters.
+    - Compute the Variation of Information (VI) between the generated
+      clusterings and the true clustering
+    - For each CVI available in PyCVI, compute their values for all
+      generated clusterings
+    - For each CVI, select the best clustering according to its CVI
+      values
+    - Create a summary plot containing the true clustering, the
+      clustering assuming the correct number of clusters and the
+      selected clusterings of each CVI.
+    """
+    N = len(X)
+    k_range = range(min(k_max, N+1))
+
+    # ------------------------------------------------------------------
+    # ------------------ Define true clustering  -----------------------
+    # ------------------------------------------------------------------
+    classes = np.unique(y)
+    k_true = len(classes)
+
+    # true clusters: List[List[int]]
+    indices = np.arange(len(X))
+    true_clusters = [ indices[y == classes[i]] for i in range(k_true) ]
+
+    # ------------------------------------------------------------------
+    # ------------------ Generate clusterings  -------------------------
+    # ------------------------------------------------------------------
+
+    t_start = time.time()
+
+    clusterings = generate_all_clusterings(
+            X,
+            model_class,
+            k_range,
+            DTW = DTW,
+            scaler=scaler,
+        )[0]
+
+    t_end = time.time()
+    dt = t_end - t_start
+
+    print(f"Clusterings generated in: {dt:.2f}s")
+
+    # -- Plot true clusters & clusters when assuming k_true clusters ---
+    best_clusters = clusterings[k_true]
+    fig = plot_true(X, y, best_clusters)
+
+    # ------------------------------------------------------------------
+    # ------  Variation of information with the true clustering --------
+    # ------------------------------------------------------------------
+
+    print(" ================ VI ================ ")
+    # Compute VI between the true clustering and each clustering
+    # obtained with the different clustering methods
+    VIs = {}
+    for k, clustering in clusterings.items():
+        VIs[k] = variation_information(true_clusters, clustering)
+        print(k, VIs[k])
+
+    # ------------------------------------------------------------------
+    # ------------ Compute CVI values and select k ---------------------
+    # ------------------------------------------------------------------
+    ax_titles = []
+    clusterings_selected = []
+
+    for cvi_class in CVIs:
+
+        # Instantiate a CVI model
+        cvi = cvi_class()
+        t_start = time.time()
+        print(f" === {cvi} === ")
+
+        # Compute CVI values for all clusterings
+        scores = compute_all_scores(
+            cvi,
+            X,
+            [clusterings],
+            DTW=DTW,
+            scaler=StandardScaler(),
+        )
+
+        t_end = time.time()
+        dt = t_end - t_start
+
+        # Select k
+        k_selected = cvi.select(scores)[0]
+
+        # Print CVI values and selected k
+        for k in clusterings:
+            print(k, scores[0][k])
+        print(f"Selected k: {k_selected} | True k: {k_true}")
+        print('Code executed in %.2f s' %(dt))
+
+        # For plotting purpose
+        clusterings_selected.append(clusterings[k_selected])
+        ax_titles.append(
+            f"{cvi}, k={k_selected}, VI={VIs[k_selected]:.2f}"
+        )
+
+    # ------------------------------------------------------------------
+    # ----------------------- Summary plot -----------------------------
+    # ------------------------------------------------------------------
+
+    fig = plot_clusters(X, clusterings_selected, fig, ax_titles)
+
+    fig.suptitle(fig_name)
+    fig.savefig(fig_name + ".png")
+
+# ======================================================================
+# PyCVI on non time-series data
+# ======================================================================
+
+# long1
+# zelnik1
+X, y = load_data("zelnik1", "barton")
+model_class = KMeans
+DTW = False
+scaler = StandardScaler()
+k_max = 10
+fig_name = "Non time-series data with KMeans"
+
+pipeline(X, y, model_class, k_max, scaler, DTW, fig_name)
+
+# ======================================================================
+# PyCVI on time series data
+# ======================================================================
+
+# Trace dataset
+# SmallKitchenAppliances dataset
+X, y = load_data("Trace", "UCR")
+
+# ==========================
+# PyCVI using DTW
+# ==========================
+
+model_class = TimeSeriesKMeans
+DTW = True
+scaler = StandardScaler()
+k_max = 10
+fig_name = "Time-series data using DTW with TimeSeriesKMeans"
+
+pipeline(X, y, model_class, k_max, scaler, DTW, fig_name)
+
+
+# ==========================
+# PyCVI not using DTW
+# ==========================
+
+model_class = KMedoids
+DTW = False
+scaler = StandardScaler()
+k_max = 10
+fig_name = "Time-series data without DTW with KMedoids"
+
+pipeline(X, y, model_class, k_max, scaler, DTW, fig_name)
+
+
