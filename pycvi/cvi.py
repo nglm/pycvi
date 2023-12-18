@@ -634,20 +634,20 @@ class CalinskiHarabasz(CVI):
     the case k=1 can be selected, with CH(1) = 0 and CH(0) extended (see
     `pycvi.cvi.CH`)
 
-    Possible `cvi_type` values: "monotonous" or "original".
+    Possible `cvi_type` values: "monotonous", "absolute" or "original".
 
     Parameters
     ----------
     cvi_type : str, optional
         Determines how the index should be interpreted, when selecting
-        the best clustering, by default "monotonous".
+        the best clustering, by default "original".
     """
 
     cvi_types: List[str] = ["monotonous", "original", "absolute"]
 
     def __init__(
         self,
-        cvi_type: str = "monotonous"
+        cvi_type: str = "original"
     ) -> None:
         # Note that the case k=1 for the absolute version will always
         # give CH=0
@@ -924,7 +924,7 @@ class ScoreFunction(CVI):
     The absolute case can also be chosen (i.e. special case are
     ignored).
 
-    Possible `cvi_type` values: "monotonous", or "original".
+    Possible `cvi_type` values: "absolute", or "original".
 
     Parameters
     ----------
