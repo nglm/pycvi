@@ -32,6 +32,7 @@
    pycvi.compute_scores
    pycvi.cvi
    pycvi.cvi_func
+   pycvi.datasets
    pycvi.exceptions
    pycvi.vi
 
