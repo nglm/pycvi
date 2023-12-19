@@ -42,8 +42,6 @@ the number of clusters is available.
 """
 
 import numpy as np
-from scipy.spatial.distance import cdist, pdist
-from tslearn.metrics import cdist_soft_dtw
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .cvi_func import (

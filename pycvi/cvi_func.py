@@ -8,7 +8,7 @@ These functions are the one on which the CVI classes defined in
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-from tslearn.clustering import TimeSeriesKMeans
+from aeon.clustering import TimeSeriesKMeans
 import numpy as np
 from math import sqrt
 

@@ -12,7 +12,6 @@ The main functions of this module are:
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from tslearn.barycenters import softdtw_barycenter
 from aeon.clustering.averaging._barycenter_averaging import (
     elastic_barycenter_average
 )
