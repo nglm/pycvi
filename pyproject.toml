@@ -6,8 +6,9 @@ authors = ["Natacha, Galmiche <natacha.galmiche@uib.no>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.12"
 tslearn = "^0.6.2"
+aeon = "^0.6.0"
 
 [tool.poetry.group.examples]
 optional = true

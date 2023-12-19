@@ -12,8 +12,10 @@ The main functions of this module are:
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from tslearn.metrics import dtw_path
 from tslearn.barycenters import softdtw_barycenter
+from aeon.clustering.averaging._barycenter_averaging import (
+    elastic_barycenter_average
+)
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._configuration import set_data_shape, get_model_parameters
 from .exceptions import ShapeError, NoClusterError
@@ -50,14 +52,20 @@ def compute_center(
     dims = cluster.shape
 
     # Regular case
+    # center shape: (d)
     if len(dims) == 2:
-        # Shape (d)
         center = np.mean(cluster, axis=0).reshape(-1)
 
     # DTW case
+    # center shape: (w_t, d)
     elif len(dims) == 3:
-        # Shape (w_t, d)
-        center = softdtw_barycenter(cluster)
+
+        # aeon doesn't handle well the case with only one sample
+        if dims[0] == 1:
+            center = cluster[0]
+        else:
+            center = elastic_barycenter_average(np.swapaxes(cluster, 1, 2))
+            center = np.swapaxes(center, 0, 1)
 
     else:
         msg = (
@@ -532,7 +540,10 @@ def generate_all_clusterings(
             model_class_kw = model_class_kw,
         )
         # Update fit_predict_kw with the data
-        fit_predict_kw[model_class_kw["X_arg_name"]] = X_clus
+        if len(X_clus.shape) == 3:
+            fit_predict_kw[model_class_kw["X_arg_name"]] = np.swapaxes(X_clus, 1, 2)
+        else:
+            fit_predict_kw[model_class_kw["X_arg_name"]] = X_clus
 
         for n_clusters in n_clusters_range:
 

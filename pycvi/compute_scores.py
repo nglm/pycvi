@@ -13,7 +13,7 @@ Helper module with low and higher level functions to compute CVI values.
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
 from sklearn.preprocessing import StandardScaler
-from tslearn.metrics import cdist_soft_dtw_normalized
+from aeon.distances import dtw_distance, dtw_pairwise_distance
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from ._configuration import set_data_shape
@@ -85,21 +85,18 @@ def f_pdist(
         )
     elif len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
-        (N_c, w_t, d)  = cluster.shape
-        dist_square = np.zeros((N_c, N_c))
-        for m in range(1, N_c):
-            # Fill the upper triangular matrix from the square dist matrix
-            dist_square[m-1:m, m:] = cdist_soft_dtw_normalized(
-                np.expand_dims(cluster[m-1], 0),
-                cluster[m:],
-                gamma=1
-            )
-        # Make this matrix symmetric
-        dist_sym = dist_square + dist_square.T - np.diag(np.diag(dist_square))
+        (N_c, w_t, d) = cluster.shape
+
+        dist_square = dtw_pairwise_distance(
+            np.swapaxes(cluster, 1, 2),
+            None,
+            # itakura_max_slope=0.1,
+            window=0.2,
+        )
         # and condense this matrix using squareform
         # squareform gives a square if condensed is given but gives an
         # condensed if a square is given
-        dist = squareform(dist_sym)
+        dist = squareform(dist_square)
 
         # Option 2: Pairwise distances between the midpoint of the barycenter
         # and the corresponding time step for each member in the cluster
@@ -152,6 +149,12 @@ def f_cdist(
         )
     elif len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
+        dist = dtw_pairwise_distance(
+            np.swapaxes(clusterA, 1, 2),
+            np.swapaxes(clusterB, 1, 2),
+            # itakura_max_slope=0.1,
+            window=0.2,
+        )
     else:
         msg = (
             f"Can only compute distances between arrays of shapes "
