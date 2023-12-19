@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import urllib
+import urllib.request
 from scipy.io import arff
 import io
 from .exceptions import ShapeError
