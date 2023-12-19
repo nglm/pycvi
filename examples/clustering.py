@@ -4,7 +4,6 @@ import numpy as np
 from sklearn.cluster import AgglomerativeClustering, KMeans, SpectralClustering
 from sklearn.preprocessing import StandardScaler
 from sklearn_extra.cluster import KMedoids
-# from tslearn.clustering import TimeSeriesKMeans
 from aeon.clustering import TimeSeriesKMeans
 import time
 import matplotlib.pyplot as plt
