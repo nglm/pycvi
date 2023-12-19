@@ -392,6 +392,12 @@ def _get_clusters(
     -------
     List[List[int]]
         Members affiliation to the generated clustering
+
+    Raises
+    ------
+    NoClusterError
+        Raised if the clustering algorithm didn't find the expected
+        number of clusters because it couldn't converge.
     """
     n_clusters = model_kw[model_class_kw.get("k_arg_name", "n_clusters")]
     X = fit_predict_kw[model_class_kw.get("X_arg_name", "X")]
@@ -432,8 +438,9 @@ def generate_all_clusterings(
     :math:`k` clusters for the extracted time window :math:`t\_w`.
 
     If some clusterings couldn't be defined because the clustering
-    algorithm didn't converged then ```clusterings_t_k[t_w][n_clusters]
-    = None```.
+    algorithm didn't converged
+    (:class:`pycvi.exceptions.NoClusterError`) then
+    ```clusterings_t_k[t_w][n_clusters] = None```.
 
     For more information about the preprocessing steps done on the data
     before the clustering operation, see
@@ -466,7 +473,9 @@ def generate_all_clusterings(
         A potential additional preprocessing step, by default None. If
         None, no transformation is applied on the data
     scaler : A sklearn-like scaler model, optional
-        A data scaler, by default StandardScaler(). In the case of time
+        A data scaler, by default
+        `StandardScaler() <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_
+        . In the case of time
         series data (i.e. :math:`T > 1`), all the time steps of all
         samples of a given feature are aggregated before fitting the
         scaler. If None, no scaling is applied on the data.

@@ -1,3 +1,10 @@
+"""
+Functional API of all implemented CVIs.
+
+These functions are the one on which the CVI classes defined in
+:mod:`pycvi.cvi` are based.
+"""
+
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler

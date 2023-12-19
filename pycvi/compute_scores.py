@@ -1,5 +1,5 @@
 """
-Helper module with low and higher level functions to compute CVI values.
+Low and high level functions to compute CVI values.
 
 .. rubric:: Main function
 
@@ -32,8 +32,24 @@ def reduce(
     reduction: Union[str, callable] = None,
 ) -> Union[float, np.ndarray]:
     """
+    Applies a given operation on a distance matrix.
+
     reduction available: `"sum"`, `"mean"`, `"max"`, `"median"`,
     `"min"`, `""`, `None` or a callable.
+
+    Parameters
+    ----------
+    dist : np.ndarray,
+        A distance matrix, either condensed (if pdist) or not (if
+        cdist).
+    reduction : Union[str, callable], optional
+        The type of reduction to apply to the distance matrix, by
+        default None.
+
+    Returns
+    -------
+    Union[float, np.ndarray]
+        The result of applying the reduction on the distance matrix.
     """
     if reduction is not None:
         if reduction == "sum":
@@ -56,7 +72,7 @@ def f_pdist(
     dist_kwargs: dict = {},
 ) -> np.ndarray:
     """
-    Compute the pairwise distance within a group of elements.
+    Pairwise distances within a group of elements.
 
     Parameters
     ----------
@@ -115,7 +131,7 @@ def f_cdist(
     dist_kwargs: dict = {},
 ) -> np.ndarray:
     """
-    Compute the distance between two (groups of) elements.
+    Distances between two (groups of) elements.
 
     Parameters
     ----------
@@ -175,18 +191,21 @@ def f_intra(
     dist_kwargs: dict = {},
 ) -> float:
     """
-    Compute the sum of pairwise distance within a group of elements.
+    Sum of pairwise distances within a group of elements.
 
-    :param cluster: (N_c, d) array, representing a cluster of size N_c,
-        or (N_c, w, d) if DTW is used
-    :type cluster: np.ndarray
-    :param score_kwargs: kwargs specific for the score.
-    :type score_kwargs: dict
-    :type cluster_info: dict
-    :param dist_kwargs: kwargs for pdist, cdist, etc.
-    :type dist_kwargs: dict
-    :return: sum of pairwise distances within the cluster
-    :rtype: float
+    Parameters
+    ----------
+    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW.
+        A cluster of size `N`.
+    dist_kwargs : dict, optional
+        kwargs for
+        `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
+        , by default {}.
+
+    Returns
+    -------
+    float
+        The sum of pairwise distances within the cluster.
     """
     return float(np.sum(f_pdist(cluster, dist_kwargs)))
 
@@ -195,17 +214,23 @@ def f_inertia(
     dist_kwargs: dict = {},
 ) -> float:
     """
-    Compute the inertia within a group of elements.
+    Inertia of a group of elements.
 
-    :param cluster: (N_c, d) array, representing a cluster of size N_c,
-        or (N_c, w, d) if DTW is used
-    :type cluster: np.ndarray
-    :param score_kwargs: kwargs specific for the score.
-    :type score_kwargs: dict
-    :param dist_kwargs: kwargs for pdist, cdist, etc.
-    :type dist_kwargs: dict
-    :return: sum of squared distances between each element and the centroid
-    :rtype: float
+    The inertia is defined as the sum of (squared) distances between the datapoints in the the cluster and its centroid.
+
+    Parameters
+    ----------
+    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW.
+        A cluster of size `N`.
+    dist_kwargs : dict, optional
+        kwargs for
+        `scipy.spatial.distance.cdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_
+        , by default {}.
+
+    Returns
+    -------
+    float
+        The inertia of the cluster.
     """
     centroid = np.expand_dims(compute_center(cluster), 0)
     dist = f_cdist(cluster, centroid, dist_kwargs )
@@ -305,14 +330,21 @@ def f_diameter(
     dist_kwargs: dict = {},
 ) -> float:
     """
-    Compute the diameter of the given cluster
+    Diameter of a group of elements.
 
-    :param cluster: (N_c, d) array, representing a cluster of size N_c
-    :type cluster: np.ndarray
-    :param dist_kwargs: kwargs for pdist, cdist, etc.
-    :type dist_kwargs: dict
-    :return: the diameter of that cluster
-    :rtype: float
+    Parameters
+    ----------
+    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW.
+        A cluster of size `N`.
+    dist_kwargs : dict, optional
+        kwargs for
+        `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
+        , by default {}.
+
+    Returns
+    -------
+    float
+        The diameter of the cluster.
     """
     if len(cluster) == 1:
         return 0
@@ -486,25 +518,79 @@ def _compute_score(
     return score
 
 def compute_all_scores(
-    score,
+    cvi,
     data: np.ndarray,
     clusterings: List[Dict[int, List[List[int]]]],
-    transformer = None,
+    transformer: callable = None,
     scaler = StandardScaler(),
     DTW: bool = True,
     time_window: int = None,
     N_zero: int = 10,
     zero_type: str = "bounds",
-    score_kwargs: dict = {},
+    cvi_kwargs: dict = {},
 ) -> List[Dict[int, float]]:
     """
-    Compute all CVI values for the given clusterings.
+    Computes all CVI values for the given clusterings.
 
-    If some scores couldn't be computed because of the condition on k
-    or because the clustering algorithm used previously didn't converged
-    then `scores[t_w][n_clusters] = None`.
+    If some scores couldn't be computed because of the condition on
+    :math:`k` (:class:`pycvi.exceptions.InvalidKError`) or because the
+    clustering algorithm used previously didn't converged
+    (:class:`pycvi.exceptions.NoClusterError`) then
+    ```scores[t_w][n_clusters] = None```.
 
-    :rtype: List[Dict[int, float]]
+    Parameters
+    ----------
+    cvi : an instance of a CVI class.
+        The CVI to use to compute all the scores. See
+    data : np.ndarray
+        Original data. Acceptable input shapes and their corresponding
+        output shapes in the PyCVI package:
+
+        - `(N,)` -> `(N, 1, 1)`
+        - `(N, d)` -> `(N, 1, d)`
+        - `(N, T, d)` -> `(N, T, d)`
+    clusterings : List[Dict[int, List[List[int]]]]
+        All clusterings for the given range on the number of clusters
+        and for the potential sliding windows if applicable.
+
+        ```clusterings_t_k[t_w][k][i]``` is a list of members indices
+        contained in cluster :math:`i` for the clustering that assumes
+        :math:`k` clusters for the extracted time window :math:`t\_w`.
+    transformer : callable, optional
+        A potential additional preprocessing step, by default None. If
+        None, no transformation is applied on the data
+    scaler : A sklearn-like scaler model, optional
+        A data scaler, by default
+        `StandardScaler() <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_
+        . In the case of time
+        series data (i.e. :math:`T > 1`), all the time steps of all
+        samples of a given feature are aggregated before fitting the
+        scaler. If None, no scaling is applied on the data.
+    DTW : bool, optional
+        Determines if DTW should be used as the distance measure
+        (concerns only time series data), by default True.
+    time_window : int, optional
+        Length of the sliding window (concerns only time-series data),
+        by default None. If None, no sliding window is used, and the
+        time series is considered as a whole.
+    N_zero : int, optional
+        Number of uniform distributions sampled, by default 10.
+    zero_type : str, optional
+        Determines how to parametrize the uniform
+        distribution to sample from in the case :math:`k=0`, by default
+        "bounds". Possible options:
+
+        - `"variance"`: the uniform distribution is defined such that it
+          has the same variance and mean as the original data.
+        - `"bounds"`: the uniform distribution is defined such that it
+          has the same bounds as the original data.
+    cvi_kwargs : dict, optional
+        Specific kwargs to give to the CVI, by default {}
+
+    Returns
+    -------
+    List[Dict[int, float]]
+        _description_
     """
 
     # --------------------------------------------------------------
@@ -557,14 +643,15 @@ def compute_all_scores(
             # with/without sliding window
             X_clus = data_clus[t_w]
 
-            score_kw = score.get_score_kwargs(
+            score_kw = cvi.get_cvi_kwargs(
                 X_clus=X_clus,
                 clusterings_t=clusterings[t_w],
                 n_clusters=n_clusters,
-                score_kwargs=score_kwargs,
+                cvi_kwargs=cvi_kwargs,
             )
 
             # Special case if the clustering algorithm didn't converge,
+            # and raised a NoClusterError error.
             if clusters is None:
                 res_score = None
             # Special case k=0: compute average score over N_zero
@@ -574,10 +661,10 @@ def compute_all_scores(
                 for data_clus0 in l_data_clus0:
                     X_clus0 = data_clus0[t_w]
                     try:
-                        l_res_score.append(score(
+                        l_res_score.append(cvi(
                             X=X_clus0,
                             clusters=clusters,
-                            score_kwargs=score_kw,
+                            cvi_kwargs=score_kw,
                         ))
                     except InvalidKError as e:
                         pass
@@ -590,10 +677,10 @@ def compute_all_scores(
 
                 # ------------ Score corresponding to 'n_clusters' ---------
                 try:
-                    res_score = score(
+                    res_score = cvi(
                         X=X_clus,
                         clusters=clusters,
-                        score_kwargs=score_kw,
+                        cvi_kwargs=score_kw,
                     )
                 # Ignore if the score was used with a wrong number of clusters
                 except InvalidKError as e:

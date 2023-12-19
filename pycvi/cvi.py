@@ -67,7 +67,7 @@ class CVI():
 
     Parameters
     ----------
-    score_function : callable, optional
+    cvi_function : callable, optional
         Function used to assess each clustering, by default None
     maximise : bool, optional
         Determines whether higher values mean better clustering
@@ -77,7 +77,7 @@ class CVI():
         to improve with increasing values of :math:`k` (concerns
         only monotone CVIs), by default True
     cvi_type : str, optional
-        Determines whether the score is to be interpreted as being
+        Determines whether the CVI is to be interpreted as being
         "absolute", "monotonous" or "original" (note that not all
         CVIs can have these 3 interpretations), by default
         "monotonous"
@@ -97,8 +97,8 @@ class CVI():
     Raises
     ------
     ValueError
-        Raised if the score type given is not among the available
-        options for this score.
+        Raised if the `cvi_type` given is not among the available
+        options for this CVI.
     """
 
     cvi_types: List[str] = ["monotonous", "absolute"]
@@ -106,7 +106,7 @@ class CVI():
 
     def __init__(
         self,
-        score_function: callable = None,
+        cvi_function: callable = None,
         maximise: bool = True,
         improve: bool = True,
         cvi_type: str = "monotonous",
@@ -114,7 +114,7 @@ class CVI():
         k_condition: callable = None,
         ignore0: bool = False,
     ) -> None:
-        self.function = score_function
+        self.function = cvi_function
         self.criterion_function = criterion_function
         self.maximise = maximise
         # If cvi_type == "absolute", 'improve' is irrelevant
@@ -134,18 +134,18 @@ class CVI():
         self,
         X: np.ndarray,
         clusters: List[List[int]],
-        score_kwargs: dict = {},
+        cvi_kwargs: dict = {},
     ) -> float:
         """
-        Computes the score of the clustering.
+        Computes the CVI value of the clustering.
 
         :param X: Values of all members
         :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
         :param clusters: List of (members, info) tuples
         :type clusters: List[List[int]]
-        :param score_kwargs: kwargs specific for the score, defaults to
+        :param cvi_kwargs: kwargs specific for the CVI, defaults to
             {}
-        :type score_kwargs: dict, optional
+        :type cvi_kwargs: dict, optional
         :raises InvalidKError: _description_
         :return: _description_
         :rtype: float
@@ -153,12 +153,12 @@ class CVI():
         dims = X.shape
         self.N = dims[0]
         self.d = dims[-1]
-        if "k" in score_kwargs:
-            n_clusters = score_kwargs["k"]
+        if "k" in cvi_kwargs:
+            n_clusters = cvi_kwargs["k"]
         else:
             n_clusters = len(clusters)
         if self.k_condition(n_clusters):
-            return self.function(X, clusters, **score_kwargs)
+            return self.function(X, clusters, **cvi_kwargs)
         else:
             msg = (
                 f"{self.__class__} called with an incompatible number of "
@@ -166,12 +166,12 @@ class CVI():
             )
             raise InvalidKError(msg)
 
-    def get_score_kwargs(
+    def get_cvi_kwargs(
         self,
         X_clus: np.ndarray = None,
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
-        score_kwargs: dict = {},
+        cvi_kwargs: dict = {},
     ) -> Union[dict, None]:
         """
         Get the kwargs parameters specific to the CVI.
@@ -192,7 +192,7 @@ class CVI():
             in some CVI such as the Hartigan index. By default None.
         n_clusters : int, optional
             Current number of clusters considered, by default None
-        score_kwargs : dict, optional
+        cvi_kwargs : dict, optional
             Pre-defined kwargs, typically the metric to use when
             computing the CVI values, by default {}
 
@@ -201,7 +201,7 @@ class CVI():
         Union[dict, None]
             The dictionary of kwargs necessary to compute the CVI.
         """
-        return score_kwargs
+        return cvi_kwargs
 
     def criterion(
         self,
@@ -222,10 +222,10 @@ class CVI():
         scores : Dict[int, float]
             The CVI values obtained for the provided :math:`k` range.
         cvi_type : str, optional
-            The type of score to use in the selection scheme. Note that
+            The type of CVI to use in the selection scheme. Note that
             for most cases it is redundant with the attribute
             `CVI.cvi_type` but it may facilitate the selection for
-            scores that use base cases with small adjustments, by
+            CVIs that use base cases with small adjustments, by
             default None.
 
         Returns
@@ -258,7 +258,7 @@ class CVI():
             # Find the biggest increase / drop
             for i, k in enumerate(list_k_compare):
                 # Special case if the score couldn't be computed
-                # either because this score doesn't allow this k
+                # either because this CVI doesn't allow this k
                 # or because the clustering model didn't converge
                 if scores_valid[k] is None:
                     continue
@@ -336,7 +336,7 @@ class CVI():
             properties of the CVI (its `cvi_type`, `maximise`,
             `improve` properties).
         """
-        # A score is always relevant when it is absolute
+        # A score is always relevant when the CVI is absolute
         if self.cvi_type == "absolute":
             return True
         else:
@@ -534,7 +534,7 @@ class Hartigan(CVI):
         )
 
         super().__init__(
-            score_function=hartigan,
+            cvi_function=hartigan,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
@@ -571,12 +571,12 @@ class Hartigan(CVI):
                 selected_k = None
         return selected_k
 
-    def get_score_kwargs(
+    def get_cvi_kwargs(
         self,
         X_clus: np.ndarray = None,
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
-        score_kwargs: dict = {}
+        cvi_kwargs: dict = {}
     ) -> None:
         """
         Get the kwargs parameters specific to Hartigan.
@@ -604,7 +604,7 @@ class Hartigan(CVI):
             in some CVI such as the Hartigan index. By default None.
         n_clusters : int, optional
             Current number of clusters considered, by default None
-        score_kwargs : dict, optional
+        cvi_kwargs : dict, optional
             Pre-defined kwargs, typically the metric to use when
             computing the CVI values, by default {}
 
@@ -613,14 +613,14 @@ class Hartigan(CVI):
         Union[dict, None]
             The dictionary of kwargs necessary to compute the CVI.
         """
-        s_kw = {}
-        s_kw["k"] = n_clusters
+        cvi_kw = {}
+        cvi_kw["k"] = n_clusters
         if n_clusters < len(X_clus):
-            s_kw["clusters_next"] = clusterings_t.get(n_clusters+1, None)
+            cvi_kw["clusters_next"] = clusterings_t.get(n_clusters+1, None)
         if n_clusters == 0:
-            s_kw["X1"] = X_clus
-        s_kw.update(score_kwargs)
-        return s_kw
+            cvi_kw["X1"] = X_clus
+        cvi_kw.update(cvi_kwargs)
+        return cvi_kw
 
     def __str__(self) -> str:
         return 'Hartigan_{}'.format(self.cvi_type)
@@ -660,19 +660,19 @@ class CalinskiHarabasz(CVI):
             cvi_type = "absolute"
 
         super().__init__(
-            score_function=CH,
+            cvi_function=CH,
             maximise=True,
             improve=True,
             cvi_type=cvi_type,
             k_condition = f_k_condition,
         )
 
-    def get_score_kwargs(
+    def get_cvi_kwargs(
         self,
         X_clus: np.ndarray = None,
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
-        score_kwargs: dict = {}
+        cvi_kwargs: dict = {}
     ) -> None:
         """
         Get the kwargs parameters specific to Calinski-Harabasz.
@@ -705,7 +705,7 @@ class CalinskiHarabasz(CVI):
             in some CVI such as the Hartigan index. By default None.
         n_clusters : int, optional
             Current number of clusters considered, by default None
-        score_kwargs : dict, optional
+        cvi_kwargs : dict, optional
             Pre-defined kwargs, typically the metric to use when
             computing the CVI values, by default {}
 
@@ -714,17 +714,17 @@ class CalinskiHarabasz(CVI):
         Union[dict, None]
             The dictionary of kwargs necessary to compute the CVI.
         """
-        s_kw = {}
-        s_kw["k"] = n_clusters
+        cvi_kw = {}
+        cvi_kw["k"] = n_clusters
         if n_clusters == 0:
-            s_kw["X1"] = X_clus
-        if "zero_type" not in s_kw or s_kw["zero_type"] == None:
+            cvi_kw["X1"] = X_clus
+        if "zero_type" not in cvi_kw or cvi_kw["zero_type"] == None:
             if len(X_clus) > 100:
-                s_kw["zero_type"] = "variance"
+                cvi_kw["zero_type"] = "variance"
             else:
-                s_kw["zero_type"] = "bounds"
-        s_kw.update(score_kwargs)
-        return s_kw
+                cvi_kw["zero_type"] = "bounds"
+        cvi_kw.update(cvi_kwargs)
+        return cvi_kw
 
     def __str__(self) -> str:
         cvi_type = self.cvi_type
@@ -766,7 +766,7 @@ class GapStatistic(CVI):
         )
 
         super().__init__(
-            score_function= gap_statistic,
+            cvi_function= gap_statistic,
             maximise=True,
             improve=True,
             cvi_type=cvi_type,
@@ -798,12 +798,12 @@ class GapStatistic(CVI):
             selected_k = None
         return selected_k
 
-    def get_score_kwargs(
+    def get_cvi_kwargs(
         self,
         X_clus: np.ndarray = None,
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
-        score_kwargs: dict = {}
+        cvi_kwargs: dict = {}
     ) -> None:
         """
         Get the kwargs parameters specific to Gap statistic.
@@ -835,7 +835,7 @@ class GapStatistic(CVI):
             in some CVI such as the Hartigan index. By default None.
         n_clusters : int, optional
             Current number of clusters considered, by default None
-        score_kwargs : dict, optional
+        cvi_kwargs dict, optional
             Pre-defined kwargs, typically the metric to use when
             computing the CVI values, by default {}
 
@@ -844,31 +844,31 @@ class GapStatistic(CVI):
         Union[dict, None]
             The dictionary of kwargs necessary to compute the CVI.
         """
-        s_kw = {"B" : 10}
-        s_kw["k"] = n_clusters
+        cvi_kw = {"B" : 10}
+        cvi_kw["k"] = n_clusters
         if self.cvi_type == "original":
-            s_kw["return_s"] = True
-        s_kw.update(score_kwargs)
-        if "zero_type" not in s_kw or s_kw["zero_type"] == None:
+            cvi_kw["return_s"] = True
+        cvi_kw.update(cvi_kwargs)
+        if "zero_type" not in cvi_kw or cvi_kw["zero_type"] == None:
             if len(X_clus) > 100:
-                s_kw["zero_type"] = "variance"
+                cvi_kw["zero_type"] = "variance"
             else:
-                s_kw["zero_type"] = "bounds"
-        return s_kw
+                cvi_kw["zero_type"] = "bounds"
+        return cvi_kw
 
     def __call__(
         self,
         X: np.ndarray,
         clusters: List[List[int]],
-        score_kwargs: dict = {}
+        cvi_kwargs: dict = {}
     ) -> float:
         if self.cvi_type == "original":
-            gap, s =  super().__call__(X, clusters, score_kwargs)
-            k = score_kwargs["k"]
+            gap, s =  super().__call__(X, clusters, cvi_kwargs)
+            k = cvi_kwargs["k"]
             self.s[k] = s
             return gap
         else:
-            return super().__call__(X, clusters, score_kwargs)
+            return super().__call__(X, clusters, cvi_kwargs)
 
     def __str__(self) -> str:
         return 'GapStatistic_{}'.format(self.cvi_type)
@@ -896,7 +896,7 @@ class Silhouette(CVI):
         cvi_type: str = "absolute",
     ) -> None:
         super().__init__(
-            score_function=silhouette,
+            cvi_function=silhouette,
             maximise=True,
             improve=None,
             cvi_type=cvi_type,
@@ -937,7 +937,7 @@ class ScoreFunction(CVI):
 
     def __init__(self, cvi_type: str = "original") -> None:
         super().__init__(
-            score_function=score_function,
+            cvi_function=score_function,
             maximise=True,
             improve=None,
             cvi_type=cvi_type,
@@ -961,12 +961,12 @@ class ScoreFunction(CVI):
             best_k=1
         return best_k
 
-    def get_score_kwargs(
+    def get_cvi_kwargs(
         self,
         X_clus: np.ndarray = None,
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
-        score_kwargs: dict = {}
+        cvi_kwargs: dict = {}
     ) -> None:
         """
         Get the kwargs parameters specific to Score Function.
@@ -984,7 +984,7 @@ class ScoreFunction(CVI):
             in some CVI such as the Hartigan index. By default None.
         n_clusters : int, optional
             Current number of clusters considered, by default None
-        score_kwargs : dict, optional
+        cvi_kwargs : dict, optional
             Pre-defined kwargs, typically the metric to use when
             computing the CVI values, by default {}
 
@@ -993,10 +993,10 @@ class ScoreFunction(CVI):
         Union[dict, None]
             The dictionary of kwargs necessary to compute the CVI.
         """
-        s_kw = {}
-        s_kw["k"] = n_clusters
-        s_kw.update(score_kwargs)
-        return s_kw
+        cvi_kw = {}
+        cvi_kw["k"] = n_clusters
+        cvi_kw.update(cvi_kwargs)
+        return cvi_kw
 
     def __str__(self) -> str:
         return 'ScoreFunction'
@@ -1025,24 +1025,24 @@ class MaulikBandyopadhyay(CVI):
 
     def __init__(self, cvi_type: str = "absolute") -> None:
         super().__init__(
-            score_function=MB,
+            cvi_function=MB,
             maximise=True,
             improve=True,
             cvi_type=cvi_type,
             k_condition= lambda k: (k>=1)
         )
 
-    def get_score_kwargs(
+    def get_cvi_kwargs(
         self,
         X_clus: np.ndarray = None,
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
-        score_kwargs: dict = {}
+        cvi_kwargs: dict = {}
     ) -> None:
-        s_kw = {"p" : 2}
-        s_kw["k"] = n_clusters
-        s_kw.update(score_kwargs)
-        return s_kw
+        cvi_kw = {"p" : 2}
+        cvi_kw["k"] = n_clusters
+        cvi_kw.update(cvi_kwargs)
+        return cvi_kw
 
     def __str__(self) -> str:
         return f'MaulikBandyopadhyay_{self.cvi_type}'
@@ -1074,23 +1074,23 @@ class SD(CVI):
 
     def __init__(self, cvi_type: str = "absolute") -> None:
         super().__init__(
-            score_function=SD_index,
+            cvi_function=SD_index,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
             k_condition= lambda k: (k>=2)
         )
 
-    def get_score_kwargs(
+    def get_cvi_kwargs(
         self,
         X_clus: np.ndarray = None,
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
-        score_kwargs: dict = {}
+        cvi_kwargs: dict = {}
     ) -> None:
-        s_kw = {"alpha" : None}
-        s_kw.update(score_kwargs)
-        return s_kw
+        cvi_kw = {"alpha" : None}
+        cvi_kw.update(cvi_kwargs)
+        return cvi_kw
 
     def __str__(self) -> str:
         return 'SD'
@@ -1123,7 +1123,7 @@ class SDbw(CVI):
 
     def __init__(self, cvi_type: str = "absolute") -> None:
         super().__init__(
-            score_function=SDbw_index,
+            cvi_function=SDbw_index,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
@@ -1155,7 +1155,7 @@ class Dunn(CVI):
 
     def __init__(self, cvi_type: str = "absolute") -> None:
         super().__init__(
-            score_function=dunn,
+            cvi_function=dunn,
             maximise=True,
             improve=True,
             cvi_type=cvi_type,
@@ -1190,7 +1190,7 @@ class XB(CVI):
         The case k=1 is not possible.
         """
         super().__init__(
-            score_function=xie_beni,
+            cvi_function=xie_beni,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
@@ -1222,7 +1222,7 @@ class XBStar(CVI):
 
     def __init__(self, cvi_type: str = "absolute") -> None:
         super().__init__(
-            score_function=xie_beni_star,
+            cvi_function=xie_beni_star,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
@@ -1257,7 +1257,7 @@ class DB(CVI):
         The case k=1 is not possible.
         """
         super().__init__(
-            score_function=davies_bouldin,
+            cvi_function=davies_bouldin,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
@@ -1302,13 +1302,13 @@ class Inertia(CVI):
 
         f_k_condition = lambda k: k>=0
 
-        def score_function(X, clusters):
+        def cvi_function(X, clusters):
             return reduce(_compute_score(
                 "list_inertia", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
 
         super().__init__(
-            score_function=score_function,
+            cvi_function=cvi_function,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
@@ -1358,13 +1358,13 @@ class Diameter(CVI):
 
         f_k_condition = lambda k: k>=0
 
-        def score_function(X, clusters):
+        def cvi_function(X, clusters):
             return reduce(_compute_score(
                 "list_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
 
         super().__init__(
-            score_function=score_function,
+            cvi_function=cvi_function,
             maximise=False,
             improve=True,
             cvi_type=cvi_type,
