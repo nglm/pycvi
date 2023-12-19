@@ -961,6 +961,43 @@ class ScoreFunction(CVI):
             best_k=1
         return best_k
 
+    def get_score_kwargs(
+        self,
+        X_clus: np.ndarray = None,
+        clusterings_t: Dict[int, List] = None,
+        n_clusters: int = None,
+        score_kwargs: dict = {}
+    ) -> None:
+        """
+        Get the kwargs parameters specific to Score Function.
+
+        Score Function has no additional parameters, but :math:`k` is used to distinguish between the case :math:`k=0` and :math:`k=1`, to make sure that the case :math:`k=0` is never computed.
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        optional
+            Dataset to cluster (already processed), by default None
+        clusterings_t : Dict[int, List], optional
+            All the clusterings computed for the provided :math:`k`
+            range. Having an overview of the clusterings can be needed
+            in some CVI such as the Hartigan index. By default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None
+        score_kwargs : dict, optional
+            Pre-defined kwargs, typically the metric to use when
+            computing the CVI values, by default {}
+
+        Returns
+        -------
+        Union[dict, None]
+            The dictionary of kwargs necessary to compute the CVI.
+        """
+        s_kw = {}
+        s_kw["k"] = n_clusters
+        s_kw.update(score_kwargs)
+        return s_kw
+
     def __str__(self) -> str:
         return 'ScoreFunction'
 

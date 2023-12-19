@@ -289,6 +289,7 @@ def gap_statistic(
 def score_function(
     X : np.ndarray,
     clusters: List[List[int]],
+    k: int =None,
 ) -> float:
     """
     Compute the score function for a given clustering.
@@ -297,6 +298,8 @@ def score_function(
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
     :param clusters: List of members for each cluster.
     :type clusters: List[List[int]]
+    :param k: Ignored. Used for compatibility purpose.
+    :type k: int
     :return: The score function index
     :rtype: float
     """
