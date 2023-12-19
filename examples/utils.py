@@ -14,6 +14,19 @@ FIGSIZE = (4*N_COLS, ceil(4*N_ROWS))
 # ----------------------------------------------------------------------
 
 def _get_shape_UCR(data: np.ndarray) -> Tuple[Tuple[int], bool]:
+    """
+    Get the shape (N, T, d) of data and whether it is time series data.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        The original data
+
+    Returns
+    -------
+    Tuple[Tuple[int], bool]
+        the shape (N, T, d) and whether it is time series data
+    """
     dims = data.shape
     if len(dims) == 3:
         (N, T, d) = data.shape
@@ -25,6 +38,19 @@ def _get_shape_UCR(data: np.ndarray) -> Tuple[Tuple[int], bool]:
     return (N, T, d), UCR
 
 def _get_colors(name: str="Set1") -> List:
+    """
+    Helper function to get a list of colors
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of the matplotlib cmap, by default "Set1".
+
+    Returns
+    -------
+    List
+        A list of colors
+    """
     cmap = get_cmap(name)
     colors = cmap.colors
     return colors
@@ -35,20 +61,47 @@ def _plot_cluster(
     cluster: List[int],
     color,
 ):
+    """
+    Plot a given cluster on the given ax.
+
+    Works with UCR data (plot lines), and with non-time series data with
+    dimensions d = 1,2 or 3.
+
+    In case it is UCR data, use "color" for each line representing a
+    datapoint in the cluster.
+    """
+    # Get the full shape and whether it is time-series data.
     (N, T, d), UCR = _get_shape_UCR(data)
+
+    # If UCR, use plot type of plots.
     if UCR:
+        # Transparency
+        alpha = 0.2
         x = np.arange(T)
         y_val = data[cluster, :, 0]
+
+        # Plot lines one by one, with the same color.
         for y in y_val:
-            ax.plot(x, y, c=color, alpha=0.2, lw=0.4)
+            ax.plot(x, y, c=color, alpha=alpha)
+
+    # If non time series data, use scatter plots.
     else:
+        # Size of the dots
+        s = 1
         if d == 1:
             x_val = np.zeros_like(data[cluster, 0])
             y_val = data[cluster, 0]
+            ax.scatter(x_val, y_val, s=s)
         elif d == 2:
             x_val = data[cluster, 0]
             y_val = data[cluster, 1]
-        ax.scatter(x_val, y_val, s=1)
+            ax.scatter(x_val, y_val, s=s)
+        elif d == 3:
+            x_val = data[cluster, 0]
+            y_val = data[cluster, 1]
+            z_val = data[cluster, 2]
+            ax.scatter(x_val, y_val, z_val, s=s)
+
     return ax
 
 def plot_clusters(
@@ -58,7 +111,7 @@ def plot_clusters(
     titles: List[str],
 ):
     """
-    Add one plot per score with their corresponding selected clustering
+    Add one plot per score with their corresponding selected clustering.
 
     The fig should already contain 2 plots first with the true
     clusterings, and the clusterings obtained with k_true.
@@ -73,7 +126,7 @@ def plot_clusters(
     :param titles: List of titles for each score
     :type titles: List[str]
     :return: a figure with one clustering per score (+2 plots first)
-    :rtype:
+    :rtype: A matplotlib figure
     """
 
     colors = _get_colors()
@@ -113,8 +166,8 @@ def plot_true(
     :type labels: np.ndarray
     :param clusterings: The clusterings obtained with k_true
     :type clusterings: List[List[List[int]]]
-    :return: _description_
-    :rtype: _type_
+    :return: The figure with 2 plots on it, and many empty axes.
+    :rtype: A matplotlib figure
     """
     (N, T, d), UCR = _get_shape_UCR(data)
     colors = _get_colors()
