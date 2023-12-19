@@ -15,7 +15,7 @@ class ShapeError(ValueError):
     """
     The given data doesn't have the right shape.
 
-    The acceptable shapes are: `(N,)` or `(N, d)` or `(N, T, d)`.
+    The acceptable input shapes are: `(N,)` or `(N, d)` or `(N, T, d)`.
     """
     pass
 

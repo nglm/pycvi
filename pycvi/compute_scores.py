@@ -21,7 +21,7 @@ from ._utils import _match_dims
 from .cluster import (
     compute_center, prepare_data, sliding_window, generate_uniform
 )
-from .exceptions import InvalidScoreError, ScoreError, InvalidKError
+from .exceptions import InvalidScoreError, InvalidKError, ShapeError
 
 DEFAULT_DIST_KWARGS = {
     "metric" : 'sqeuclidean',
@@ -58,13 +58,24 @@ def f_pdist(
     """
     Compute the pairwise distance within a group of elements.
 
-    :param cluster: (N_c, d) array, representing a cluster of size N_c,
-        or (N_c, w, d) if DTW is used
-    :type cluster: np.ndarray
-    :param dist_kwargs: kwargs for pdist, cdist, etc.
-    :type dist_kwargs: dict
-    :return: pairwise distance within the cluster (a condensed matrix)
-    :rtype: np.ndarray
+    Parameters
+    ----------
+    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW is used.
+        A cluster of `N` datapoints.
+    dist_kwargs : dict, optional
+        kwargs for
+        `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
+        , by default {}.
+
+    Returns
+    -------
+    np.ndarray
+        The pairwise distance within the cluster (a condensed matrix).
+
+    Raises
+    ------
+    ShapeError
+        Raised if cluster doesn't have the shape `(N, d)` or `(N, w, d)`
     """
     dims = cluster.shape
     if len(dims) == 2:
@@ -72,7 +83,7 @@ def f_pdist(
             cluster,
             **dist_kwargs
         )
-    if len(dims) == 3:
+    elif len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
         (N_c, w_t, d)  = cluster.shape
         dist_square = np.zeros((N_c, N_c))
@@ -93,6 +104,12 @@ def f_pdist(
         # Option 2: Pairwise distances between the midpoint of the barycenter
         # and the corresponding time step for each member in the cluster
         # TODO
+    else:
+        msg = (
+            f"Can only compute distances between arrays of shapes "
+            + f"`(N, d)` or `(N, T, d)`, but got {cluster.shape}"
+        )
+        raise ShapeError(msg)
     return dist
 
 def f_cdist(
@@ -103,15 +120,27 @@ def f_cdist(
     """
     Compute the distance between two (groups of) elements.
 
-    :param clusterA: (NA, d) array, representing a cluster of size NA,
-        or (NA, w_t, d) if DTW is used
-    :type clusterA: np.ndarray
-    :param clusterB: (NB, d) array, representing a cluster of size NB,
-        or (NB, w_t, d) if DTW is used
-    :param dist_kwargs: kwargs for pdist, cdist, etc.
-    :type dist_kwargs: dict
-    :return: pairwise distance within the cluster
-    :rtype: np.ndarray, shape (NA, NB)
+    Parameters
+    ----------
+    clusterA : np.ndarray
+        A cluster of size `NA`.
+    clusterB : np.ndarray
+        A cluster of size `NB`.
+    dist_kwargs : dict, optional
+        kwargs for
+        `scipy.spatial.distance.cdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_
+        , by default {}.
+
+    Returns
+    -------
+    np.ndarray, shape `(NA, NB)`
+        The pairwise distance matrix between the clusters.
+
+    Raises
+    ------
+    ShapeError
+        Raised if `clusterA` or `clusterB` don't have the shape `(N, d)`
+        or `(N, w, d)`.
     """
     clusterA, clusterB = _match_dims(clusterA, clusterB)
     dims = clusterA.shape
@@ -121,13 +150,15 @@ def f_cdist(
             clusterB,
             **dist_kwargs
         )
-    if len(dims) == 3:
+    elif len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
-        dist = cdist_soft_dtw_normalized(
-            clusterA,
-            clusterB,
-            gamma=1
+    else:
+        msg = (
+            f"Can only compute distances between arrays of shapes "
+            + f"`(N, d)` or `(N, T, d)`, but got {clusterA.shape} and "
+            + f"{clusterB.shape}, reshaped to {dims} to make them match."
         )
+        raise ShapeError(msg)
 
         # Option 2: Pairwise distances between the midpoint of the barycenter
         # and the corresponding time step for each member in the cluster
