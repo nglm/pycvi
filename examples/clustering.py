@@ -27,6 +27,7 @@ def pipeline(
     k_max: int = 25,
     scaler = StandardScaler(),
     DTW:bool = False,
+    fig_title: str = "",
     fig_name: str = "",
 ) -> None:
     """
@@ -139,7 +140,7 @@ def pipeline(
 
     fig = plot_clusters(X, clusterings_selected, fig, ax_titles)
 
-    fig.suptitle(fig_name)
+    fig.suptitle(fig_title)
     fig.savefig(fig_name + ".png")
 
 # ======================================================================
@@ -153,9 +154,10 @@ model_class = KMeans
 DTW = False
 scaler = StandardScaler()
 k_max = 10
-fig_name = "Non time-series data with KMeans"
+fig_title = "Non time-series data with KMeans"
+fig_name = "Barton_data_KMeans"
 
-pipeline(X, y, model_class, k_max, scaler, DTW, fig_name)
+pipeline(X, y, model_class, k_max, scaler, DTW, fig_title, fig_name)
 
 # ======================================================================
 # PyCVI on time series data
@@ -173,9 +175,10 @@ model_class = TimeSeriesKMeans
 DTW = True
 scaler = StandardScaler()
 k_max = 10
-fig_name = "Time-series data using DTW with TimeSeriesKMeans"
+fig_title = "Time-series data using DTW with TimeSeriesKMeans"
+fig_name = "UCR_data_DTW_TimeSeriesKMeans"
 
-pipeline(X, y, model_class, k_max, scaler, DTW, fig_name)
+pipeline(X, y, model_class, k_max, scaler, DTW, fig_title, fig_name)
 
 
 # ==========================
@@ -186,8 +189,9 @@ model_class = KMedoids
 DTW = False
 scaler = StandardScaler()
 k_max = 10
-fig_name = "Time-series data without DTW with KMedoids"
+fig_title = "Time-series data without DTW with KMedoids"
+fig_name = "UCR_data_no_DTW_KMedoids"
 
-pipeline(X, y, model_class, k_max, scaler, DTW, fig_name)
+pipeline(X, y, model_class, k_max, scaler, DTW, fig_title, fig_name)
 
 
