@@ -7,7 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-tslearn = "^0.6.2"
 aeon = "^0.6.0"
 
 [tool.poetry.group.examples]
@@ -15,7 +14,7 @@ optional = true
 
 [tool.poetry.group.examples.dependencies]
 scikit-learn-extra = "^0.3.0"
-matplotlib = "3.7"
+matplotlib = "^3.7"
 
 
 [tool.poetry.group.dev.dependencies]
