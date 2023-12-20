@@ -11,11 +11,11 @@
 .. Tutorials sections
    ---------------------------------------
 
-.. toctree::
-   :maxdepth: 4
-   :caption: Tutorials:
+.. .. toctree::
+..    :maxdepth: 4
+..    :caption: Tutorials:
 
-   md/tutorials.md
+..    md/tutorials.md
 
 .. Tutorials sections
    ---------------------------------------

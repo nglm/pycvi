@@ -193,7 +193,6 @@ Code executed in 0.00 s
 9 2.3229077894559524
 Selected k: 1 | True k: 3
 Code executed in 0.00 s
-/home/natacha/Documents/Work/PhD/TopEns/Code/PyCVI
 Source: Barton | Dataset: zelnik1 | Shape: (299, 2) | Labels: [0 1 2]
 Clusterings generated in: 0.01s
  ================ VI ================
@@ -389,7 +388,6 @@ Code executed in 0.00 s
 9 4.665215171139693
 Selected k: 1 | True k: 3
 Code executed in 0.00 s
-/home/natacha/Documents/Work/PhD/TopEns/Code/PyCVI
 Source: UCR | Dataset: Trace | Shape: (99, 275, 1) | Labels: [0 1 2 3]
 Clusterings generated in: 454.78s
  ================ VI ================
