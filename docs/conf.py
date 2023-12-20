@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # And we don't want to document tests.
 autodoc_mock_imports = [
     "aeon", "numpy", "sklearn", "scipy",
-    "pycvi.tests"
+    "pycvi.tests", "pycvi.datasets.UCR", "pycvi.datasets.Barton",
 ]
 
 # -- Project information -----------------------------------------------------
