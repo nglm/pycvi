@@ -87,7 +87,7 @@ def _plot_cluster(
     # If non time series data, use scatter plots.
     else:
         # Size of the dots
-        s = 1
+        s = 2
         if d == 1:
             x_val = np.zeros_like(data[cluster, 0])
             y_val = data[cluster, 0]

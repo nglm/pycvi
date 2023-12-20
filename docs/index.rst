@@ -17,6 +17,15 @@
 
    md/tutorials.md
 
+.. Tutorials sections
+   ---------------------------------------
+
+.. toctree::
+   :maxdepth: 4
+   :caption: Examples:
+
+   examples/examples
+
 .. Main module section
    ---------------------------------------
 

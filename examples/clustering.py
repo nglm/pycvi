@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from sklearn.cluster import AgglomerativeClustering, KMeans, SpectralClustering
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn_extra.cluster import KMedoids
 from aeon.clustering import TimeSeriesKMeans
 import time
-import matplotlib.pyplot as plt
-from typing import List, Sequence, Tuple
+import sys
 
 from pycvi.cluster import generate_all_clusterings
 from pycvi.cvi import CVIs
@@ -17,8 +16,9 @@ from pycvi.datasets.benchmark import load_data
 
 from .utils import plot_true, plot_clusters
 
-import warnings
-warnings.filterwarnings("ignore")
+out_fname = f'./output-example.txt'
+fout = open(out_fname, 'wt')
+sys.stdout = fout
 
 def pipeline(
     X: np.ndarray,
@@ -47,6 +47,7 @@ def pipeline(
       clustering assuming the correct number of clusters and the
       selected clusterings of each CVI.
     """
+    print(f'\n ***** {fig_title} ***** \n')
     N = len(X)
     k_range = range(min(k_max, N+1))
 
@@ -165,7 +166,6 @@ scaler = StandardScaler()
 
 fig_title = "Non time-series data with KMeans"
 fig_name = "Barton_data_KMeans"
-
 pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 
 
@@ -220,4 +220,4 @@ fig_name = "UCR_data_no_DTW_KMedoids"
 
 pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 
-
+fout.close()
