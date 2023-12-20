@@ -10,7 +10,7 @@ from pycvi.cvi import CVIs
 N_CVIs = len(CVIs)
 N_ROWS = ceil((N_CVIs+2) / 5)
 N_COLS = 5
-FIGSIZE = (4*N_COLS, ceil(4*N_ROWS))
+FIGSIZE = (4*N_COLS+1, ceil(4*N_ROWS))
 # ----------------------------------------------------------------------
 
 def _get_shape_UCR(data: np.ndarray) -> Tuple[Tuple[int], bool]:
@@ -145,6 +145,10 @@ def plot_clusters(
             color = colors[i_label % len(colors)]
             ax = _plot_cluster(ax, data, cluster, color)
 
+    # Remove empty axes
+    for ax in fig.axes[len(clusterings_selected)+2:]:
+        ax.remove()
+
     return fig
 
 
@@ -153,6 +157,7 @@ def plot_true(
     data: np.ndarray,
     labels: np.ndarray,
     clusterings: List[List[List[int]]],
+    VI_best: float,
 ):
     """
     Plot the true clustering and the clustering obtained with k_true
@@ -166,6 +171,9 @@ def plot_true(
     :type labels: np.ndarray
     :param clusterings: The clusterings obtained with k_true
     :type clusterings: List[List[List[int]]]
+    :param VI_best: The VI between the true clustering and the
+        clustering assuming the right number of clusters.
+    :type VI_best: float
     :return: The figure with 2 plots on it, and many empty axes.
     :rtype: A matplotlib figure
     """
@@ -198,8 +206,8 @@ def plot_true(
         clusterings
     ]
     ax_titles = [
-        "True labels, k={}".format(n_labels),
-        "Clustering assuming k={}".format(n_labels),
+        f"True labels, k={n_labels}",
+        f"Clustering assuming k={n_labels} | VI={VI_best:.4f}",
     ]
 
     # ------ True clustering and clustering assuming n_labels ----------

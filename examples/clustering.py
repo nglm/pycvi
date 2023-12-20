@@ -24,6 +24,7 @@ def pipeline(
     X: np.ndarray,
     y: np.ndarray,
     model_class,
+    model_kw: dict,
     k_max: int = 25,
     scaler = StandardScaler(),
     DTW:bool = False,
@@ -68,7 +69,8 @@ def pipeline(
     clusterings = generate_all_clusterings(
             X,
             model_class,
-            k_range,
+            model_kw=model_kw,
+            n_clusters_range = k_range,
             DTW = DTW,
             scaler=scaler,
         )[0]
@@ -80,7 +82,8 @@ def pipeline(
 
     # -- Plot true clusters & clusters when assuming k_true clusters ---
     best_clusters = clusterings[k_true]
-    fig = plot_true(X, y, best_clusters)
+    VI_best = variation_information(true_clusters, best_clusters)
+    fig = plot_true(X, y, best_clusters, VI_best)
 
     # ------------------------------------------------------------------
     # ------  Variation of information with the true clustering --------
@@ -105,7 +108,7 @@ def pipeline(
         # Instantiate a CVI model
         cvi = cvi_class()
         t_start = time.time()
-        print(f" === {cvi} === ")
+        print(f" ====== {cvi} ====== ")
 
         # Compute CVI values for all clusterings
         scores = compute_all_scores(
@@ -149,15 +152,36 @@ def pipeline(
 
 # long1
 # zelnik1
+
+# ------------- KMeans ------------------------
 X, y = load_data("zelnik1", "barton")
-model_class = KMeans
 DTW = False
-scaler = StandardScaler()
 k_max = 10
+
+
+model_class = KMeans
+model_kw = {}
+scaler = StandardScaler()
+
 fig_title = "Non time-series data with KMeans"
 fig_name = "Barton_data_KMeans"
 
-pipeline(X, y, model_class, k_max, scaler, DTW, fig_title, fig_name)
+pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
+
+
+# --------- AgglomerativeClustering ----------
+X, y = load_data("zelnik1", "barton")
+DTW = False
+k_max = 10
+
+model_class = AgglomerativeClustering
+model_kw = {"linkage" : "single"}
+scaler = StandardScaler()
+
+fig_title = "Non time-series data with AgglomerativeClustering-Single"
+fig_name = "Barton_data_AgglomerativeClustering_Single"
+
+pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 
 # ======================================================================
 # PyCVI on time series data
@@ -171,27 +195,29 @@ X, y = load_data("Trace", "UCR")
 # PyCVI using DTW
 # ==========================
 
-model_class = TimeSeriesKMeans
 DTW = True
+
+model_class = TimeSeriesKMeans
+model_kw = {}
 scaler = StandardScaler()
-k_max = 10
 fig_title = "Time-series data using DTW with TimeSeriesKMeans"
 fig_name = "UCR_data_DTW_TimeSeriesKMeans"
 
-pipeline(X, y, model_class, k_max, scaler, DTW, fig_title, fig_name)
+pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 
 
 # ==========================
 # PyCVI not using DTW
 # ==========================
 
-model_class = KMedoids
 DTW = False
+
+model_class = KMedoids
+model_kw = {}
 scaler = StandardScaler()
-k_max = 10
 fig_title = "Time-series data without DTW with KMedoids"
 fig_name = "UCR_data_no_DTW_KMedoids"
 
-pipeline(X, y, model_class, k_max, scaler, DTW, fig_title, fig_name)
+pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 
 
