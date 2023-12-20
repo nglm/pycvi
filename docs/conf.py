@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # Because tslearn and aeon are not among the standard libraries
 # And we don't want to document tests.
 autodoc_mock_imports = [
-    "aeon", "numpy", "sklearn",
+    "aeon", "numpy", "sklearn", "scipy",
     "pycvi.tests"
 ]
 
