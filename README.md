@@ -1,5 +1,7 @@
 # PyCVI
 
+[![Python package](https://github.com/nglm/pycvi/actions/workflows/python-package.yml/badge.svg)](https://github.com/nglm/pycvi/actions/workflows/python-package.yml)
+
 Python package specialized in internal Clustering Validity Indices (CVI), in order to select the best clustering among a set of pre-computed clusterings when no external information such as the labels of the datapoints is available.
 
 ## Features
