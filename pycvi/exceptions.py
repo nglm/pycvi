@@ -2,7 +2,7 @@
 PyCVI exceptions.
 """
 
-class NoClusterError(ValueError):
+class EmptyClusterError(ValueError):
     """
     The clustering algorithm didn't converge.
 

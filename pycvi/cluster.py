@@ -17,7 +17,7 @@ from aeon.clustering.averaging._barycenter_averaging import (
 )
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._configuration import set_data_shape, get_model_parameters
-from .exceptions import ShapeError, NoClusterError
+from .exceptions import ShapeError, EmptyClusterError
 
 def compute_center(
     cluster: np.ndarray,
@@ -394,7 +394,7 @@ def _get_clustering(
 
     Raises
     ------
-    NoClusterError
+    EmptyClusterError
         Raised if the clustering algorithm didn't find the expected
         number of clusters because it couldn't converge.
     """
@@ -438,7 +438,7 @@ def generate_all_clusterings(
 
     If some clusterings couldn't be defined because the clustering
     algorithm didn't converged
-    (:class:`pycvi.exceptions.NoClusterError`) then
+    (:class:`pycvi.exceptions.EmptyClusterError`) then
     ```clusterings_t_k[t_w][n_clusters] = None```.
 
     For more information about the preprocessing steps done on the data
@@ -572,7 +572,7 @@ def generate_all_clusterings(
                         fit_predict_kw = fit_predict_kw,
                         model_class_kw = model_class_kw,
                     )
-                except NoClusterError as e:
+                except EmptyClusterError as e:
                     if not quiet:
                         print(str(e))
                     clusters = None
