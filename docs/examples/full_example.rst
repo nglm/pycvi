@@ -1,7 +1,7 @@
 Full example
 -------------
 
-.. literalinclude:: ../../examples/clustering.py
+.. literalinclude:: ../../examples/full_example.py
 
 .. image:: Barton_data_KMeans.png
 
@@ -11,5 +11,5 @@ Full example
 
 .. image:: UCR_data_DTW_TimeSeriesKMeans.png
 
-.. literalinclude:: output-examples.txt
+.. literalinclude:: output-full_example.txt
    :language: text

@@ -24,7 +24,7 @@
    :maxdepth: 4
    :caption: Examples:
 
-   examples/examples
+   examples/full_example
 
 .. Main module section
    ---------------------------------------

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import numpy as np
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
@@ -16,7 +14,7 @@ from pycvi.datasets.benchmark import load_data
 
 from .utils import plot_true, plot_clusters
 
-out_fname = f'./output-example.txt'
+out_fname = f'./output-full_example.txt'
 fout = open(out_fname, 'wt')
 sys.stdout = fout
 
@@ -81,14 +79,15 @@ def pipeline(
 
     print(f"Clusterings generated in: {dt:.2f}s")
 
-    # -- Plot true clusters & clusters when assuming k_true clusters ---
-    best_clusters = clusterings[k_true]
-    VI_best = variation_information(true_clusters, best_clusters)
-    fig = plot_true(X, y, best_clusters, VI_best)
-
     # ------------------------------------------------------------------
     # ------  Variation of information with the true clustering --------
     # ------------------------------------------------------------------
+
+    best_clusters = clusterings[k_true]
+    VI_best = variation_information(true_clusters, best_clusters)
+
+    # -- Plot true clusters & clusters when assuming k_true clusters ---
+    fig = plot_true(X, y, best_clusters, VI_best)
 
     print(" ================ VI ================ ")
     # Compute VI between the true clustering and each clustering
