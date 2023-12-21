@@ -73,9 +73,7 @@ More low-level functions are defined to perform common operations but that can h
 
 .. mdinclude:: md/welcome_bottom.md
 
-Indices and tables
+Index
 -------------------
 
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
