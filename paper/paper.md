@@ -53,15 +53,15 @@ PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal C
 
 ![Agglomerative clustering on non time-series data, all implemented CVIs \label{fig:agglo}](./Barton_data_AgglomerativeClustering_Single.png)
 
-![KMeans clustering on time-series data, with DTW, all implemented CVIs \label{fig:DTW}](./Barton_data_AgglomerativeClustering_Single.png)
+![KMeans clustering on time-series data, with DTW, all implemented CVIs \label{fig:DTW}](./UCR_data_DTW_TimeSeriesKMeans.png)
 
-![KMedoids clustering on time-series data, without DTW, all implemented CVIs \label{fig:no_DTW}](./Barton_data_AgglomerativeClustering_Single.png)
+![KMedoids clustering on time-series data, without DTW, all implemented CVIs \label{fig:no_DTW}](./UCR_data_no_DTW_KMedoids.png)
 
 We experimented on 3 different cases: non time-series data [@barton2015clustering], time-series data [@UCRArchive2018] with euclidean distance and time-series data with DTW and DBA as distance measure and center of clusters.
 
 For each case, we used a different clustering method from a different library: KMeans [@lloyd1982least] and AgglomerativeClustering [@Ward1963] from [scikit-learn](https://scikit-learn.org/stable/index.html), TimeSeriesKMeans from [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and KMedoids [@Kaufman1990Partitioning] from [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/) in order to give examples of integration with other clustering libraries. Then, for each case, we ran all the CVIs implemented in PyCVI, selected the best clustering according to each CVI and plotted the selected clustering.
 
-Finally, we computed the variation of information between each selected clustering and the true clustering (second plot of all figures). A large variation of information indicates a poor clustering quality. In fig \autoref{fig:kmeans} and \autoref{fig:agglo}, we can see the difference when assuming the correct number of clusters between the AgglomerativeClustering and the KMeans clustering method on the non time-series data. The poor quality of the clustering selected by the CVI can then either be due to the clustering method or the CVI, hence the necessity of robust evaluation pipeline for both clustering methods and CVIs.
+Finally, we computed the variation of information between each selected clustering and the true clustering (second plot of all figures). A large variation of information there indicates a poor clustering quality due to the clustering method. In \autoref{fig:kmeans} and \autoref{fig:agglo}, we can see the difference of quality when assuming the correct number of clusters between the AgglomerativeClustering and the KMeans clustering method on the non time-series data. Therefore, when the quality og the clustering selected by the CVI is poor it can then either be due to the clustering method or the CVI, hence the necessity of robust evaluation pipeline for both clustering methods and CVIs.
 
 The code of this example is available on the [GitHub repository](https://github.com/nglm/pycvi/tree/master/examples/full_example/) of the package, as well as on its [documentation](https://pycvi.readthedocs.io/en/latest/examples/full_example.html).
 
