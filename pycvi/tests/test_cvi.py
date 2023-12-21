@@ -56,6 +56,11 @@ def test_Scores():
                     # incompatible number of clusters
                     or type(scores_t_k[0][0]) == type(None))
 
+                # List[int]
+                k_selected = s.select(scores_t_k)
+                assert (type(k_selected) == list)
+                assert (type(k_selected[0]) == int)
+
         # Not using DTW nor window
         DTW = False
         model = KMeans
@@ -90,6 +95,15 @@ def test_Scores():
                     # incompatible number of clusters
                     or type(scores_t_k[0][0]) == type(None))
 
+                # List[int]
+                k_selected = s.select(scores_t_k)
+                assert (type(k_selected) == list)
+                assert (type(k_selected[0]) == int)
+
+                # int
+                k_selected = s.select(scores_t_k[0])
+                assert (type(k_selected) == int)
+
     # ---------- Test on clustering benchmark dataset ------------------
     DTW = False
     model = AgglomerativeClustering
@@ -112,9 +126,14 @@ def test_Scores():
                 time_window=None
             )
 
-            k = s.select(scores_t_k)
+            # List[int]
+            k_selected = s.select(scores_t_k)
+            assert (type(k_selected) == list)
+            assert (type(k_selected[0]) == int)
 
-            print(score, k)
+            # int
+            k_selected = s.select(scores_t_k[0])
+            assert (type(k_selected) == int)
 
 def test_is_relevant():
     l_score1 = [-1.,  -1., -1.,  1.,  1.,  1.]
