@@ -12,7 +12,7 @@ from pycvi.compute_scores import compute_all_scores
 from pycvi.vi import variation_information
 from pycvi.datasets.benchmark import load_data
 
-from .utils import plot_true, plot_clusters
+from ..utils import plot_true, plot_clusters
 
 out_fname = f'./output-full_example.txt'
 fout = open(out_fname, 'wt')

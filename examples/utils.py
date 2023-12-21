@@ -55,7 +55,7 @@ def _get_colors(name: str="Set1") -> List:
     colors = cmap.colors
     return colors
 
-def _plot_cluster(
+def plot_cluster(
     ax,
     data: np.ndarray,
     cluster: List[int],
@@ -69,6 +69,22 @@ def _plot_cluster(
 
     In case it is UCR data, use "color" for each line representing a
     datapoint in the cluster.
+
+    Parameters
+    ----------
+    ax : A matplotlib axes
+        Where to plot the cluster
+    data : np.ndarray
+        The dataset
+    cluster : List[int]
+        The indices representing the cluster
+    color : _type_
+        The color to use to plot the cluster
+
+    Returns
+    -------
+    A matplotlib axes
+        The same matplotlib axes, but with the cluster plotted.
     """
     # Get the full shape and whether it is time-series data.
     (N, T, d), UCR = _get_shape_UCR(data)
@@ -143,7 +159,7 @@ def plot_clusters(
         # ------------------ Plot clusters one by one ------------------
         for i_label, cluster in enumerate(clusterings_selected[i_score]):
             color = colors[i_label % len(colors)]
-            ax = _plot_cluster(ax, data, cluster, color)
+            ax = plot_cluster(ax, data, cluster, color)
 
     # Remove empty axes
     for ax in fig.axes[len(clusterings_selected)+2:]:
@@ -219,7 +235,7 @@ def plot_true(
         for i_label in range(n_labels):
             c = clusters[i_ax][i_label]
             color = colors[i_label % len(colors)]
-            ax = _plot_cluster(ax, data, c, color)
+            ax = plot_cluster(ax, data, c, color)
 
         # Add title
         ax.set_title(ax_titles[i_ax])

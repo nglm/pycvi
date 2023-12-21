@@ -1,7 +1,7 @@
 Full example
 -------------
 
-.. literalinclude:: ../../examples/full_example.py
+.. literalinclude:: ../../examples/full_example/full_example.py
 
 .. image:: Barton_data_KMeans.png
 
