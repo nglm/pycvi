@@ -1,4 +1,4 @@
-Basic Usage
+Basic usage
 -------------
 
 In this example, we integrate PyCVI into the usual clustering pipeline in order to select the best clustering.
