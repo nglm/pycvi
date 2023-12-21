@@ -5,4 +5,5 @@
 
 ## Support
 
-If you are having issues, [please let me know](https://www.uib.no/en/persons/Natacha.Madeleine.Georgette.Galmiche).
+If you are having issues, [please let me know](https://www.uib.no/en/persons/Natacha.Madeleine.Georgette.Galmiche) or [create an issue](https://github.com/nglm/pycvi/issues).
+
