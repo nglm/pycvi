@@ -662,8 +662,8 @@ def compute_all_scores(
                     X_clus0 = data_clus0[t_w]
                     try:
                         l_res_score.append(cvi(
-                            X=X_clus0,
-                            clusters=clusters,
+                            X_clus0,
+                            clusters,
                             cvi_kwargs=score_kw,
                         ))
                     except InvalidKError as e:
@@ -678,8 +678,8 @@ def compute_all_scores(
                 # ------------ Score corresponding to 'n_clusters' ---------
                 try:
                     res_score = cvi(
-                        X=X_clus,
-                        clusters=clusters,
+                        X_clus,
+                        clusters,
                         cvi_kwargs=score_kw,
                     )
                 # Ignore if the score was used with a wrong number of clusters

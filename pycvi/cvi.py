@@ -139,16 +139,26 @@ class CVI():
         """
         Computes the CVI value of the clustering.
 
-        :param X: Dataset.
-        :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-        :param clustering: List of clusters.
-        :type clustering: List[List[int]]
-        :param cvi_kwargs: kwargs specific for the CVI, defaults to
-            {}.
-        :type cvi_kwargs: dict, optional
-        :raises InvalidKError: _description_
-        :return: The CVI value for this clustering
-        :rtype: float
+        Parameters
+        ----------
+        X : np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`
+            Dataset/
+        clustering : List[List[int]]
+            List of clusters.
+        cvi_kwargs : dict, optional
+            kwargs specific for the CVI, by default {}
+
+        Returns
+        -------
+        float
+            The CVI value for this clustering.
+
+        Raises
+        ------
+        InvalidKError
+            If the CVI has been called with an incompatible number of
+            clusters. Note that most CVIs don't accept the case
+            :math:`k=0`
         """
         dims = X.shape
         self.N = dims[0]
@@ -893,16 +903,44 @@ class GapStatistic(CVI):
     def __call__(
         self,
         X: np.ndarray,
-        clusters: List[List[int]],
+        clustering: List[List[int]],
         cvi_kwargs: dict = {}
     ) -> float:
+        """
+        Computes the CVI value of the clustering.
+
+        If `cvi_type=original`, then an attribute `s[k]` is computed,
+        corresponding to the std around the CVI value (with `k` begin
+        the number of clusters).
+
+        Parameters
+        ----------
+        X : np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`
+            Dataset/
+        clustering : List[List[int]]
+            List of clusters.
+        cvi_kwargs : dict, optional
+            kwargs specific for the CVI, by default {}
+
+        Returns
+        -------
+        float
+            The CVI value for this clustering.
+
+        Raises
+        ------
+        InvalidKError
+            If the CVI has been called with an incompatible number of
+            clusters. Note that most CVIs don't accept the case
+            :math:`k=0`
+        """
         if self.cvi_type == "original":
-            gap, s =  super().__call__(X, clusters, cvi_kwargs)
+            gap, s =  super().__call__(X, clustering, cvi_kwargs)
             k = cvi_kwargs["k"]
             self.s[k] = s
             return gap
         else:
-            return super().__call__(X, clusters, cvi_kwargs)
+            return super().__call__(X, clustering, cvi_kwargs)
 
     def __str__(self) -> str:
         return 'GapStatistic_{}'.format(self.cvi_type)

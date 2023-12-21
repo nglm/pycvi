@@ -5,6 +5,7 @@ from typing import List, Tuple
 from math import ceil
 
 from pycvi.cvi import CVIs
+from pycvi.cluster import get_clustering
 
 # --------  Adapt the figures to the total number of CVIs --------------
 N_CVIs = len(CVIs)
@@ -169,8 +170,8 @@ def plot_selected_clusters(
 
 def plot_true_selected(
     data: np.ndarray,
-    labels: np.ndarray,
-    clustering_selected: List[List[int]],
+    clustering_true: np.ndarray,
+    clustering_pred: np.ndarray,
     ax_titles: List[str] = None,
 ):
     """
@@ -178,11 +179,10 @@ def plot_true_selected(
 
     :param data: Original data, corresponding to a benchmark dataset
     :type data: np.ndarray, shape (N, d)
-    :param clusterings_selected: A list of n_CVI clusterings.
-    :type clusterings_selected: List[List[List[int]]]
-    :param fig: Figure where all the plots are (including 2 about the
-        true clusters)
-    :type fig:
+    :param clustering_true: True labels
+    :type clustering_true: np.ndarray
+    :param clustering_pred: Predicted labels
+    :type clustering_pred: np.ndarray
     :param ax_titles: List of titles for the two plots
     :type ax_titles: List[str]
     :return: a figure with one clustering per CVI (+2 plots first)
@@ -196,26 +196,15 @@ def plot_true_selected(
         nrows=1, ncols=2, sharey=True, figsize=(5, 10), tight_layout=True
         )
 
-    # ----------------------- Labels ----------------
-    if labels is None:
-        labels = np.zeros(N)
-    classes = np.unique(labels)
-    n_labels = len(classes)
-    if n_labels == N:
-        labels = np.zeros(N)
-        n_labels = 1
-
     # ------------------- variables for the 2 axes ----------------
     clusters = [
-        # The true clustering
-        [labels == classes[i] for i in range(n_labels)],
-        # The clustering obtained with k_true
-        clustering_selected
+        clustering_true,
+        clustering_pred,
     ]
     if ax_titles is None:
         ax_titles = [
-            f"True labels, k={n_labels}",
-            f"Clustering selected, with k={len(clustering_selected)}",
+            f"True labels, k={len(clustering_true)}",
+            f"Clustering selected, with k={len(clustering_pred)}",
         ]
 
     # ----  Plot the true clustering and the clustering selected  ------
