@@ -49,9 +49,13 @@ PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal C
 
 # Example
 
-![KMeans clustering on non time-series data, all implemented CVis](./Barton_data_KMeans.png) \label{fig:kmeans}
+![KMeans clustering on non time-series data, all implemented CVIs \label{fig:kmeans}](./Barton_data_KMeans.png)
 
-![Agglomerative clustering on non time-series data, all implemented CVis](./Barton_data_AgglomerativeClustering_Single.png) \label{fig:agglo}
+![Agglomerative clustering on non time-series data, all implemented CVIs \label{fig:agglo}](./Barton_data_AgglomerativeClustering_Single.png)
+
+![KMeans clustering on time-series data, with DTW, all implemented CVIs \label{fig:DTW}](./Barton_data_AgglomerativeClustering_Single.png)
+
+![KMedoids clustering on time-series data, without DTW, all implemented CVIs \label{fig:no_DTW}](./Barton_data_AgglomerativeClustering_Single.png)
 
 We experimented on 3 different cases: non time-series data [@barton2015clustering], time-series data [@UCRArchive2018] with euclidean distance and time-series data with DTW and DBA as distance measure and center of clusters.
 
@@ -59,7 +63,7 @@ For each case, we used a different clustering method from a different library: K
 
 Finally, we computed the variation of information between each selected clustering and the true clustering (second plot of all figures). A large variation of information indicates a poor clustering quality. In fig \autoref{fig:kmeans} and \autoref{fig:agglo}, we can see the difference when assuming the correct number of clusters between the AgglomerativeClustering and the KMeans clustering method on the non time-series data. The poor quality of the clustering selected by the CVI can then either be due to the clustering method or the CVI, hence the necessity of robust evaluation pipeline for both clustering methods and CVIs.
 
-The code of this example is available on the [GitHub repository](https://github.com/nglm/pycvi/tree/master/examples) of the package, as well as on its documentation.
+The code of this example is available on the [GitHub repository](https://github.com/nglm/pycvi/tree/master/examples/full_example/) of the package, as well as on its [documentation](https://pycvi.readthedocs.io/en/latest/examples/full_example.html).
 
 # Acknowledgements
 
