@@ -1,0 +1,6 @@
+ ============= xclara =============
+Source: Barton | Dataset: xclara | Shape: (3000, 2) | Labels: [0 1 2]
+Variation of information: 0.035384762841423
+ ============= zelnik1 =============
+Source: Barton | Dataset: zelnik1 | Shape: (299, 2) | Labels: [0 1 2]
+Variation of information: 3.0868601569970346

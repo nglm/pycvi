@@ -24,8 +24,10 @@
    :maxdepth: 4
    :caption: Examples:
 
-   examples/basic_usage/basic_usage
-   examples/full_example/full_example
+   examples/basic_usage
+   examples/basic_usage_time_series
+   examples/variation_information
+   examples/full_example
 
 .. Main module section
    ---------------------------------------
