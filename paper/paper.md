@@ -49,13 +49,13 @@ PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal C
 
 # Example
 
-![KMeans clustering on non time-series data, all implemented CVIs \label{fig:kmeans}](./Barton_data_KMeans.png)
+![KMeans clustering on non time-series data, all implemented CVIs \label{fig:kmeans}.](./Barton_data_KMeans.png)
 
-![Agglomerative clustering on non time-series data, all implemented CVIs \label{fig:agglo}](./Barton_data_AgglomerativeClustering_Single.png)
+![Agglomerative clustering on non time-series data, all implemented CVIs \label{fig:agglo}.](./Barton_data_AgglomerativeClustering_Single.png)
 
-![KMeans clustering on time-series data, with DTW, all implemented CVIs \label{fig:DTW}](./UCR_data_DTW_TimeSeriesKMeans.png)
+![KMeans clustering on time-series data, with DTW, all implemented CVIs \label{fig:DTW}.](./UCR_data_DTW_TimeSeriesKMeans.png)
 
-![KMedoids clustering on time-series data, without DTW, all implemented CVIs \label{fig:no_DTW}](./UCR_data_no_DTW_KMedoids.png)
+![KMedoids clustering on time-series data, without DTW, all implemented CVIs \label{fig:no_DTW}.](./UCR_data_no_DTW_KMedoids.png)
 
 We experimented on 3 different cases: non time-series data [@barton2015clustering], time-series data [@UCRArchive2018] with euclidean distance and time-series data with DTW and DBA as distance measure and center of clusters.
 
