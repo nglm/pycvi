@@ -548,7 +548,7 @@ class Hartigan(CVI):
     follows:
 
     According to de Amorim and Hennig [2015] "In the original paper, the
-    lowest :math:`k`to yield Hartigan :math:`<= 10` was proposed as the
+    lowest :math:`k` to yield Hartigan :math:`<= 10` was proposed as the
     optimal choice. However, if no :math:`k` meets this criteria, choose
     the :math:`k` whose difference in Hartigan for :math:`k` and
     :math:`k+1` is the smallest". According to Tibshirani et al. [2001]
