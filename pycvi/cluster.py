@@ -365,7 +365,7 @@ def sliding_window(T: int, w: int) -> dict:
     ]
     return window
 
-def _get_clusters(
+def _get_clustering(
     model_class,
     model_kw : Dict = {},
     fit_predict_kw : Dict = {},
@@ -566,7 +566,7 @@ def generate_all_clusterings(
 
                 # ---------- Fit & predict using clustering model-------
                 try :
-                    clusters = _get_clusters(
+                    clusters = _get_clustering(
                         model_class,
                         model_kw = model_kw,
                         fit_predict_kw = fit_predict_kw,

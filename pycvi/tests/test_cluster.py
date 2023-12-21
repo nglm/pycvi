@@ -8,7 +8,7 @@ from typing import List
 
 from ..datasets._mini import mini
 from ..cluster import (
-    sliding_window, prepare_data, _get_clusters, generate_all_clusterings,
+    sliding_window, prepare_data, _get_clustering, generate_all_clusterings,
     generate_uniform
 )
 
@@ -148,7 +148,7 @@ def test_sliding_window():
 
 def test__get_clusters():
     """
-    Test shape and type of output of _get_clusters
+    Test shape and type of output of _get_clustering
 
     Test with/without DTW/sliding window
     """
@@ -178,7 +178,7 @@ def test__get_clusters():
                 "X" : data_clus[0]
             }
 
-            clusters = _get_clusters(
+            clusters = _get_clustering(
                 model_class=model_DTW, model_kw=model_kw,
                 fit_predict_kw=fit_predict_kw, model_class_kw={}
             )
@@ -201,7 +201,7 @@ def test__get_clusters():
             "X" : data_clus[0]
         }
 
-        clusters = _get_clusters(
+        clusters = _get_clustering(
             model_class=model_DTW, model_kw=model_kw,
             fit_predict_kw=fit_predict_kw, model_class_kw={}
         )
@@ -227,7 +227,7 @@ def test__get_clusters():
                 "X" : data_clus[0]
             }
 
-            clusters = _get_clusters(
+            clusters = _get_clustering(
                 model_class=model, model_kw=model_kw,
                 fit_predict_kw=fit_predict_kw, model_class_kw={}
             )
@@ -250,7 +250,7 @@ def test__get_clusters():
             "X" : data_clus[0]
         }
 
-        clusters = _get_clusters(
+        clusters = _get_clustering(
             model_class=model, model_kw=model_kw,
             fit_predict_kw=fit_predict_kw, model_class_kw={}
         )
@@ -264,7 +264,7 @@ def test__get_clusters():
 
 def test_generate_all_clusterings():
     """
-    Test shape and type of output of _get_clusters
+    Test shape and type of output of _get_clustering
 
     Test with/without DTW/sliding window
     """
