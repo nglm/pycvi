@@ -26,6 +26,7 @@
 
    examples/basic_usage
    examples/basic_usage_time_series
+   examples/cluster_center
    examples/variation_information
    examples/full_example
 
