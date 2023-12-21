@@ -38,7 +38,7 @@ def set_data_shape(X: np.ndarray) -> np.ndarray:
     # Variable dimension
     shape = X_copy.shape
 
-    N = shape[0]  # Number of members (time series)
+    N = shape[0]  # Number of datapoints (time series)
     if N < 2:
         raise ShapeError(
             "At least 2 samples should be given (N>=2)" + str(N)
@@ -51,7 +51,7 @@ def set_data_shape(X: np.ndarray) -> np.ndarray:
         X_copy = np.expand_dims(X_copy, axis=1)
     elif len(shape) != 3:
         raise ShapeError(
-            "Invalid shape of members provided: {shape}. "
+            "Invalid shape of datapoints provided: {shape}. "
             + "Please provide a valid shape: "
             + "`(N,)` or `(N, d)` or `(N, T, d)`"
         )

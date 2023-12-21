@@ -122,7 +122,7 @@ def generate_uniform(
     else:
         # Get the parameters of the uniform distrib using min and max We
         # keep all the dims except the first one (Hence the 0) because
-        # The number of members dimension will be added in members_0 in
+        # The number of datapoints dimension will be added in members_0 in
         # the List comprehension
         # data of shape (N, T, d) even if d and T were initially omitted
         # mins and max of shape (T, d) (the [0] is to get rid of the N
@@ -421,7 +421,7 @@ def _generate_clustering(
     Returns
     -------
     List[List[int]]
-        Members affiliation to the generated clustering
+        Datapoints affiliation to the generated clustering
 
     Raises
     ------
@@ -453,7 +453,7 @@ def generate_all_clusterings(
     """
     Generate all clusterings for the given data and clustering model.
 
-    ```clusterings_t_k[t_w][k][i]``` is a list of members indices
+    ```clusterings_t_k[t_w][k][i]``` is a list of datapoint indices
     contained in cluster :math:`i` for the clustering that assumes
     :math:`k` clusters for the extracted time window :math:`t\_w`.
 
@@ -550,7 +550,7 @@ def generate_all_clusterings(
     # --------------------- Find clusters --------------------------
     # --------------------------------------------------------------
 
-    # clusterings_t_k[t_w][k][i] is a list of members indices contained
+    # clusterings_t_k[t_w][k][i] is a list of datapoint indices contained
     # in cluster i for the clustering assuming k clusters for the
     # extracted time window t_w
     clusterings_t_k = [{} for _ in range(n_windows)]
@@ -576,7 +576,7 @@ def generate_all_clusterings(
 
         for n_clusters in n_clusters_range:
 
-            # All members in the same cluster. Go to next iteration
+            # All datapoints in the same cluster. Go to next iteration
             if n_clusters <= 1:
                 clusterings_t_k[t_w][n_clusters] = [[i for i in range(N)]]
             # General case

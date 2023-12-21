@@ -133,21 +133,21 @@ class CVI():
     def __call__(
         self,
         X: np.ndarray,
-        clusters: List[List[int]],
+        clustering: List[List[int]],
         cvi_kwargs: dict = {},
     ) -> float:
         """
         Computes the CVI value of the clustering.
 
-        :param X: Values of all members
+        :param X: Dataset.
         :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-        :param clusters: List of (members, info) tuples
-        :type clusters: List[List[int]]
+        :param clustering: List of clusters.
+        :type clustering: List[List[int]]
         :param cvi_kwargs: kwargs specific for the CVI, defaults to
-            {}
+            {}.
         :type cvi_kwargs: dict, optional
         :raises InvalidKError: _description_
-        :return: _description_
+        :return: The CVI value for this clustering
         :rtype: float
         """
         dims = X.shape
@@ -156,9 +156,9 @@ class CVI():
         if "k" in cvi_kwargs:
             n_clusters = cvi_kwargs["k"]
         else:
-            n_clusters = len(clusters)
+            n_clusters = len(clustering)
         if self.k_condition(n_clusters):
-            return self.function(X, clusters, **cvi_kwargs)
+            return self.function(X, clustering, **cvi_kwargs)
         else:
             msg = (
                 f"{self.__class__} called with an incompatible number of "

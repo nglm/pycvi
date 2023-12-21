@@ -115,7 +115,7 @@ def f_pdist(
         dist = squareform(dist_square)
 
         # Option 2: Pairwise distances between the midpoint of the barycenter
-        # and the corresponding time step for each member in the cluster
+        # and the corresponding time step for each datapoint in the cluster
         # TODO
     else:
         msg = (
@@ -367,9 +367,9 @@ def _compute_subscores(
 
     :param score_type: type of score
     :type score_type: str
-    :param X: Values of all members
+    :param X: Dataset
     :type X: np.ndarray, shape: (N, d)
-    :param clusters: List of members, defaults to None
+    :param clusters: List of cluster, defaults to None
     :type clusters: List[List[int]]
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
@@ -383,8 +383,8 @@ def _compute_subscores(
     N = len(X)
     prefixes = ["", "sum_", "mean_", "weighted_"]
     score_tmp = [
-            reduce(f_score(X[members], dist_kwargs), reduction)
-            for members in clusters
+            reduce(f_score(X[cluster], dist_kwargs), reduction)
+            for cluster in clusters
         ]
     if (score_type in [p + main_score for p in prefixes] ):
         # Take the sum
@@ -431,9 +431,9 @@ def _compute_score(
 
     :param score_type: type of score
     :type score_type: Union[str, callable]
-    :param X: Values of all members, defaults to None
+    :param X: Dataset, defaults to None
     :type X: np.ndarray, shape: (N, d*w) or (N, w_t, d) optional
-    :param clusters: List of members, defaults to None
+    :param clusters: List of cluster, defaults to None
     :type clusters: List[List[int]]
     :param dist_kwargs: kwargs for pdist, cdist, etc.
     :type dist_kwargs: dict
@@ -553,7 +553,7 @@ def compute_all_scores(
         All clusterings for the given range on the number of clusters
         and for the potential sliding windows if applicable.
 
-        ```clusterings_t_k[t_w][k][i]``` is a list of members indices
+        ```clusterings_t_k[t_w][k][i]``` is a list of datapoint indices
         contained in cluster :math:`i` for the clustering that assumes
         :math:`k` clusters for the extracted time window :math:`t\_w`.
     transformer : callable, optional
@@ -635,7 +635,7 @@ def compute_all_scores(
 
         for n_clusters in clusterings[t_w].keys():
 
-            # Find cluster membership of each member
+            # Find cluster membership of each datapoint
             clusters = clusterings[t_w][n_clusters]
 
             # Take the data used for clustering while taking into
@@ -651,7 +651,7 @@ def compute_all_scores(
             )
 
             # Special case if the clustering algorithm didn't converge,
-            # and raised a NoClusterError error.
+            # and raised a EmptyClusterError error.
             if clusters is None:
                 res_score = None
             # Special case k=0: compute average score over N_zero
