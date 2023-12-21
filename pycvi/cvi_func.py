@@ -18,7 +18,7 @@ from .compute_scores import (
 from .cluster import (
     compute_center, generate_uniform,
 )
-from .exceptions import NoClusterError, ShapeError
+from .exceptions import ShapeError
 
 def _clusters_from_uniform(
     X,
@@ -47,17 +47,8 @@ def _clusters_from_uniform(
     # Fit a KMeans model to the sample from a uniform distribution
     labels = model.fit_predict(X)
 
-    # Sort members into the different clusters and compute their
-    # cluster info
-    clusters = []
-    for label_i in range(n_clusters):
-
-        # Members belonging to that clusters
-        members = [m for m in range(N) if labels[m] == label_i]
-        if members == []:
-            raise NoClusterError('No members in cluster')
-
-        clusters.append(members)
+    # Sort datapoints into the different clusters
+    clusters = get_clustering(labels)
 
     return clusters
 

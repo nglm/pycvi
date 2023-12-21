@@ -535,7 +535,7 @@ def compute_all_scores(
     If some scores couldn't be computed because of the condition on
     :math:`k` (:class:`pycvi.exceptions.InvalidKError`) or because the
     clustering algorithm used previously didn't converged
-    (:class:`pycvi.exceptions.NoClusterError`) then
+    (:class:`pycvi.exceptions.EmptyClusterError`) then
     ```scores[t_w][n_clusters] = None```.
 
     Parameters

@@ -365,11 +365,45 @@ def sliding_window(T: int, w: int) -> dict:
     ]
     return window
 
-def _get_clustering(
+def get_clustering(y_pred: np.ndarray) -> List[List[int]]:
+    """
+    Get a list of clusters with indices based on predicted labels.
+
+    Parameters
+    ----------
+    y_pred : np.ndarray, shape (N, )
+        Output of a sklearn-like ```fit_predict``` or ```predict```
+        method.
+
+    Returns
+    -------
+    List[List[int]]
+        ```clusters```: a list of datapoint indices for each cluster.
+        ```clusters[i]: contains the indices of the datapoints that
+        belong to the ith cluster.
+
+    Raises
+    ------
+    EmptyClusterError
+        Raised if the clustering algorithm didn't find the expected
+        number of clusters because it couldn't converge.
+    """
+    classes = np.unique(y_pred)
+    clusters = []
+    for label in classes:
+
+        # Members belonging to that clusters
+        cluster = [i for i in range(len(y_pred)) if y_pred[i] == label]
+        if cluster == []:
+            raise EmptyClusterError('No datapoints in cluster')
+
+        clusters.append(cluster)
+    return clusters
+
+def _generate_clustering(
     model_class,
     model_kw : Dict = {},
     fit_predict_kw : Dict = {},
-    model_class_kw : Dict = {},
 ) -> List[List[int]]:
     """
     Generate a clustering instance with the given model/fit parameters
@@ -383,9 +417,6 @@ def _get_clustering(
         {}.
     fit_predict_kw : dict, optional
         Dict of kw for the fit_predict method, defaults to {}
-    model_class_kw : dict, optional
-        To know how X and n_clusters args are called in this model
-        class, defaults to {}
 
     Returns
     -------
@@ -398,21 +429,11 @@ def _get_clustering(
         Raised if the clustering algorithm didn't find the expected
         number of clusters because it couldn't converge.
     """
-    n_clusters = model_kw[model_class_kw.get("k_arg_name", "n_clusters")]
-    X = fit_predict_kw[model_class_kw.get("X_arg_name", "X")]
-    N = len(X)
-
     # ====================== Fit & predict part =======================
     labels = model_class(**model_kw).fit_predict(**fit_predict_kw)
 
     # ==================== clusters ======================
-    clusters = [ [] for _ in range(n_clusters)]
-    for label_i in range(n_clusters):
-        # Members belonging to that clusters
-        members = [m for m in range(N) if labels[m] == label_i]
-        clusters[label_i] = members
-        if members == []:
-            raise NoClusterError('No members in cluster')
+    clusters = get_clustering(labels)
 
     return clusters
 
@@ -566,11 +587,10 @@ def generate_all_clusterings(
 
                 # ---------- Fit & predict using clustering model-------
                 try :
-                    clusters = _get_clustering(
+                    clusters = _generate_clustering(
                         model_class,
                         model_kw = model_kw,
                         fit_predict_kw = fit_predict_kw,
-                        model_class_kw = model_class_kw,
                     )
                 except EmptyClusterError as e:
                     if not quiet:
