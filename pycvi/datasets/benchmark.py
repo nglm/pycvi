@@ -24,7 +24,6 @@ Datasets from the UCR Time Series Classification Archive [UCR]_:
 """
 
 import numpy as np
-import os
 import csv
 from importlib import resources
 from typing import Tuple
@@ -48,7 +47,6 @@ def load_data(
     Tuple[np.ndarray, np.ndarray]
         The dataset and labels
     """
-    print(os.getcwd())
     # Load data from arff to dataframe
     if data_source.lower() == "barton":
         subfolder = "Barton"
