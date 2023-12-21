@@ -12,7 +12,7 @@ from pycvi.compute_scores import compute_all_scores
 from pycvi.vi import variation_information
 from pycvi.datasets.benchmark import load_data
 
-from ..utils import plot_true, plot_clusters
+from ..utils import plot_true_best, plot_selected_clusters
 
 out_fname = f'./output-full_example.txt'
 fout = open(out_fname, 'wt')
@@ -87,7 +87,7 @@ def pipeline(
     VI_best = variation_information(true_clusters, best_clusters)
 
     # -- Plot true clusters & clusters when assuming k_true clusters ---
-    fig = plot_true(X, y, best_clusters, VI_best)
+    fig = plot_true_best(X, y, best_clusters, VI_best)
 
     print(" ================ VI ================ ")
     # Compute VI between the true clustering and each clustering
@@ -141,7 +141,7 @@ def pipeline(
     # ----------------------- Summary plot -----------------------------
     # ------------------------------------------------------------------
 
-    fig = plot_clusters(X, clusterings_selected, fig, ax_titles)
+    fig = plot_selected_clusters(X, clusterings_selected, fig, ax_titles)
 
     fig.suptitle(fig_title)
     fig.savefig(fig_name + ".png")

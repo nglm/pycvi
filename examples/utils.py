@@ -6,7 +6,7 @@ from math import ceil
 
 from pycvi.cvi import CVIs
 
-# --------  Adapt the figures to the total number of scores ------------
+# --------  Adapt the figures to the total number of CVIs --------------
 N_CVIs = len(CVIs)
 N_ROWS = ceil((N_CVIs+2) / 5)
 N_COLS = 5
@@ -120,44 +120,44 @@ def plot_cluster(
 
     return ax
 
-def plot_clusters(
+def plot_selected_clusters(
     data: np.ndarray,
     clusterings_selected: List[List[List[int]]],
     fig,
     titles: List[str],
 ):
     """
-    Add one plot per score with their corresponding selected clustering.
+    Add one plot per CVI with their corresponding selected clustering.
 
     The fig should already contain 2 plots first with the true
     clusterings, and the clusterings obtained with k_true.
 
     :param data: Original data, corresponding to a benchmark dataset
     :type data: np.ndarray, shape (N, d)
-    :param clusterings_selected: A list of n_score clusterings.
+    :param clusterings_selected: A list of n_CVI clusterings.
     :type clusterings_selected: List[List[List[int]]]
     :param fig: Figure where all the plots are (including 2 about the
         true clusters)
     :type fig:
-    :param titles: List of titles for each score
+    :param titles: List of titles for each CVI
     :type titles: List[str]
-    :return: a figure with one clustering per score (+2 plots first)
+    :return: a figure with one clustering per CVI (+2 plots first)
     :rtype: A matplotlib figure
     """
 
     colors = _get_colors()
 
-    # -------  Plot the clustering selected by a given score -----------
-    for i_score in range(len(clusterings_selected)):
+    # -------  Plot the clustering selected by a given CVI -----------
+    for i_CVI in range(len(clusterings_selected)):
 
-        # Find the ax corresponding to the score
-        ax = fig.axes[i_score+2] # i+2 because there are 2 plots already
+        # Find the ax corresponding to the CVI
+        ax = fig.axes[i_CVI+2] # i+2 because there are 2 plots already
 
         # Add predefined title
-        ax.set_title(str(titles[i_score]))
+        ax.set_title(str(titles[i_CVI]))
 
         # ------------------ Plot clusters one by one ------------------
-        for i_label, cluster in enumerate(clusterings_selected[i_score]):
+        for i_label, cluster in enumerate(clusterings_selected[i_CVI]):
             color = colors[i_label % len(colors)]
             ax = plot_cluster(ax, data, cluster, color)
 
@@ -167,9 +167,70 @@ def plot_clusters(
 
     return fig
 
+def plot_true_selected(
+    data: np.ndarray,
+    labels: np.ndarray,
+    clustering_selected: List[List[int]],
+    ax_titles: List[str] = None,
+):
+    """
+    Plot the true clustering and the selected clustering.
 
+    :param data: Original data, corresponding to a benchmark dataset
+    :type data: np.ndarray, shape (N, d)
+    :param clusterings_selected: A list of n_CVI clusterings.
+    :type clusterings_selected: List[List[List[int]]]
+    :param fig: Figure where all the plots are (including 2 about the
+        true clusters)
+    :type fig:
+    :param ax_titles: List of titles for the two plots
+    :type ax_titles: List[str]
+    :return: a figure with one clustering per CVI (+2 plots first)
+    :rtype: A matplotlib figure
+    """
+    (N, T, d), UCR = _get_shape_UCR(data)
+    colors = _get_colors()
 
-def plot_true(
+    # ----------------------- Create figure ----------------
+    fig, axes = plt.subplots(
+        nrows=1, ncols=2, sharey=True, figsize=(5, 10), tight_layout=True
+        )
+
+    # ----------------------- Labels ----------------
+    if labels is None:
+        labels = np.zeros(N)
+    classes = np.unique(labels)
+    n_labels = len(classes)
+    if n_labels == N:
+        labels = np.zeros(N)
+        n_labels = 1
+
+    # ------------------- variables for the 2 axes ----------------
+    clusters = [
+        # The true clustering
+        [labels == classes[i] for i in range(n_labels)],
+        # The clustering obtained with k_true
+        clustering_selected
+    ]
+    if ax_titles is None:
+        ax_titles = [
+            f"True labels, k={n_labels}",
+            f"Clustering selected, with k={len(clustering_selected)}",
+        ]
+
+    # ----  Plot the true clustering and the clustering selected  ------
+    for i_ax in range(len(clusters)):
+
+        ax = fig.axes[i_ax]
+        ax.set_title(str(ax_titles[i_ax]))
+
+        # ------------------ Plot clusters one by one ------------------
+        for i_clus, cluster in enumerate(clusters[i_ax]):
+            color = colors[i_clus % len(colors)]
+            ax = plot_cluster(ax, data, cluster, color)
+    return fig
+
+def plot_true_best(
     data: np.ndarray,
     labels: np.ndarray,
     clusterings: List[List[List[int]]],
@@ -179,7 +240,7 @@ def plot_true(
     Plot the true clustering and the clustering obtained with k_true
 
     Create also the whole figure that will be used to plot the
-    clusterings selected by each score.
+    clusterings selected by each CVI.
 
     :param data: Original data, corresponding to a benchmark dataset
     :type data: np.ndarray, shape (N, d)
