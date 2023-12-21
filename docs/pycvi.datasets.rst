@@ -1,4 +1,4 @@
-pycvi.datasets
+﻿pycvi.datasets
 ==============
 
 .. automodule:: pycvi.datasets
@@ -27,7 +27,5 @@ pycvi.datasets
    :toctree:
    :recursive:
 
-   pycvi.datasets.Barton
-   pycvi.datasets.UCR
    pycvi.datasets.benchmark
 
