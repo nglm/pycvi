@@ -1,4 +1,4 @@
-pycvi.cluster
+﻿pycvi.cluster
 =============
 
 .. automodule:: pycvi.cluster
@@ -16,6 +16,7 @@ pycvi.cluster
       compute_center
       generate_all_clusterings
       generate_uniform
+      get_clustering
       prepare_data
       sliding_window
    
