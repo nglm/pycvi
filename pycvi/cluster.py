@@ -7,6 +7,7 @@ The main functions of this module are:
 
 - :func:`pycvi.cluster.generate_all_clusterings`, that generate all clusterings for a given range of number of clusters :math:`k`.
 - :func:`pycvi.cluster.compute_center`, that computes the center of a cluster.
+- :func:`pycvi.cluster.get_clustering`, that converts an array of predicted label for each datapoint (sklearn type of clustering encoding) to a list of datapoints for each cluster (PyCVI type of clustering encoding)
 
 """
 
@@ -379,7 +380,7 @@ def get_clustering(y_pred: np.ndarray) -> List[List[int]]:
     -------
     List[List[int]]
         ```clusters```: a list of datapoint indices for each cluster.
-        ```clusters[i]: contains the indices of the datapoints that
+        ```clusters[i]```: contains the indices of the datapoints that
         belong to the ith cluster.
 
     Raises

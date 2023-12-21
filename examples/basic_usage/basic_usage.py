@@ -37,7 +37,7 @@ for k in k_range:
     labels_pred = model.fit_predict(X)
 
     # From predicted cluster-label for each datapoint to a list of
-    # datapoint for each cluster.
+    # datapoints for each cluster.
     clusters_pred = get_clustering(labels_pred)
 
     # Compute the CVI value of this clustering
