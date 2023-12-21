@@ -170,30 +170,40 @@ def plot_selected_clusters(
 
 def plot_true_selected(
     data: np.ndarray,
-    clustering_true: np.ndarray,
-    clustering_pred: np.ndarray,
+    clustering_true: List[List[int]],
+    clustering_pred: List[List[int]],
     ax_titles: List[str] = None,
 ):
     """
     Plot the true clustering and the selected clustering.
 
-    :param data: Original data, corresponding to a benchmark dataset
-    :type data: np.ndarray, shape (N, d)
-    :param clustering_true: True labels
-    :type clustering_true: np.ndarray
-    :param clustering_pred: Predicted labels
-    :type clustering_pred: np.ndarray
     :param ax_titles: List of titles for the two plots
     :type ax_titles: List[str]
     :return: a figure with one clustering per CVI (+2 plots first)
     :rtype: A matplotlib figure
+
+    Parameters
+    ----------
+    data : np.ndarray, shape `(N, d)`
+        Original data, corresponding to a benchmark dataset
+    clustering_true : List[List[int]]
+        True clustering
+    clustering_pred : List[List[int]]
+        Predicted clustering
+    ax_titles : List[str], optional
+        List of titles for the two plots, by default None
+
+    Returns
+    -------
+    A matplotlib figure
+        A figure with the true clustering and the selected clustering.
     """
     (N, T, d), UCR = _get_shape_UCR(data)
     colors = _get_colors()
 
     # ----------------------- Create figure ----------------
     fig, axes = plt.subplots(
-        nrows=1, ncols=2, sharey=True, figsize=(5, 10), tight_layout=True
+        nrows=1, ncols=2, sharey=True, figsize=(10, 5), tight_layout=True
         )
 
     # ------------------- variables for the 2 axes ----------------

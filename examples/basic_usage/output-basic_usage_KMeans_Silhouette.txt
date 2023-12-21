@@ -1,0 +1,10 @@
+Source: Barton | Dataset: xclara | Shape: (3000, 2) | Labels: [0 1 2]
+k=2  |  CVI value:0.6011074539304297
+k=3  |  CVI value:0.6918330317974523
+k=4  |  CVI value:0.5128413031350835
+k=5  |  CVI value:0.4038687350531924
+k=6  |  CVI value:0.3474567732440354
+k=7  |  CVI value:0.34341354046709094
+k=8  |  CVI value:0.33872387097144224
+k=9  |  CVI value:0.33740499453394807
+k selected: 3
