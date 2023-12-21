@@ -39,6 +39,8 @@ the number of clusters is available.
 .. [SF] S. Saitta, B. Raphael, and I. F. C. Smith, “A bounded index for
    cluster validity,” in Machine Learning and Data Mining in Pattern
    Recognition, pp. 174–187, Springer Berlin Heidelberg, 2007.
+.. [MB] U. Maulik and S. Bandyopadhyay, “Performance evaluation of some
+   clustering algorithms and validity indices,” IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 24, pp. 1650–1654, Dec. 2002.
 """
 
 import numpy as np
@@ -1001,7 +1003,7 @@ class ScoreFunction(CVI):
 
 class MaulikBandyopadhyay(CVI):
     """
-    The Maulik-Bandyopadhyay index.
+    The Maulik-Bandyopadhyay index. [MB]_
 
     Originally, this index is absolute and has to be maximised to find
     the best :math:`k`.
