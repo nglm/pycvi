@@ -33,6 +33,7 @@
    pycvi.cvi
    pycvi.cvi_func
    pycvi.datasets
+   pycvi.dist
    pycvi.exceptions
    pycvi.vi
 

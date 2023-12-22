@@ -12,9 +12,8 @@ from aeon.clustering import TimeSeriesKMeans
 import numpy as np
 from math import sqrt
 
-from .compute_scores import (
-    f_inertia, f_pdist, f_cdist,
-)
+from .compute_scores import f_inertia
+from .dist import f_pdist, f_cdist
 from .cluster import (
     compute_center, generate_uniform, get_clustering
 )

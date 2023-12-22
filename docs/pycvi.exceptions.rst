@@ -1,4 +1,4 @@
-﻿pycvi.exceptions
+pycvi.exceptions
 ================
 
 .. automodule:: pycvi.exceptions

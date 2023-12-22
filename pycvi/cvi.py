@@ -50,9 +50,8 @@ from .cvi_func import (
     gap_statistic, silhouette, score_function, CH, hartigan, MB, SD_index,
     SDbw_index, dunn, xie_beni, xie_beni_star, davies_bouldin
 )
-from .compute_scores import (
-    _compute_score, reduce
-)
+from .dist import reduce
+from .compute_scores import _compute_score
 from ._compare_scores import (
     best_score, better_score, worst_score, argbest, argworst
 )

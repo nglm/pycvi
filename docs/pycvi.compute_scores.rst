@@ -14,12 +14,9 @@ pycvi.compute\_scores
    .. autosummary::
    
       compute_all_scores
-      f_cdist
       f_diameter
       f_inertia
       f_intra
-      f_pdist
-      reduce
    
    
 

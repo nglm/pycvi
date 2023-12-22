@@ -62,8 +62,8 @@ More low-level functions are defined to perform common operations but that can h
    :nosignatures:
    :template: function.rst
 
-   pycvi.compute_scores.f_pdist
-   pycvi.compute_scores.f_cdist
+   pycvi.dist.f_pdist
+   pycvi.dist.f_cdist
    pycvi.compute_scores.f_inertia
    pycvi.cluster.compute_center
 
