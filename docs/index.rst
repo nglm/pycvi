@@ -28,6 +28,7 @@
    examples/basic_usage_time_series
    examples/cluster_center
    examples/variation_information
+   examples/pdist_cdist
    examples/full_example
 
 .. Main module section

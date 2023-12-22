@@ -1,0 +1,40 @@
+
+3 clusters in dataset xclara (Non time-series)
+
+Distance matrix between datapoints in cluster 1, shape (452676,)
+  Mean distance between datapoints in cluster 1: 18.4354
+
+Distance matrix between datapoints in cluster 2, shape (397386,)
+  Mean distance between datapoints in cluster 2: 17.5734
+
+Distance matrix between datapoints in cluster 3, shape (667590,)
+  Mean distance between datapoints in cluster 3: 17.8209
+
+Distance matrix between cluster 1 and 2, shape (952, 892)
+  Mean distance between cluster 1 and 2: 65.6305
+
+Distance matrix between cluster 1 and 3, shape (952, 1156)
+  Mean distance between cluster 1 and 3: 76.9694
+
+4 clusters in dataset Trace (Time-series)
+
+Distance matrix between datapoints in cluster 1, shape (300,)
+  Mean distance between datapoints in cluster 1: 8.9790
+
+Distance matrix between datapoints in cluster 2, shape (210,)
+  Mean distance between datapoints in cluster 2: 0.6607
+
+Distance matrix between datapoints in cluster 3, shape (231,)
+  Mean distance between datapoints in cluster 3: 5.4999
+
+Distance matrix between datapoints in cluster 4, shape (465,)
+  Mean distance between datapoints in cluster 4: 8.5036
+
+Distance matrix between cluster 1 and 2, shape (25, 21)
+  Mean distance between cluster 1 and 2: 35.4798
+
+Distance matrix between cluster 1 and 3, shape (25, 22)
+  Mean distance between cluster 1 and 3: 507.1584
+
+Distance matrix between cluster 1 and 4, shape (25, 31)
+  Mean distance between cluster 1 and 4: 532.0727
