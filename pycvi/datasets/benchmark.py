@@ -31,6 +31,7 @@ from typing import Tuple
 def load_data(
     fname: str = "target",
     data_source: str ="barton",
+    verbose: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Get dataset and labels.
@@ -41,6 +42,8 @@ def load_data(
         Filename of the dataset, by default "target".
     path : str, optional
         Path to the file, by default "./Barton/".
+    bool : bool, optional
+        Verbosity.
 
     Returns
     -------
@@ -66,9 +69,10 @@ def load_data(
         classes = np.unique(labels)
         map_classes = {c:i for i,c in enumerate(classes)}
         labels = np.array([map_classes[label] for label in labels], dtype=int)
-    print((
-        f"Source: {subfolder} | Dataset: {fname} | Shape: {data.shape}"
-        + f" | Labels: {np.unique(labels)}"
-    ))
+    if verbose:
+        print((
+            f"Source: {subfolder} | Dataset: {fname} | Shape: {data.shape}"
+            + f" | Labels: {np.unique(labels)}"
+        ))
 
     return data, labels
