@@ -366,15 +366,18 @@ def sliding_window(T: int, w: int) -> dict:
     ]
     return window
 
-def get_clustering(y_pred: np.ndarray) -> List[List[int]]:
+def get_clustering(y: np.ndarray) -> List[List[int]]:
     """
-    Get a list of clusters with indices based on predicted labels.
+    Get a list of clusters with indices based on labels.
+
+    The labels can either be the true labels when loading the data, or
+    the output of a sklearn-like ```fit_predict``` or ```predict```
+    method.
 
     Parameters
     ----------
-    y_pred : np.ndarray, shape (N, )
-        Output of a sklearn-like ```fit_predict``` or ```predict```
-        method.
+    y : np.ndarray, shape (N, )
+        The labels for each datapoint
 
     Returns
     -------
@@ -389,12 +392,12 @@ def get_clustering(y_pred: np.ndarray) -> List[List[int]]:
         Raised if the clustering algorithm didn't find the expected
         number of clusters because it couldn't converge.
     """
-    classes = np.unique(y_pred)
+    classes = np.unique(y)
     clusters = []
     for label in classes:
 
         # Members belonging to that clusters
-        cluster = [i for i in range(len(y_pred)) if y_pred[i] == label]
+        cluster = [i for i in range(len(y)) if y[i] == label]
         if cluster == []:
             raise EmptyClusterError('No datapoints in cluster')
 
