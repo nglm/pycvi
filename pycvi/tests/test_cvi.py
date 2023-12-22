@@ -42,26 +42,23 @@ def test_Scores():
                 )
 
                 # T_w = 1
-                assert (len(scores_t_k) == 1)
                 for k in range(N+1):
                     # all clusterings were computed
-                    assert k in scores_t_k[0]
+                    assert k in scores_t_k
                 # List[Dict[int, float]]
-                assert (type(scores_t_k) == list)
-                assert (type(scores_t_k[0]) == dict)
+                assert (type(scores_t_k) == dict)
                 assert (
-                    type(scores_t_k[0][0]) == float
-                    or type(scores_t_k[0][0]) == np.float64
+                    type(scores_t_k[0]) == float
+                    or type(scores_t_k[0]) == np.float64
                     # returns None when the score was used with an
                     # incompatible number of clusters
-                    or type(scores_t_k[0][0]) == type(None))
+                    or type(scores_t_k[0]) == type(None))
 
-                # List[int]
+                # int
                 k_selected = s.select(scores_t_k)
-                assert (type(k_selected) == list)
-                assert (type(k_selected[0]) == int)
+                assert (type(k_selected) == int)
 
-        # Not using DTW nor window
+        # Not using DTW nor window but forcing output to be list
         DTW = False
         model = KMeans
         clusterings_t_k = generate_all_clusterings(
@@ -77,7 +74,7 @@ def test_Scores():
                 scores_t_k = compute_all_scores(
                     s, data, clusterings_t_k,
                     transformer=None, scaler=None, DTW=DTW,
-                    time_window=None
+                    time_window=None, return_list=True,
                 )
 
                 # T_w = 1
@@ -126,13 +123,8 @@ def test_Scores():
                 time_window=None
             )
 
-            # List[int]
-            k_selected = s.select(scores_t_k)
-            assert (type(k_selected) == list)
-            assert (type(k_selected[0]) == int)
-
             # int
-            k_selected = s.select(scores_t_k[0])
+            k_selected = s.select(scores_t_k)
             assert (type(k_selected) == int)
 
 def test_is_relevant():
@@ -165,13 +157,13 @@ def test_is_relevant():
         assert S_monotone.is_relevant(s2, k1, s1, k2) != exp_res_mono_min_imp[i]
 
 def test_select():
-    l_score_mono = [
-        {0: 10000, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
-    ]
+    score_mono = {
+        0: 10000, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000
+    }
     l_score_mono_ignore0 = [
         {0: 100, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
     ]
-    l_score_abs  = [ {1: 12000, 2: 5000, 3: 15000, 5: -40000} ]
+    score_abs  = {1: 12000, 2: 5000, 3: 15000, 5: -40000}
     # Typically inertia
     S_monotone = CVI(
         maximise=False, improve=True, cvi_type="monotonous"
@@ -188,7 +180,7 @@ def test_select():
     S_abs_min = CVI(
         cvi_type="absolute", maximise=False
     )
-    assert S_monotone.select(l_score_mono) == [4]
+    assert S_monotone.select(score_mono) == 4
     assert S_monotone_ignore0.select(l_score_mono_ignore0) == [4]
-    assert S_abs_max.select(l_score_abs) == [3]
-    assert S_abs_min.select(l_score_abs) == [5]
+    assert S_abs_max.select(score_abs, return_list=True) == [3]
+    assert S_abs_min.select(score_abs, return_list=True) == [5]

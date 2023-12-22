@@ -1,22 +1,23 @@
+import sys
+
+out_fname = f'./output-full_example.txt'
+fout = open(out_fname, 'wt')
+sys.stdout = fout
+
 import numpy as np
+import time
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn_extra.cluster import KMedoids
 from aeon.clustering import TimeSeriesKMeans
-import time
-import sys
 
-from pycvi.cluster import generate_all_clusterings
+from pycvi.cluster import generate_all_clusterings, get_clustering
 from pycvi.cvi import CVIs
 from pycvi.compute_scores import compute_all_scores
 from pycvi.vi import variation_information
 from pycvi.datasets.benchmark import load_data
 
 from ..utils import plot_true_best, plot_selected_clusters
-
-out_fname = f'./output-full_example.txt'
-fout = open(out_fname, 'wt')
-sys.stdout = fout
 
 def pipeline(
     X: np.ndarray,
@@ -46,18 +47,16 @@ def pipeline(
       selected clusterings of each CVI.
     """
     print(f'\n ***** {fig_title} ***** \n')
-    N = len(X)
-    k_range = range(min(k_max, N+1))
+    k_range = range(k_max)
 
     # ------------------------------------------------------------------
     # ------------------ Define true clustering  -----------------------
     # ------------------------------------------------------------------
-    classes = np.unique(y)
-    k_true = len(classes)
-
+    # From the label for each datapoint to a list of
+    # datapoints for each cluste.
     # true clusters: List[List[int]]
-    indices = np.arange(len(X))
-    true_clusters = [ indices[y == classes[i]] for i in range(k_true) ]
+    true_clusters = get_clustering(y)
+    k_true = len(true_clusters)
 
     # ------------------------------------------------------------------
     # ------------------ Generate clusterings  -------------------------
@@ -72,7 +71,7 @@ def pipeline(
             n_clusters_range = k_range,
             DTW = DTW,
             scaler=scaler,
-        )[0]
+        )
 
     t_end = time.time()
     dt = t_end - t_start
@@ -114,7 +113,7 @@ def pipeline(
         scores = compute_all_scores(
             cvi,
             X,
-            [clusterings],
+            clusterings,
             DTW=DTW,
             scaler=StandardScaler(),
         )
@@ -123,7 +122,7 @@ def pipeline(
         dt = t_end - t_start
 
         # Select k
-        k_selected = cvi.select(scores)[0]
+        k_selected = cvi.select(scores)
 
         # Print CVI values and selected k
         for k in clusterings:
@@ -149,9 +148,6 @@ def pipeline(
 # ======================================================================
 # PyCVI on non time-series data
 # ======================================================================
-
-# long1
-# zelnik1
 
 # ------------- KMeans ------------------------
 X, y = load_data("zelnik1", "barton")
@@ -186,8 +182,6 @@ pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 # PyCVI on time series data
 # ======================================================================
 
-# Trace dataset
-# SmallKitchenAppliances dataset
 X, y = load_data("Trace", "UCR")
 
 # ==========================

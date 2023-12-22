@@ -452,14 +452,21 @@ def generate_all_clusterings(
     model_kw: dict = {},
     fit_predict_kw: dict = {},
     model_class_kw: dict = {},
+    return_list: bool = False,
     quiet: bool = True,
-) -> List[Dict[int, List[List[int]]]]:
+) -> Union[List[Dict[int, List[List[int]]]], Dict[int, List[List[int]]]]:
     """
     Generate all clusterings for the given data and clustering model.
 
-    ```clusterings_t_k[t_w][k][i]``` is a list of datapoint indices
-    contained in cluster :math:`i` for the clustering that assumes
-    :math:`k` clusters for the extracted time window :math:`t\_w`.
+    If time_window is None: ```clusterings_t_k[k][i]``` is a list of datapoint
+    indices contained in cluster :math:`i` for the clustering that
+    assumes :math:`k` clusters.
+
+    If time_window is not None (concerns only time series with sliding
+    window): ```clusterings_t_k[t_w][k][i]``` is a list of datapoint
+    indices contained in cluster :math:`i` for the clustering that
+    assumes :math:`k` clusters for the extracted time window
+    :math:`t\_w`.
 
     If some clusterings couldn't be defined because the clustering
     algorithm didn't converged
@@ -492,17 +499,19 @@ def generate_all_clusterings(
     time_window : int, optional
         Length of the sliding window (concerns only time-series data),
         by default None. If None, no sliding window is used, and the
-        time series is considered as a whole.
+        time series is considered as a whole. If None, the output is of
+        type Dict[int, List[List[int]]], if not None, the output is of
+        List[Dict[int, List[List[int]]]].
     transformer : callable, optional
         A potential additional preprocessing step, by default None. If
         None, no transformation is applied on the data
     scaler : A sklearn-like scaler model, optional
-        A data scaler, by default
-        `StandardScaler() <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_
-        . In the case of time
-        series data (i.e. :math:`T > 1`), all the time steps of all
-        samples of a given feature are aggregated before fitting the
-        scaler. If None, no scaling is applied on the data.
+        A data scaler, by default `StandardScaler()
+        <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_
+        . In the case of time series data (i.e. :math:`T > 1`), all the
+        time steps of all samples of a given feature are aggregated
+        before fitting the scaler. If None, no scaling is applied on the
+        data.
     model_kw : dict, optional
         Specific kwargs to give to `model_class` init method, by default
         {}.
@@ -513,14 +522,17 @@ def generate_all_clusterings(
         Dictionary that contains the argument names of the number of
         clusters and the data to give to the clustering model, by
         default {}, which then updated as follows: `{"k_arg_name" :
-        "n_clusters", "X_arg_name" : "X" }` to follow sklean
+        "n_clusters", "X_arg_name" : "X" }` to follow sklearn
         conventions.
+    return_list: bool, optional
+        Determines whether the output should be forced to be a
+        List[Dict], even when no sliding window is used by default False.
     quiet : bool, optional
         Controls the verbosity of the function, by default True.
 
     Returns
     -------
-    List[Dict[int, List[List[int]]]]
+    Union[List[Dict[int, List[List[int]]]], Dict[int, List[List[int]]]]
         All clusterings for the given range on the number of clusters
         and for the potential sliding windows if applicable.
     """
@@ -536,10 +548,13 @@ def generate_all_clusterings(
     if n_clusters_range is None:
         n_clusters_range = range(N+1)
 
+    # Should the output be a List[Dict] or a Dict?
     if time_window is not None:
         wind = sliding_window(T, time_window)
+        return_list = True
     else:
         wind = None
+        return_list = False or return_list
 
     # list of T (if sliding window) or 1 array(s) of shape:
     # (N, T|w_t, d) if DTW
@@ -602,5 +617,8 @@ def generate_all_clusterings(
                     clusters = None
 
                 clusterings_t_k[t_w][n_clusters] = clusters
-
-    return clusterings_t_k
+    # If no sliding window was used, return a Dict, else a List[Dict]
+    if return_list:
+        return clusterings_t_k
+    else:
+        return clusterings_t_k[0]

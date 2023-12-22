@@ -173,28 +173,27 @@ def test_compute_all_scores():
         )
 
         # T_w = 1
-        assert (len(scores_t_k) == 1)
-        for k in range(N+1):
-            # all clusterings were computed
-            assert k in scores_t_k[0]
-        # List[Dict[int, float]]
-        assert (type(scores_t_k) == list)
-        assert (type(scores_t_k[0]) == dict)
+        # Dict[int, float]
+        assert (type(scores_t_k) == dict)
         assert (
-            type(scores_t_k[0][0]) == float
-            or type(scores_t_k[0][0]) == np.float64
+            type(scores_t_k[0]) == float
+            or type(scores_t_k[0]) == np.float64
             # returns None when the score was used with an
             # incompatible number of clusters
-            or type(scores_t_k[0][0]) == type(None))
+            or type(scores_t_k[0]) == type(None))
+        for k in range(N+1):
+            # all clusterings were computed
+            assert k in scores_t_k
 
-        # Not using DTW nor window
+        # Not using DTW nor window but force the output to be list
         DTW = False
         model = KMeans
         clusterings_t_k = generate_all_clusterings(
                 data, model,
                 DTW=DTW, time_window=None, transformer=None,
                 scaler=None,
-                model_kw={}, fit_predict_kw={}, model_class_kw={}
+                model_kw={}, fit_predict_kw={}, model_class_kw={},
+                return_list=True,
             )
 
         scores_t_k = compute_all_scores(

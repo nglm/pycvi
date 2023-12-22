@@ -146,7 +146,7 @@ def test_sliding_window():
         for out, out_exp in zip(output_np, output_np_exp):
             assert_array_equal(out, out_exp)
 
-def test__get_clusters():
+def test__generate_clustering():
     """
     Test shape and type of output of _generate_clustering
 
@@ -312,21 +312,19 @@ def test_generate_all_clusterings():
             )
 
         # T_w = 1
-        assert (len(clusterings_t_k) == 1)
         for k in range(N+1):
             # all clusterings were computed
-            assert k in clusterings_t_k[0]
+            assert k in clusterings_t_k
             # k clusters in the clustering k
             exp_len = k
             if k == 0:
                 exp_len = 1
-            assert len(clusterings_t_k[0][k]) == exp_len
-        # type List[Dict[int, List[List[int]]]]
-        assert (type(clusterings_t_k) == list)
-        assert (type(clusterings_t_k[0]) == dict)
+            assert len(clusterings_t_k[k]) == exp_len
+        # type Dict[int, List[List[int]]]
+        assert (type(clusterings_t_k) == dict)
+        assert (type(clusterings_t_k[0]) == list)
         assert (type(clusterings_t_k[0][0]) == list)
-        assert (type(clusterings_t_k[0][0][0]) == list)
-        assert (type(clusterings_t_k[0][0][0][0]) == int)
+        assert (type(clusterings_t_k[0][0][0]) == int)
 
         # Not using DTW but using window
         # data_clus is a list of T (N, w_t*d) arrays
@@ -355,13 +353,14 @@ def test_generate_all_clusterings():
             assert (type(clusterings_t_k[0][0][0]) == list)
             assert (type(clusterings_t_k[0][0][0][0]) == int)
 
-        # Not using DTW nor window
+        # Not using DTW nor window but forcing output to be list
         # data_clus is a list of 1 (N, T*d) array
         clusterings_t_k = generate_all_clusterings(
                 data, model,
                 DTW=False, time_window=None, transformer=None,
                 scaler=None,
-                model_kw={}, fit_predict_kw={}, model_class_kw={}
+                model_kw={}, fit_predict_kw={}, model_class_kw={},
+                return_list=True,
             )
 
         # T_w = 1

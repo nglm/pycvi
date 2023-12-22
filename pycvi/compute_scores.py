@@ -17,7 +17,7 @@ from aeon.distances import dtw_distance, dtw_pairwise_distance
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from ._configuration import set_data_shape
-from ._utils import _match_dims
+from ._utils import _match_dims, _check_list_of_dict
 from .cluster import (
     compute_center, prepare_data, sliding_window, generate_uniform
 )
@@ -528,7 +528,8 @@ def compute_all_scores(
     N_zero: int = 10,
     zero_type: str = "bounds",
     cvi_kwargs: dict = {},
-) -> List[Dict[int, float]]:
+    return_list: bool = False,
+) -> Union[List[Dict[int, float]], Dict[int, float]]:
     """
     Computes all CVI values for the given clusterings.
 
@@ -586,11 +587,15 @@ def compute_all_scores(
           has the same bounds as the original data.
     cvi_kwargs : dict, optional
         Specific kwargs to give to the CVI, by default {}
+    return_list: bool, optional
+        Determines whether the output should be forced to be a
+        List[Dict], even when no sliding window is used by default False.
 
     Returns
     -------
-    List[Dict[int, float]]
-        _description_
+    Union[List[Dict[int, float]], Dict[int, float]]
+        The computed CVI values for each of the clustering given as
+        input.
     """
 
     # --------------------------------------------------------------
@@ -627,6 +632,12 @@ def compute_all_scores(
     # scores_t_n[t_w][k] is the score for the clustering assuming k
     # clusters for the extracted time window t_w
     scores_t_n = [{} for _ in range(n_windows)]
+    try:
+        clusterings, should_return_list = _check_list_of_dict(clusterings)
+    except ValueError as e:
+        msg = f"clusterings in compute_all_scores: {e}"
+        raise ValueError(msg)
+    return_list = return_list or should_return_list
 
     # Note that in this function, "clusterings" corresponds to
     # "clusterings_t_k" in "generate_all_clusterings" and not to
@@ -688,4 +699,8 @@ def compute_all_scores(
 
             scores_t_n[t_w][n_clusters] = res_score
 
-    return scores_t_n
+    # If no sliding window was used, return a Dict, else a List[Dict]
+    if return_list:
+        return scores_t_n
+    else:
+        return scores_t_n[0]

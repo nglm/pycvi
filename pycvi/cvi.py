@@ -57,6 +57,7 @@ from ._compare_scores import (
     best_score, better_score, worst_score, argbest, argworst
 )
 from .exceptions import InvalidKError
+from ._utils import _check_list_of_dict
 
 class CVI():
     """
@@ -364,7 +365,8 @@ class CVI():
 
     def select(
         self,
-        scores_t_k: List[Dict[int, float]]
+        scores_t_k: List[Dict[int, float]],
+        return_list: bool = False,
     ) -> Union[List[Union[int, None]], int, None]:
         """
         Select the best clusterings according to the CVI values given.
@@ -374,16 +376,23 @@ class CVI():
         series are clustered considering all time steps at once, then
         the returned list has only one element.
 
+        If no k could be selected given the scores_t_k values, then k is
+        set to None.
+
         Parameters
         ----------
         scores_t_k : List[Dict[int, float]]
             The CVI values for the provided :math:`k` range and for the
             potential number :math:`t` of iterations to consider in
             time.
+        return_list: bool, optional
+            Determines whether the output should be forced to be a
+            List[Dict], even when no sliding window is used by default
+            False.
 
         Returns
         -------
-        List[Union[int, None]]
+        Union[List[Union[int, None]], int, None]
             The list of :math:`k` values corresponding to the best
             clustering for each potential number :math:`t` of iterations
             to consider in time. Some elements can be `None` if no
@@ -396,33 +405,18 @@ class CVI():
             list of dictionaries in the case of time series data
             clustered by sliding windows or a dictionary).
         """
-        return_list = True
-        if type(scores_t_k) == dict:
-            if scores_t_k == {}:
-                msg = (
-                    "scores_t_k in CVI.select must be non-empty"
-                )
-                raise ValueError(msg)
-            return_list = False
-        elif type(scores_t_k) == list:
-            if scores_t_k == []:
-                msg = (
-                    "scores_t_k in CVI.select must be non-empty"
-                )
-                raise ValueError(msg)
-            elif type(scores_t_k[0]) != dict:
-                msg = (
-                    "scores_t_k in CVI.select must be of type "
-                    + f"List[dict] or dict. Got List[{type(scores_t_k[0])}] "
-                    + "instead"
-                )
-                raise ValueError(msg)
+        try:
+            scores_t_k, should_return_list = _check_list_of_dict(scores_t_k)
+        except ValueError as e:
+            msg = f"scores_t_k in CVI.select: {e}"
+            raise ValueError(msg)
         # Time series case with sliding window
+        return_list = return_list or should_return_list
         if return_list:
             k_selected = [self.criterion(s_t) for s_t in scores_t_k]
         # Other cases (non time-series or time-series without sliding window)
         else:
-            k_selected = self.criterion(scores_t_k)
+            k_selected = self.criterion(scores_t_k[0])
         return k_selected
 
     def better_score(
