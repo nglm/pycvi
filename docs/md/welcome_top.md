@@ -29,12 +29,28 @@ To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/
 - With poetry:
 
 ```bash
+# From PyPI
+pip install pycvi-lib
+# Alternatively, from github directly
 poetry add git+https://github.com/nglm/pycvi.git
 ```
 
 - With pip:
 
 ```bash
+# From PyPI
+pip install pycvi-lib
+# Alternatively, from github directly
 pip install git+https://github.com/nglm/pycvi.git
 ```
 
+- With anaconda:
+
+```bash
+# activate your environment (replace myEnv with your environment name)
+conda activate myEnv
+# install pip first in your environment
+conda install pip
+# install pycvi on your anaconda environment with pip
+pip install pycvi-lib
+```

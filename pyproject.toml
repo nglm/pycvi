@@ -1,10 +1,12 @@
 [tool.poetry]
-name = "pycvi"
+name = "pycvi-lib"
+packages = [
+    {include = "pycvi"}
+]
 version = "0.1.0"
 description = ""
 authors = ["Natacha, Galmiche <natacha.galmiche@uib.no>"]
 readme = "README.md"
-
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 aeon = "^0.6.0"
