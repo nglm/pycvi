@@ -55,7 +55,7 @@ from .compute_scores import _compute_score
 from ._compare_scores import (
     best_score, better_score, worst_score, argbest, argworst
 )
-from .exceptions import InvalidKError
+from .exceptions import InvalidKError, SelectionError
 from ._utils import _check_list_of_dict
 
 class CVI():
@@ -227,6 +227,9 @@ class CVI():
         Does not take into account rules that are specific to a CVI,
         such as the Gap statistic, Hartigan, etc.
 
+        Returns None if no clustering could be selected (probably
+        because the CVI values were None or NaN).
+
         Parameters
         ----------
         scores : Dict[int, float]
@@ -366,7 +369,7 @@ class CVI():
         self,
         scores_t_k: List[Dict[int, float]],
         return_list: bool = False,
-    ) -> Union[List[Union[int, None]], int, None]:
+    ) -> Union[List[int], int]:
         """
         Select the best clusterings according to the CVI values given.
 
@@ -391,7 +394,7 @@ class CVI():
 
         Returns
         -------
-        Union[List[Union[int, None]], int, None]
+        Union[List[int], int]
             The list of :math:`k` values corresponding to the best
             clustering for each potential number :math:`t` of iterations
             to consider in time. Some elements can be `None` if no
@@ -403,6 +406,9 @@ class CVI():
             If ```scores_t_k``` is empty or not of the right type (a
             list of dictionaries in the case of time series data
             clustered by sliding windows or a dictionary).
+        SelectionError
+            If no clustering could be selected with the given CVI values
+            (probably because the CVI values are None or NaN)
         """
         try:
             scores_t_k, should_return_list = _check_list_of_dict(scores_t_k)
@@ -413,9 +419,21 @@ class CVI():
         return_list = return_list or should_return_list
         if return_list:
             k_selected = [self.criterion(s_t) for s_t in scores_t_k]
+            if None in k_selected:
+                msg = (
+                    "No clustering could be selected by {self} "
+                    + f"with the CVI values given: {scores_t_k}"
+                )
+                raise SelectionError(msg)
         # Other cases (non time-series or time-series without sliding window)
         else:
             k_selected = self.criterion(scores_t_k[0])
+            if k_selected == None:
+                msg = (
+                    "No clustering could be selected by {self} "
+                    + f"with the CVI values given: {scores_t_k}"
+                )
+                raise SelectionError(msg)
         return k_selected
 
     def better_score(

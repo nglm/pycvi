@@ -1,4 +1,4 @@
-pycvi.exceptions
+﻿pycvi.exceptions
 ================
 
 .. automodule:: pycvi.exceptions
@@ -25,6 +25,7 @@ pycvi.exceptions
       InvalidKError
       InvalidScoreError
       ScoreError
+      SelectionError
       ShapeError
    
    

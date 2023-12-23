@@ -39,3 +39,11 @@ class InvalidKError(ValueError):
     The CVI was called with an incompatible number of clusters.
     """
     pass
+
+class SelectionError(ValueError):
+    """
+    The CVI couldn't select the best clustering.
+
+    This is probably because the CVI values given are None.
+    """
+    pass

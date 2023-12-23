@@ -16,6 +16,7 @@ from pycvi.cvi import CVIs
 from pycvi.compute_scores import compute_all_scores
 from pycvi.vi import variation_information
 from pycvi.datasets.benchmark import load_data
+from pycvi.exceptions import SelectionError
 
 from ..utils import plot_true_best, plot_selected_clusters
 
@@ -121,27 +122,32 @@ def pipeline(
         t_end = time.time()
         dt = t_end - t_start
 
-        # Select k
-        k_selected = cvi.select(scores)
-
         # Print CVI values and selected k
         for k in clusterings:
-            print(k, scores[0][k])
-        print(f"Selected k: {k_selected} | True k: {k_true}")
+            print(k, scores[k])
         print('Code executed in %.2f s' %(dt))
 
-        # For plotting purpose
-        clusterings_selected.append(clusterings[k_selected])
-        ax_titles.append(
-            f"{cvi}, k={k_selected}, VI={VIs[k_selected]:.2f}"
-        )
-
+        # Select k
+        try:
+            k_selected = cvi.select(scores)
+        except SelectionError as e:
+            k_selected = None
+            clusterings_selected.append(None)
+            ax_titles.append(
+                f"{cvi}, No clustering could be selected."
+            )
+        else:
+            clusterings_selected.append(clusterings[k_selected])
+            ax_titles.append(
+                f"{cvi}, k={k_selected}, VI={VIs[k_selected]:.2f}"
+            )
+        finally:
+            print(f"Selected k: {k_selected} | True k: {k_true}")
     # ------------------------------------------------------------------
     # ----------------------- Summary plot -----------------------------
     # ------------------------------------------------------------------
 
     fig = plot_selected_clusters(X, clusterings_selected, fig, ax_titles)
-
     fig.suptitle(fig_title)
     fig.savefig(fig_name + ".png")
 
@@ -154,7 +160,6 @@ X, y = load_data("zelnik1", "barton")
 DTW = False
 k_max = 10
 
-
 model_class = KMeans
 model_kw = {}
 scaler = StandardScaler()
@@ -162,7 +167,6 @@ scaler = StandardScaler()
 fig_title = "Non time-series data with KMeans"
 fig_name = "Barton_data_KMeans"
 pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
-
 
 # --------- AgglomerativeClustering ----------
 X, y = load_data("zelnik1", "barton")
@@ -197,7 +201,6 @@ fig_title = "Time-series data using DTW with TimeSeriesKMeans"
 fig_name = "UCR_data_DTW_TimeSeriesKMeans"
 
 pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
-
 
 # ==========================
 # PyCVI not using DTW
