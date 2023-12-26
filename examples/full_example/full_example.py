@@ -174,6 +174,7 @@ DTW = False
 k_max = 10
 
 model_class = AgglomerativeClustering
+# sklearn kwargs for AgglomerativeClustering
 model_kw = {"linkage" : "single"}
 scaler = StandardScaler()
 
@@ -195,7 +196,11 @@ X, y = load_data("Trace", "UCR")
 DTW = True
 
 model_class = TimeSeriesKMeans
-model_kw = {}
+# aeon kwargs for TimeSeriesKMeans
+model_kw = {
+    "distance" : "dtw",
+    "distance_params" : {"window": 0.2},
+}
 scaler = StandardScaler()
 fig_title = "Time-series data using DTW with TimeSeriesKMeans"
 fig_name = "UCR_data_DTW_TimeSeriesKMeans"
