@@ -3,7 +3,7 @@ name = "pycvi-lib"
 packages = [
     {include = "pycvi"}
 ]
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Natacha, Galmiche <natacha.galmiche@uib.no>"]
 readme = "README.md"
