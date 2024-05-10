@@ -35,7 +35,7 @@ PyCVI implements 12 state-of-the-art *internal* CVIs to improve clustering pipel
 
 There exist many mature libraries in python for machine learning and in particular clustering [scikit-learn](https://scikit-learn.org/stable/index.html) [@scikitlearn], [TensorFlow](https://www.tensorflow.org/) [@tensorflow2015], [PyTorch](https://pytorch.org/) [@pytorch], [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/) [@sklearn_extra], and even several specifically for time series data: [aeon](https://www.aeon-toolkit.org/en/latest/index.html) [@aeon], [sktime](https://www.sktime.net/en/stable/index.html) [@sktime], [tslearn](https://tslearn.readthedocs.io/en/stable/) [@tslearn].
 
-However, although being fundamental to clustering tasks and being an active research topic, very few internal CVIs are implemented in standard python libraries (only 3 in [scikit-learn](https://scikit-learn.org/stable/index.html), more were available in R but few were maintained and kept in CRAN [@Charrad2014nbclust]). This is despite the well-known limitations of all existing CVIs [@Arbelaitz2013], [@Gagolewski2021], [@Gurrutxaga2011], [@Theodoridis2009Chap16] and the need to use the right one(s) according to the specific dataset at hand, similarly to matching the right clustering method with the given problem.
+However, although being fundamental to clustering tasks and being an active research topic, very few internal CVIs are implemented in standard python libraries (only 3 in [scikit-learn](https://scikit-learn.org/stable/index.html), more were available in R but few were maintained and kept in CRAN [@Charrad2014nbclust]). This is despite the well-known limitations of all existing CVIs [@Arbelaitz2013], [@Gagolewski2021], [@Gurrutxaga2011], [@Theodoridis2009Chap16] and the need to use the right one(s) according to the specific dataset at hand, similarly to matching the right clustering method with the given problem. A crucial step towards developing better CVIs would be an easy access to an implementation of existing CVIs in order to facilitate larger comparative studies.
 
 In addition, all CVIs rely on the definition of a distance between datapoints and most of them on the notion of cluster center.
 
@@ -49,11 +49,19 @@ PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal C
 
 ![KMeans clustering on non time-series data, all implemented CVIs.\label{fig:kmeans}](./Barton_data_KMeans.png)
 
+![KMeans clustering on non time-series data, selected number of clusters according to all implemented CVIs. \label{fig:kmeans-hist}](./Barton_data_KMeans-histogram.png)
+
 ![Agglomerative clustering on non time-series data, all implemented CVIs.\label{fig:agglo}](./Barton_data_AgglomerativeClustering_Single.png)
+
+![Agglomerative clustering on non time-series data, selected number of clusters according to all implemented CVIs. \label{fig:agglo-hist}](./Barton_data_AgglomerativeClustering_Single-histogram.png)
 
 ![KMeans clustering on time-series data, with DTW, all implemented CVIs.\label{fig:DTW}](./UCR_data_DTW_TimeSeriesKMeans.png)
 
-![KMedoids clustering on time-series data, without DTW, all implemented CVIs.\label{fig:no_DTW}](./UCR_data_no_DTW_KMedoids.png)
+![KMeans clustering on time-series data, with DTW, selected number of clusters according to all implemented CVIs. \label{fig:DTW-hist}](./UCR_data_DTW_TimeSeriesKMeans-histogram.png)
+
+![KMedoids clustering on time-series data, without DTW, all implemented CVIs.\label{fig:no_DTW-hist}](./UCR_data_no_DTW_KMedoids.png)
+
+![KMedoids clustering on time-series data, with DTW, selected number of clusters according to all implemented CVIs. \label{fig:DTW-hist}](./UCR_data_no_DTW_KMedoids-histogram.png)
 
 We experimented on 3 different cases: non time-series data [@barton2015clustering], time-series data [@UCRArchive2018] with euclidean distance and time-series data with DTW and DBA as distance measure and center of clusters.
 
@@ -61,7 +69,7 @@ For each case, we used a different clustering method from a different library: K
 
 Finally, we computed the variation of information (VI) between each selected clustering and the true clustering (second plot of all figures). A large variation of information there indicates a poor clustering quality due to the clustering method. In \autoref{fig:kmeans} and \autoref{fig:agglo}, we can see the difference of quality when assuming the correct number of clusters between the AgglomerativeClustering and the KMeans clustering method on the non time-series data. Therefore, when the quality of the clustering selected by the CVI is poor it can then either be due to the clustering method or the CVI, hence the necessity of robust evaluation pipeline for both clustering methods and CVIs.
 
-The code of this example is available on the [GitHub repository](https://github.com/nglm/pycvi/tree/master/examples/full_example/) of the package, as well as on its [documentation](https://pycvi.readthedocs.io/en/latest/examples/full_example.html).
+The code of this example is available on the [GitHub repository](https://github.com/nglm/pycvi/tree/master/examples/select_k/) of the package, as well as on its [documentation](https://pycvi.readthedocs.io/en/latest/examples/select_k.html).
 
 # Acknowledgements
 
