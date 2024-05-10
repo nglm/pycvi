@@ -1,18 +1,33 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 from math import ceil
 
 from pycvi.cvi import CVIs
 from pycvi.cluster import get_clustering
 
-# --------  Adapt the figures to the total number of CVIs --------------
-N_CVIs = len(CVIs)
-N_ROWS = ceil((N_CVIs+2) / 5)
-N_COLS = 5
-FIGSIZE = (4*N_COLS+1, ceil(4*N_ROWS))
-# ----------------------------------------------------------------------
+
+def _get_nrows_ncols(nplots: int = None):
+    """
+    Adapt the figures to the total number of CVIs.
+
+    We want to know before creating the figure how many rows and columns
+    we will need. This depends on how many different k will be selected
+    and potentially if we have additional plots for the true data.
+
+    Parameters
+    ----------
+    nplots : int, optional
+        Number of plots, by default None, resulting in `nplots=len(CVIs)
+        + 2`
+    """
+    if nplots is None:
+        nplots = len(CVIs) + 2
+    n_rows = ceil(nplots / 5)
+    n_cols = 5
+    figsize = (4*n_cols, ceil(4*n_rows))
+    return n_rows, n_cols, figsize
 
 def _get_shape_UCR(data: np.ndarray) -> Tuple[Tuple[int], bool]:
     """
@@ -181,6 +196,95 @@ def plot_center(
 
     return ax
 
+def plot_hist_selected(
+    summary_selected: Dict[int, Dict[str, Any]],
+):
+    """
+    Bar plot of number of CVIs that selected a given number of clusters.
+
+    :param summary_selected: A dictionary containing for each selected k
+        ("k_selected"), all information on the selected clustering
+        ("#CVI, "clustering", "ax_title")
+    :type summary_selected: List[List[List[int]]]
+    :return: a figure with one clustering per CVI (+2 plots first)
+    :rtype: A matplotlib figure
+    """
+
+    fig, ax = plt.subplots(
+        nrows=1, ncols=1, figsize=(5, 5), tight_layout=True
+    )
+    n_CVIs = [
+        summary["#CVI"] for summary in summary_selected.values()
+    ]
+    # Plot historgram
+    ax.bar(summary_selected.keys(), n_CVIs)
+
+    # Force x_ticks to be int and to appear also for 0 values
+    k_min, k_max = ax.get_xlim()
+    ax.xaxis.set_ticks(np.arange(k_min, k_max, 1, dtype=int))
+
+    # Labels and titles
+    ax.set_xlabel("Selected number of clusters")
+    ax.set_ylabel("Number of CVIs that selected this number of clusters")
+    fig.suptitle("Number of CVIs that selected a given number of clusters")
+
+    return fig
+
+def plot_only_selected(
+    data: np.ndarray,
+    summary_selected: Dict[int, Dict[str, Any]],
+    fig,
+):
+    """
+    Add one plot per CVI with their corresponding selected clustering.
+
+    The fig should already contain 3 plots first with the true
+    clusterings, and the clusterings obtained with k_true plots (see
+    `plot_true_selected` or `plot_true_best`)
+
+    :param data: Original data, corresponding to a benchmark dataset
+    :type data: np.ndarray, shape (N, d)
+    :param summary_selected: A dictionary containing for each selected k
+        ("k_selected"), all information on the selected clustering
+        ("#CVI, "clustering", "ax_title")
+    :type summary_selected: List[List[List[int]]]
+    :param fig: Figure where all the plots are (including 2 about the
+        true clusters)
+    :type fig:
+    :return: a figure with one clustering per CVI (+2 plots first)
+    :rtype: A matplotlib figure
+    """
+
+    colors = _get_colors()
+
+    # -------  Plot the clustering selected by a given CVI -----------
+
+    # Sort the dictionnary by number of CVI that selected k
+    sorted_summary = {
+        k: n_cvi for k, n_cvi
+        in sorted(
+            summary_selected.items(), key=lambda d: d[1]["#CVI"], reverse=True
+        )
+    }
+    for i, (k, summary) in enumerate(summary_selected.items()):
+
+        # Find the ax corresponding to the CVI
+        ax = fig.axes[i+2] # i+2 because there are 2 plots already
+
+        # Add predefined title
+        ax.set_title(str(summary["ax_title"]))
+
+        # ------------------ Plot clusters one by one ------------------
+        for i_label, cluster in enumerate(summary["clustering"]):
+            color = colors[i_label % len(colors)]
+            ax = plot_cluster(ax, data, cluster, color)
+
+    # Remove empty axes
+    for ax in fig.axes[len(summary_selected)+2:]:
+        ax.remove()
+
+    return fig
+
 def plot_selected_clusters(
     data: np.ndarray,
     clusterings_selected: List[List[List[int]]],
@@ -295,7 +399,8 @@ def plot_true_best(
     data: np.ndarray,
     labels: np.ndarray,
     clusterings: List[List[List[int]]],
-    VI_best: float,
+    VI_best: float = None,
+    n_plots: int = None
 ):
     """
     Plot the true clustering and the clustering obtained with k_true
@@ -312,6 +417,8 @@ def plot_true_best(
     :param VI_best: The VI between the true clustering and the
         clustering assuming the right number of clusters.
     :type VI_best: float
+    :param n_plots: Number of plots to add after the two initial plots
+    :type n_plots: int
     :return: The figure with 2 plots on it, and many empty axes.
     :rtype: A matplotlib figure
     """
@@ -320,9 +427,10 @@ def plot_true_best(
 
     # ----------------------- Create figure ----------------
     if d <= 2:
+        nrows, ncols, figsize = _get_nrows_ncols(n_plots)
         fig, axes = plt.subplots(
-            nrows=N_ROWS, ncols=N_COLS, sharex=True, sharey=True,
-            figsize=FIGSIZE, tight_layout=True
+            nrows=nrows, ncols=ncols, sharex=True, sharey=True,
+            figsize=figsize, tight_layout=True
         )
     else:
         return None
@@ -343,10 +451,16 @@ def plot_true_best(
         # The clustering obtained with k_true
         clusterings
     ]
-    ax_titles = [
-        f"True labels, k={n_labels}",
-        f"Clustering assuming k={n_labels} | VI={VI_best:.4f}",
-    ]
+    if VI_best is not None:
+        ax_titles = [
+            f"True labels, k={n_labels}",
+            f"Clustering assuming k={n_labels} | VI={VI_best:.4f}",
+        ]
+    else:
+        ax_titles = [
+            f"True labels, k={n_labels}",
+            f"Clustering assuming k={n_labels}",
+        ]
 
     # ------ True clustering and clustering assuming n_labels ----------
     for i_ax in range(2):
