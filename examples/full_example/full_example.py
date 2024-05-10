@@ -32,10 +32,12 @@ def pipeline(
     fig_name: str = "",
 ) -> None:
     """
-    This function gives an example of typical pipeline using PyCVI.
+    This function gives an example of using most of PyCVI's features.
 
-    In this function we:
+    In this full example, we assume that we have access to the real
+    labels of the datapoints. In this function we:
 
+    - Standardize the data
     - Generate all clusterings for a given range of number of clusters.
     - Compute the Variation of Information (VI) between the generated
       clusterings and the true clustering
