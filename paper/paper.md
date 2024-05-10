@@ -49,19 +49,19 @@ PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal C
 
 ![KMeans clustering on non time-series data, all implemented CVIs.\label{fig:kmeans}](./Barton_data_KMeans.png)
 
-![KMeans clustering on non time-series data, selected number of clusters according to all implemented CVIs. \label{fig:kmeans-hist}](./Barton_data_KMeans-histogram.png)
+![KMeans clustering on non time-series data, selected number of clusters according to all implemented CVIs. \label{fig:kmeans-hist}](./Barton_data_KMeans-histogram.png){width="50%"}
 
 ![Agglomerative clustering on non time-series data, all implemented CVIs.\label{fig:agglo}](./Barton_data_AgglomerativeClustering_Single.png)
 
-![Agglomerative clustering on non time-series data, selected number of clusters according to all implemented CVIs. \label{fig:agglo-hist}](./Barton_data_AgglomerativeClustering_Single-histogram.png)
+![Agglomerative clustering on non time-series data, selected number of clusters according to all implemented CVIs. \label{fig:agglo-hist}](./Barton_data_AgglomerativeClustering_Single-histogram.png){width="50%"}
 
 ![KMeans clustering on time-series data, with DTW, all implemented CVIs.\label{fig:DTW}](./UCR_data_DTW_TimeSeriesKMeans.png)
 
-![KMeans clustering on time-series data, with DTW, selected number of clusters according to all implemented CVIs. \label{fig:DTW-hist}](./UCR_data_DTW_TimeSeriesKMeans-histogram.png)
+![KMeans clustering on time-series data, with DTW, selected number of clusters according to all implemented CVIs. \label{fig:DTW-hist}](./UCR_data_DTW_TimeSeriesKMeans-histogram.png){width="50%"}
 
 ![KMedoids clustering on time-series data, without DTW, all implemented CVIs.\label{fig:no_DTW-hist}](./UCR_data_no_DTW_KMedoids.png)
 
-![KMedoids clustering on time-series data, with DTW, selected number of clusters according to all implemented CVIs. \label{fig:DTW-hist}](./UCR_data_no_DTW_KMedoids-histogram.png)
+![KMedoids clustering on time-series data, with DTW, selected number of clusters according to all implemented CVIs. \label{fig:DTW-hist}](./UCR_data_no_DTW_KMedoids-histogram.png){width="50%"}
 
 We experimented on 3 different cases: non time-series data [@barton2015clustering], time-series data [@UCRArchive2018] with euclidean distance and time-series data with DTW and DBA as distance measure and center of clusters.
 
