@@ -29,6 +29,7 @@
    examples/cluster_center
    examples/variation_information
    examples/pdist_cdist
+   examples/select_k
    examples/full_example
 
 .. Main module section
