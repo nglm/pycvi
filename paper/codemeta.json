@@ -1,0 +1,23 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+    {
+      "@id": "0000-0002-8473-1673",
+      "@type": "Person",
+      "email": "natacha.galmiche@uib.no",
+      "name": "Natacha, Galmiche",
+      "affiliation": "University of Bergen, Norway"
+    },
+  ],
+  "identifier": "",
+  "codeRepository": "https://github.com/nglm/pycvi",
+  "datePublished": "2024-05-13",
+  "dateModified": "2024-05-13",
+  "dateCreated": "2024-05-13",
+  "description": "Internal Cluster Validity Indices in python, compatible with time-series data",
+  "keywords": "CVI, cluster, clustering, time-series, Cluster Validity index, Clustering validity indices, machine learning",
+  "license": "MIT",
+  "title": "PyCVI",
+  "version": "0.1.1"
+}
