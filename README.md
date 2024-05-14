@@ -2,6 +2,7 @@
 
 [![Python package](https://github.com/nglm/pycvi/actions/workflows/python-package.yml/badge.svg)](https://github.com/nglm/pycvi/actions/workflows/python-package.yml)
 [![Documentation Status](https://readthedocs.org/projects/pycvi/badge/?version=latest)](https://pycvi.readthedocs.io/en/latest/?badge=latest)
+[![status](https://joss.theoj.org/papers/fb63888e0a78da2866b03247ce18909d/status.svg)](https://joss.theoj.org/papers/fb63888e0a78da2866b03247ce18909d)
 
 PyCVI is a Python package specialized in internal Clustering Validity Indices (CVI). Internal CVIs are used to select the best clustering among a set of pre-computed clusterings when no external information is available such as the labels of the datapoints.
 
