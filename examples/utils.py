@@ -236,23 +236,24 @@ def plot_only_selected(
     fig,
 ):
     """
-    Add one plot per CVI with their corresponding selected clustering.
+    Add one plot per selected number of clusters.
 
-    The fig should already contain 3 plots first with the true
-    clusterings, and the clusterings obtained with k_true plots (see
-    `plot_true_selected` or `plot_true_best`)
+    Parameters
+    ----------
+    data : np.ndarray, shape (N, d)
+        Original data, corresponding to a benchmark dataset
+    summary_selected : Dict[int, Dict[str, Any]]
+        A dictionary containing for each selected k ("k_selected"), all
+        information on the selected clustering ("#CVI, "clustering",
+        "ax_title")
+    fig : A matplotlib figure
+        Figure where all the plots are (including 2 about the true
+        clusters)
 
-    :param data: Original data, corresponding to a benchmark dataset
-    :type data: np.ndarray, shape (N, d)
-    :param summary_selected: A dictionary containing for each selected k
-        ("k_selected"), all information on the selected clustering
-        ("#CVI, "clustering", "ax_title")
-    :type summary_selected: List[List[List[int]]]
-    :param fig: Figure where all the plots are (including 2 about the
-        true clusters)
-    :type fig:
-    :return: a figure with one clustering per CVI (+2 plots first)
-    :rtype: A matplotlib figure
+    Returns
+    -------
+    A matplotlib figure
+        A figure with one clustering per CVI (+2 plots first)
     """
 
     colors = _get_colors()
@@ -403,25 +404,32 @@ def plot_true_best(
     n_plots: int = None
 ):
     """
-    Plot the true clustering and the clustering obtained with k_true
+    Plot the true clustering and the clustering obtained with k_true.
 
     Create also the whole figure that will be used to plot the
     clusterings selected by each CVI.
 
-    :param data: Original data, corresponding to a benchmark dataset
-    :type data: np.ndarray, shape (N, d)
-    :param labels: True labels
-    :type labels: np.ndarray
-    :param clusterings: The clusterings obtained with k_true
-    :type clusterings: List[List[List[int]]]
-    :param VI_best: The VI between the true clustering and the
-        clustering assuming the right number of clusters.
-    :type VI_best: float
-    :param n_plots: Number of plots to add after the two initial plots
-    :type n_plots: int
-    :return: The figure with 2 plots on it, and many empty axes.
-    :rtype: A matplotlib figure
+    Parameters
+    ----------
+    data : np.ndarray, shape (N, d)
+        Original data, corresponding to a benchmark dataset
+    labels : np.ndarray, shape (N,)
+        True labels
+    clusterings : List[List[List[int]]]
+        The clusterings obtained with k_true
+    VI_best : float, optional
+        The VI between the true clustering and the clustering assuming
+        the right number of clusters., by default None
+    n_plots : int, optional
+        Number of plots to add after the two initial plots, by default
+        None
+
+    Returns
+    -------
+    A matplotlib figure
+        The figure with 2 plots on it, and many empty axes.
     """
+
     (N, T, d), UCR = _get_shape_UCR(data)
     colors = _get_colors()
 
