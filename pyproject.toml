@@ -11,22 +11,22 @@ homepage = "https://pycvi.readthedocs.io/en/latest/"
 repository = "https://github.com/nglm/pycvi"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
-aeon = "^0.6.0"
 
-[tool.poetry.group.examples]
-optional = true
+# Core dependencies
+python = "^3.8,<3.9"
+aeon = {version = ">=0.6.0, <=0.9.0", python = "^3.8,<3.9"}
 
-[tool.poetry.group.examples.dependencies]
-scikit-learn-extra = "^0.3.0"
-matplotlib = "^3.7"
+# Extra dependencies for "examples" scripts
+matplotlib = {version = "^3.7", python = "^3.8,<3.9", optional = true}
+scikit-learn-extra = {version = "^0.3.0", python = "^3.8,<3.9", optional = true}
 
+# Dev dependencies for testing
 [tool.poetry.group.dev.dependencies]
-pandas = {version = "*", python = "^3.8" }
-pytest = "^7.4.0"
+pandas = ">=2.0, <2.2"
+pytest = ">=7.4.0, <=8.2.2"
 
 [tool.poetry.extras]
-examples = ["examples"]
+examples = ["matplotlib", "scikit-learn-extra"]
 
 [build-system]
 requires = ["poetry-core"]
