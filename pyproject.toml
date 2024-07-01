@@ -4,9 +4,12 @@ packages = [
     {include = "pycvi"}
 ]
 version = "0.1.1"
-description = ""
+description = "Internal Cluster Validity Indices in python, compatible with time-series data"
 authors = ["Natacha, Galmiche <natacha.galmiche@uib.no>"]
 readme = "README.md"
+homepage = "https://pycvi.readthedocs.io/en/latest/"
+repository = "https://github.com/nglm/pycvi"
+
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 aeon = "^0.6.0"
@@ -18,10 +21,12 @@ optional = true
 scikit-learn-extra = "^0.3.0"
 matplotlib = "^3.7"
 
-
 [tool.poetry.group.dev.dependencies]
 pandas = {version = "*", python = "^3.8" }
 pytest = "^7.4.0"
+
+[tool.poetry.extras]
+examples = ["examples"]
 
 [build-system]
 requires = ["poetry-core"]
