@@ -34,7 +34,7 @@ Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [sci
 
 ```bash
 # From PyPI
-pip install pycvi-lib
+poetry add pycvi-lib
 # Alternatively, from github directly
 poetry add git+https://github.com/nglm/pycvi.git
 ```

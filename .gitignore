@@ -9,4 +9,6 @@
 *docs/_build/*
 # no tmp files
 tmp/*
-
+# no notes files
+notes/*
+README.pdf
