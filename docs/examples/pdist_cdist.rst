@@ -5,6 +5,8 @@ In this example, we use the PyCVI counterparts of `pdist <https://docs.scipy.org
 
 Note that in the case of :func:`pycvi.dist.f_pdist`, a condensed distance matrix is returned (as in scipy).
 
+.. include:: /examples/examples_reminders.rst
+
 .. literalinclude:: ../../examples/pdist_cdist/pdist_cdist.py
    :lines: 7-65
 

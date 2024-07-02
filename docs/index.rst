@@ -32,6 +32,8 @@
    examples/select_k
    examples/full_example
 
+.. include:: /examples/examples_reminders.rst
+
 .. Main module section
    ---------------------------------------
 

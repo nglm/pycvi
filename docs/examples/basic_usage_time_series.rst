@@ -3,6 +3,8 @@ CVI - Basic usage with time-series
 
 In this example, we integrate PyCVI into the usual clustering pipeline with time series data in order to select the best clustering while using DTW as the distance measure and DBA as the cluster center.
 
+.. include:: /examples/examples_reminders.rst
+
 .. literalinclude:: ../../examples/basic_usage_time_series/basic_usage_time_series.py
    :lines: 7-63
 

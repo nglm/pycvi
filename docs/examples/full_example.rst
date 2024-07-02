@@ -5,6 +5,8 @@ Here is an example using exclusively PyCVI for the entire clustering pipeline. T
 
 In this example, we use time-series data and non-time-series data. In addition we use classes from `scikit-learn <https://scikit-learn.org/stable/index.html>`_, `scikit-learn extra <https://scikit-learn-extra.readthedocs.io/en/stable/>`_ and `aeon <https://www.aeon-toolkit.org/en/latest/index.html>`_ in order to illustrate the compatibility of PyCVI with sklearn-like libraries.
 
+.. include:: /examples/examples_reminders.rst
+
 .. literalinclude:: ../../examples/full_example/full_example.py
    :lines: 7-222
 

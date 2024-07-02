@@ -1,0 +1,1 @@
+If you wish to run the example scripts on your own computer, please first follow the instructions detailed in :doc:`/examples/examples_instructions`.

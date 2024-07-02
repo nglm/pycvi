@@ -3,6 +3,8 @@ CVI - Basic usage
 
 In this example, we integrate PyCVI into the usual clustering pipeline in order to select the best clustering.
 
+.. include:: /examples/examples_reminders.rst
+
 .. literalinclude:: ../../examples/basic_usage/basic_usage.py
    :lines: 7-61
 

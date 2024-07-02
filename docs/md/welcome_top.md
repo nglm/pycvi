@@ -26,16 +26,16 @@ To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/
 
 ## Install
 
-- With poetry:
+### With poetry
 
 ```bash
 # From PyPI
-pip install pycvi-lib
+poetry add pycvi-lib
 # Alternatively, from github directly
 poetry add git+https://github.com/nglm/pycvi.git
 ```
 
-- With pip:
+### With pip
 
 ```bash
 # From PyPI
@@ -44,7 +44,7 @@ pip install pycvi-lib
 pip install git+https://github.com/nglm/pycvi.git
 ```
 
-- With anaconda:
+### With anaconda
 
 ```bash
 # activate your environment (replace myEnv with your environment name)
@@ -54,3 +54,16 @@ conda install pip
 # install pycvi on your anaconda environment with pip
 pip install pycvi-lib
 ```
+
+### Extra dependencies
+
+In order to run the example scripts, extra dependencies are necessary. The install command is then:
+
+```bash
+# For poetry
+poetry add pycvi-lib[examples]
+# For pip and anaconda
+pip install pycvi-lib[examples]
+```
+
+Alternatively, you can manually install in your environment the packages that are necessary to run the example scripts (`matplotlib` and/or `scikit-learn-extra` depending on the example).
