@@ -1,7 +1,10 @@
+import sys
+sys.path.append('./examples')
+
 from pycvi.datasets.benchmark import load_data
 from pycvi.cluster import get_clustering, compute_center
 
-from ..utils import plot_centers
+from pycvi_examples_utils import plot_centers
 
 # ======================= Time series-data =============================
 

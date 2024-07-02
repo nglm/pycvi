@@ -1,8 +1,8 @@
 import sys
+sys.path.append('./examples')
 out_fname = f'./output-variation_information_KMedoids.txt'
 fout = open(out_fname, 'wt')
 sys.stdout = fout
-
 
 from sklearn_extra.cluster import KMedoids
 from sklearn.preprocessing import StandardScaler
@@ -10,7 +10,7 @@ from pycvi.datasets.benchmark import load_data
 from pycvi.cluster import get_clustering
 from pycvi.vi import variation_information
 
-from ..utils import plot_true_selected
+from pycvi_examples_utils import plot_true_selected
 
 # Load data
 datasets = ["xclara", "zelnik1"]

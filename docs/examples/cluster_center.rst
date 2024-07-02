@@ -4,6 +4,7 @@ Cluster centers
 In this example, we compute the cluster centers for time series data and non time-series data and we show that from the user point of view, the approach is the same, even though PyCVI has to compute the DBA of the cluster in the time-series case.
 
 .. literalinclude:: ../../examples/cluster_center/cluster_center.py
+   :lines: 4-43
 
 .. image:: ../../examples/cluster_center/cluster_centers.png
 

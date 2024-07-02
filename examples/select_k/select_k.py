@@ -1,5 +1,5 @@
 import sys
-
+sys.path.append('./examples')
 out_fname = f'./output-select_k.txt'
 fout = open(out_fname, 'wt')
 sys.stdout = fout
@@ -18,7 +18,7 @@ from pycvi.vi import variation_information
 from pycvi.datasets.benchmark import load_data
 from pycvi.exceptions import SelectionError
 
-from ..utils import plot_true_best, plot_hist_selected, plot_only_selected
+from pycvi_examples_utils import plot_true_best, plot_hist_selected, plot_only_selected
 
 def pipeline(
     X: np.ndarray,

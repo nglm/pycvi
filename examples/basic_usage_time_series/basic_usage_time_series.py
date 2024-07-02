@@ -2,7 +2,7 @@ import sys
 out_fname = f'./output-basic_usage_TS_KMeans_Dunn.txt'
 fout = open(out_fname, 'wt')
 sys.stdout = fout
-
+sys.path.append('./examples')
 
 from aeon.clustering import TimeSeriesKMeans
 from sklearn.preprocessing import MinMaxScaler
@@ -10,7 +10,7 @@ from pycvi.cvi import Dunn
 from pycvi.datasets.benchmark import load_data
 from pycvi.cluster import get_clustering
 
-from ..utils import plot_true_selected
+from pycvi_examples_utils import plot_true_selected
 
 # -------------- Standard data handling operations ---------------------
 # Load data
