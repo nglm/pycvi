@@ -2,7 +2,7 @@ import sys
 out_fname = f'./output-basic_usage_KMeans_Silhouette.txt'
 fout = open(out_fname, 'wt')
 sys.stdout = fout
-
+sys.path.append('./examples')
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -10,7 +10,7 @@ from pycvi.cvi import Silhouette
 from pycvi.datasets.benchmark import load_data
 from pycvi.cluster import get_clustering
 
-from ..utils import plot_true_selected
+from pycvi_examples_utils import plot_true_selected
 
 # -------------- Standard data handling operations ---------------------
 # Load data
