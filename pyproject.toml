@@ -13,17 +13,20 @@ repository = "https://github.com/nglm/pycvi"
 [tool.poetry.dependencies]
 
 # Core dependencies
-python = "^3.8,<3.9"
-aeon = {version = ">=0.6.0, <=0.9.0", python = "^3.8,<3.9"}
+python = ">=3.10,<3.11"
+aeon = {version = ">=0.7.0, <=0.9", python = ">=3.8,<3.11"}
 
 # Extra dependencies for "examples" scripts
-matplotlib = {version = "^3.7", python = "^3.8,<3.9", optional = true}
-scikit-learn-extra = {version = "^0.3.0", python = "^3.8,<3.9", optional = true}
+scikit-learn-extra = {version = "^0.3.0", python = ">=3.8,<3.11", optional = true}
+matplotlib = [
+    {version = "~3.7", python = ">=3.8,<3.9", optional = true},
+    {version = ">=3.7, <3.9", python = ">=3.9,<3.11", optional = true}
+]
 
 # Dev dependencies for testing
 [tool.poetry.group.dev.dependencies]
-pandas = ">=2.0, <2.2"
-pytest = ">=7.4.0, <=8.2.2"
+pytest = {version = ">=7.4.0, <=8.2.2", python = ">=3.8,<3.11"}
+
 
 [tool.poetry.extras]
 examples = ["matplotlib", "scikit-learn-extra"]
