@@ -227,8 +227,9 @@ class CVI():
         Does not take into account rules that are specific to a CVI,
         such as the Gap statistic, Hartigan, etc.
 
-        Returns None if no clustering could be selected (probably
-        because the CVI values were None or NaN).
+        Returns `None` if no clustering could be selected (probably
+        because the CVI values were all None or NaN or that all valid
+        and relevant scores were all equal).
 
         Parameters
         ----------
@@ -254,51 +255,80 @@ class CVI():
             cvi_type = self.cvi_type
         # For monotonous CVIs
         if cvi_type == "monotonous":
+            # Remove special cases if the score couldn't be computed
+            # either because this CVI doesn't allow this k or because
+            # the clustering model didn't converge
             scores_valid = {k: s for k,s in scores.items() if s is not None}
             selected_k = None
             max_diff = 0
 
-            list_k = list(scores_valid.keys())
-            last_relevant_score = scores_valid[list_k[0]]
-            last_relevant_k = list_k[0]
+            # Sort k in increasing order
+            list_k = sorted(scores_valid.keys())
 
-            # If it is improving compare last to current
+            # If score improving with k, then compare last to current
             # Otherwise compare current to next
             if self.improve:
+                # Take the 1st score / k as the initial relevant score / k
+                last_relevant_score = scores_valid[list_k[0]]
+                last_relevant_k = list_k[0]
                 list_k_compare = list_k[1:]
             else:
+                # Take the last score / k as the initial relevant score / k
+                last_relevant_score = scores_valid[list_k[-1]]
+                last_relevant_k = list_k[-1]
                 list_k_compare = list_k[:-1]
+
             # Find the biggest increase / drop
-            for i, k in enumerate(list_k_compare):
-                # Special case if the score couldn't be computed
-                # either because this CVI doesn't allow this k
-                # or because the clustering model didn't converge
-                if scores_valid[k] is None:
-                    continue
+            for k in list_k_compare:
+
                 # Special case for example for Hartigan where
                 # we don't use k=0 as a reference score if k=0 is more
                 # relevant than k=1
-                elif (i==0 and self.ignore0 and not self.is_relevant(
+                if (last_relevant_k==0 and self.ignore0 and not self.is_relevant(
                         scores_valid[k], k,
                         last_relevant_score, last_relevant_k)
                     ):
-                    selected_k = 1
-                    last_relevant_k = 1
+                    # Use k for next iterations
+                    last_relevant_k = k
                     last_relevant_score = scores_valid[k]
+                    # If all scores are worse than the case k=0,
+                    # choose the current k as the selected k
+                    # This value will be overwritten if there is a better k
+                    selected_k = k
+                # Otherwise,
+                # If the current score is relevant
+                # Then, update relevant k and score
                 elif (
-                    (i==0 and not self.ignore0)
-                    or self.is_relevant(
+                    self.is_relevant(
                         scores_valid[k], k,
                         last_relevant_score, last_relevant_k
                     )
                 ):
+
+                    # The final selected k is the k that maximises the diff
                     diff = abs(scores_valid[k] - last_relevant_score)
                     if max_diff < diff:
                         selected_k = k
                         max_diff = diff
+                    # If e.g. scores_valid[k] = last_relevant_score = np.inf
+                    # Then diff is NaN. If so, stop already, the selected k
+                    # is the k that gave the first np.inf diff.
+                    elif np.isnan(diff):
+                        break
 
                     last_relevant_k = k
                     last_relevant_score = scores_valid[k]
+
+                # If the score was not relevant, just ignore this k, and
+                # keep going (i.e. pseudo-monotonous score made monotonous)
+                else:
+                    pass
+
+            # Additional checks
+            # If max_diff=0 means that relevant scores were all the same
+            # So no k can be selected
+            if max_diff == 0:
+                selected_k = None
         # For absolute CVIs
         elif cvi_type == "absolute":
             #
@@ -306,6 +336,11 @@ class CVI():
             # Special case if None if all scores were None (because of
             # the condition on k or because the model didn't converge)
             if scores_valid == {}:
+                selected_k = None
+            # Special case if all valid scores were equal, no k can be selected
+            elif np.all(np.isclose(
+                list(scores_valid.values()), list(scores_valid.values())[0]
+            )):
                 selected_k = None
             else:
                 if self.maximise:
@@ -378,8 +413,9 @@ class CVI():
         series are clustered considering all time steps at once, then
         the returned list has only one element.
 
-        If no k could be selected given the scores_t_k values, then k is
-        set to None.
+        If no k could be selected given the `scores_t_k` values, then
+        returns a SelectionError (check the values of `scores_t_k` for
+        more information on why the error was raised).
 
         Parameters
         ----------
@@ -408,7 +444,8 @@ class CVI():
             clustered by sliding windows or a dictionary).
         SelectionError
             If no clustering could be selected with the given CVI values
-            (probably because the CVI values are None or NaN)
+            (probably because the CVI values are None or NaN or all
+            equal).
         """
         try:
             scores_t_k, should_return_list = _check_list_of_dict(scores_t_k)
@@ -421,7 +458,7 @@ class CVI():
             k_selected = [self.criterion(s_t) for s_t in scores_t_k]
             if None in k_selected:
                 msg = (
-                    "No clustering could be selected by {self} "
+                    f"No clustering could be selected by {self} "
                     + f"with the CVI values given: {scores_t_k}"
                 )
                 raise SelectionError(msg)
@@ -430,7 +467,7 @@ class CVI():
             k_selected = self.criterion(scores_t_k[0])
             if k_selected == None:
                 msg = (
-                    "No clustering could be selected by {self} "
+                    f"No clustering could be selected by {self} "
                     + f"with the CVI values given: {scores_t_k}"
                 )
                 raise SelectionError(msg)
@@ -827,6 +864,7 @@ class GapStatistic(CVI):
             cvi_type=cvi_type,
             k_condition=f_k_condition,
             criterion_function=self._f_criterion,
+            ignore0=True,
         )
 
         self.s = {}
