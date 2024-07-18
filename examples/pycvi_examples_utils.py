@@ -321,7 +321,7 @@ def plot_selected_clusters(
 
         # Add predefined title
         ax.set_title(str(titles[i_CVI]))
-        if clusterings_selected is None:
+        if clusterings_selected[i_CVI] is None:
             continue
 
         # ------------------ Plot clusters one by one ------------------
