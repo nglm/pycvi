@@ -136,7 +136,10 @@ def pipeline(
     best_clusters = clusterings[k_true]
 
     # -- Plot true clusters & clusters when assuming k_true clusters ---
-    fig = plot_true_best(X, y, best_clusters, n_plots=len(summary) + 2)
+    vi = variation_information(true_clusters, clusterings[k_true])
+    fig = plot_true_best(
+        X, y, best_clusters, n_plots=len(summary) + 2, VI_best=vi
+    )
 
     # ------------------------------------------------------------------
     # ----------------------- Summary plot -----------------------------

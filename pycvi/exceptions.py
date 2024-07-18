@@ -44,6 +44,7 @@ class SelectionError(ValueError):
     """
     The CVI couldn't select the best clustering.
 
-    This is probably because the CVI values given are None.
+    This is probably because the CVI values given are all `None` or
+    `NaN` or all equal.
     """
     pass

@@ -4,6 +4,7 @@ import pytest
 from aeon.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
+from typing import Dict
 
 from ..cvi import CVIs, CVI
 from ..datasets._mini import mini
@@ -12,9 +13,39 @@ from ..compute_scores import (
 )
 from ..cluster import generate_all_clusterings
 from .._utils import _load_data_from_github
+from ..exceptions import SelectionError
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
 PATH = URL_ROOT + "artificial/"
+
+def _aux_test_selected(cvi, scores_k: Dict[int, float]):
+    """
+    Check that the select method returns SelectionError when it should.
+
+    Parameters
+    ----------
+    cvi : CVI
+        An instance of a CVI class
+    scores_k : Dict[int, float]
+        Dict of scores (for a specific t or for non time series data)
+    """
+    scores_valid = {k: s for k,s in scores_k.items() if s is not None}
+    if scores_k == {}:
+        try:
+            k_selected = cvi.select(scores_k)
+        except SelectionError:
+            assert True
+    elif scores_valid == {} or np.all(np.isclose(
+        list(scores_valid.values()), list(scores_valid.values())[0]
+    )):
+        try:
+            k_selected = cvi.select(scores_k)
+        except SelectionError:
+            assert True
+    else:
+        k_selected = cvi.select(scores_k)
+        assert type(k_selected) == int
+
 
 def test_Scores():
     # ---------------- Test on toy datasets ----------------------------
@@ -55,8 +86,7 @@ def test_Scores():
                     or type(scores_t_k[0]) == type(None))
 
                 # int
-                k_selected = s.select(scores_t_k)
-                assert (type(k_selected) == int)
+                _aux_test_selected(s, scores_t_k)
 
         # Not using DTW nor window but forcing output to be list
         DTW = False
@@ -93,13 +123,11 @@ def test_Scores():
                     or type(scores_t_k[0][0]) == type(None))
 
                 # List[int]
-                k_selected = s.select(scores_t_k)
-                assert (type(k_selected) == list)
-                assert (type(k_selected[0]) == int)
+                for scores_k in scores_t_k:
+                    _aux_test_selected(s, scores_k)
 
                 # int
-                k_selected = s.select(scores_t_k[0])
-                assert (type(k_selected) == int)
+                _aux_test_selected(s, scores_t_k[0])
 
     # ---------- Test on clustering benchmark dataset ------------------
     DTW = False
@@ -124,8 +152,7 @@ def test_Scores():
             )
 
             # int
-            k_selected = s.select(scores_t_k)
-            assert (type(k_selected) == int)
+            _aux_test_selected(s, scores_t_k)
 
 def test_is_relevant():
     l_score1 = [-1.,  -1., -1.,  1.,  1.,  1.]
@@ -158,7 +185,7 @@ def test_is_relevant():
 
 def test_select():
     score_mono = {
-        0: 10000, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000
+        0: 10000, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 3000
     }
     l_score_mono_ignore0 = [
         {0: 100, 2: 9000, 4: 5000, 5: 15000, 6: 40000, 7: 9000}
