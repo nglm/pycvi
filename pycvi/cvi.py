@@ -1535,5 +1535,20 @@ CVIs = [
     Diameter,
 ]
 """
-List of available CVI indices in PyCVI
+List of available CVI indices in PyCVI, as `pycvi.cvi` classes.
+
+- Hartigan: :class:`pycvi.cvi.Hartigan`
+- CalinskiHarabasz: :class:`pycvi.cvi.CalinskiHarabasz`
+- GapStatistic: :class:`pycvi.cvi.GapStatistic`
+- Silhouette: :class:`pycvi.cvi.Silhouette`
+- ScoreFunction: :class:`pycvi.cvi.ScoreFunction`
+- MaulikBandyopadhyay: :class:`pycvi.cvi.MaulikBandyopadhyay`
+- SD: :class:`pycvi.cvi.SD`
+- SDbw: :class:`pycvi.cvi.SDbw`
+- Dunn: :class:`pycvi.cvi.Dunn`
+- XB: :class:`pycvi.cvi.XB`
+- XBStar: :class:`pycvi.cvi.XBStar`
+- DB: :class:`pycvi.cvi.DB`
+- Inertia: :class:`pycvi.cvi.Inertia`
+- Diameter: :class:`pycvi.cvi.Diameter`
 """
