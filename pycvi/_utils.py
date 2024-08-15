@@ -50,7 +50,7 @@ def _check_list_of_dict(
     l: Union[List[Dict], Dict]
 ) -> Tuple[List[Dict], bool]:
     """
-    Outputs a List[Dict] from either a Dict or a List[Dict].
+    Outputs a List[Dict] from either a Dict or a List[Dict], with a flag.
 
     List[Dict] is for all variables involving time-series with sliding
     window. All concerned PyCVI functions assume the input to be
@@ -68,7 +68,7 @@ def _check_list_of_dict(
     -------
     Tuple[List[Dict], bool]
         The same input but as a List[Dict] and a boolean indicating
-        whether the input was only a list or not.
+        whether the input was already a list or not.
 
     Raises
     ------
@@ -77,14 +77,14 @@ def _check_list_of_dict(
         list of dictionaries in the case of time series data
         clustered by sliding windows or a dictionary).
     """
-    return_list = True
+    was_list = True
     if type(l) == dict:
         if l == {}:
             msg = (
                 "input must be non-empty"
             )
             raise ValueError(msg)
-        return_list = False
+        was_list = False
         l_of_dict = [l]
     elif type(l) == list:
         if l == []:
@@ -98,7 +98,7 @@ def _check_list_of_dict(
                 + f"List[dict] or dict. Got List[{type(l[0])}] instead"
             )
             raise ValueError(msg)
-        return_list = True
+        was_list = True
         l_of_dict = l
     else:
         msg = (
@@ -106,4 +106,4 @@ def _check_list_of_dict(
             + f"Got {type(l)} instead."
         )
         raise ValueError(msg)
-    return l_of_dict, return_list
+    return l_of_dict, was_list
