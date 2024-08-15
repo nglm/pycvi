@@ -203,7 +203,7 @@ class CVI():
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {},
-    ) -> Union[dict, None]:
+    ) -> dict:
         """
         Get the kwargs parameters specific to the CVI.
 
@@ -229,7 +229,7 @@ class CVI():
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         return cvi_kwargs
@@ -690,7 +690,7 @@ class Hartigan(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Hartigan.
 
@@ -723,7 +723,7 @@ class Hartigan(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {}
@@ -786,7 +786,7 @@ class CalinskiHarabasz(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Calinski-Harabasz.
 
@@ -824,7 +824,7 @@ class CalinskiHarabasz(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {}
@@ -918,7 +918,7 @@ class GapStatistic(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Gap statistic.
 
@@ -955,7 +955,7 @@ class GapStatistic(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {"B" : 10}
@@ -1109,7 +1109,7 @@ class ScoreFunction(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Score Function.
 
@@ -1132,7 +1132,7 @@ class ScoreFunction(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {}
@@ -1180,7 +1180,7 @@ class MaulikBandyopadhyay(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         cvi_kw = {"p" : 2}
         cvi_kw["k"] = n_clusters
         cvi_kw.update(cvi_kwargs)
@@ -1229,7 +1229,7 @@ class SD(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         cvi_kw = {"alpha" : None}
         cvi_kw.update(cvi_kwargs)
         return cvi_kw
