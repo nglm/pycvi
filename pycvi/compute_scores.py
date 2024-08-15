@@ -383,7 +383,7 @@ def compute_all_scores(
     Parameters
     ----------
     cvi : an instance of a CVI class.
-        The CVI to use to compute all the scores. See
+        The CVI to use to compute all the scores.
     data : np.ndarray
         Original data. Acceptable input shapes and their corresponding
         output shapes in the PyCVI package:
