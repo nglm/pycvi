@@ -609,6 +609,50 @@ class CVI():
         """
         return worst_score(scores, self.maximise)
 
+class CVIAggregator():
+    """
+    An aggregator of multiple CVIs.
+
+    Parameters
+    ----------
+    cvi_classes : Union[List[CVI], None], optional
+        List of CVIs to aggregate to select the best clustering. Default
+        to `None`, in that case, all CVIs implemented in PyCVI are used
+        and with their default parameters. (see
+        :attr:`pycvi.cvi.CVIs`).
+    cvi_kwargs : Union[List[CVI], None], optional
+        List of CVIs specific kwargs to give to the corresponding CVI. Default to `None`, in that case, each CVI use their default parameters. If a list is given, its length must match the number of CVIs used in `cvi_classes`.
+
+    Raises
+    ------
+    ValueError
+        Raised if lengths of `cvi_classes` and `cvi_kwargs` not consistent.
+    """
+
+    def __init__(
+        self,
+        cvi_classes: Union[List[CVI], None] = None,
+        cvi_kwargs: Union[List[CVI], None] = None
+    ) -> None:
+        cvis = []
+        if cvi_classes is None:
+            cvi_classes = CVIs.copy()
+        for cvi_class in cvi_classes:
+            cvis.append(cvi_class())
+        if cvi_kwargs is None:
+            cvi_kwargs = [{} for _ in range(len(cvis))]
+        else:
+            if len(cvi_kwargs) != len(cvis):
+                msg = "lengths of cvi_kwargs and cvis don't match. "
+                msg += f"{len(cvi_kwargs)} versus len(cvis)"
+                raise ValueError(msg)
+        self.cvis = cvis
+        self.cvi_kwargs = cvi_kwargs
+
+    def __str__(self) -> str:
+        name = "-".join([str(cvi) for cvi in self.cvis])
+        return name
+
 class Hartigan(CVI):
     """
     The Hartigan index. [Hartigan]_
