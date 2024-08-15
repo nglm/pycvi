@@ -474,11 +474,11 @@ def compute_all_scores(
     # clusters for the extracted time window t_w
     scores_t_n = [{} for _ in range(n_windows)]
     try:
-        clusterings, should_return_list = _check_list_of_dict(clusterings)
+        clusterings, was_list = _check_list_of_dict(clusterings)
     except ValueError as e:
         msg = f"clusterings in compute_all_scores: {e}"
         raise ValueError(msg)
-    return_list = return_list or should_return_list
+    return_list = return_list or was_list
 
     # Note that in this function, "clusterings" corresponds to
     # "clusterings_t_k" in "generate_all_clusterings" and not to

@@ -469,12 +469,12 @@ class CVI():
             equal).
         """
         try:
-            scores_t_k, should_return_list = _check_list_of_dict(scores_t_k)
+            scores_t_k, was_list = _check_list_of_dict(scores_t_k)
         except ValueError as e:
             msg = f"scores_t_k in CVI.select: {e}"
             raise ValueError(msg)
         # Time series case with sliding window
-        return_list = return_list or should_return_list
+        return_list = return_list or was_list
         if return_list:
             k_selected = [self.criterion(s_t) for s_t in scores_t_k]
             if None in k_selected:
