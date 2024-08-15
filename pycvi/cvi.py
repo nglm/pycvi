@@ -1,10 +1,31 @@
 """
-Python implementation of state-of the-art internal CVIs.
+Python implementation of state-of-the-art internal CVIs.
 
 Internal CVIs are used to select the best clustering among a set of
 pre-computed clustering when no information about the true clusters nor
-the number of clusters is available.
+the number of clusters is available. To assess the quality of different
+clusterings, CVIs compute distances between datapoints and most of them
+also rely on the concept of cluster center.
 
+In general for static data, the distance function used to compute
+pairwise distances is usually the euclidean distance and the center of a
+group of datapoints is defined as the barycentric average. Time-series
+data however are usually compared using time-series specific distances
+such as Dynamic Time Warping (DTW) [DTW]_ and the concept of average
+non-trivial and can be for example defined using DTW Barycentric Average
+(DBA) [DBA]_.
+
+PyCVI extends state-of-the-art internal CVIs to make them compatible
+with time-series data as well by using DTW and DBA when necessary.
+
+.. [DTW] Donald J. Berndt and James Clifford. Using dynamic time warping
+   to find patterns in time series. In Proceedings of the 3rd
+   International Conference on Knowledge Discovery and Data Mining,
+   AAAIWS’94, page 359–370. AAAI Press, 1994
+.. [DBA] F. Petitjean, A. Ketterlin, and P. Gan carski, “A global
+   averaging method for dynamic time warping, with applications to
+   clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
+   2011.
 .. [Hartigan] D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
    Biometrics, vol. 31, p. 793, sep 1975.
 .. [CH] T. Calinski and J. Harabasz, “A dendrite method for cluster
