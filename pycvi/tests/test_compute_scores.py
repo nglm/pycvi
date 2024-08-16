@@ -4,6 +4,8 @@ import pytest
 from aeon.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+
+from ._utils import _aux_check_float
 from ..cvi import Inertia, GapStatistic
 
 from ..datasets._mini import mini
@@ -53,22 +55,23 @@ def test_compute_subscores():
 
         # DTW case
         dist = _compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
-        assert (type(dist) == float or type(dist) == np.float64)
+        # float
+        _aux_check_float(dist, or_None=False)
         dist = _compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
         assert type(dist) == list
-        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
+        _aux_check_float(dist[0], or_None=False)
 
         # Non DTW case
         data = data.reshape(N, -1)
         dist = _compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_subscores("max_inertia", data, [c1, c2], "inertia", f_inertia)
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_subscores("list_inertia", data, [c1, c2], "inertia", f_inertia)
         assert type(dist) == list
-        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
+        _aux_check_float(dist[0], or_None=False)
 
 def test_compute_score():
     """
@@ -82,30 +85,30 @@ def test_compute_score():
 
         # DTW case
         dist = _compute_score("inertia", data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_score("max_inertia", data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
-        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
+        _aux_check_float(dist[0], or_None=False)
         dist = _compute_score(Inertia(), data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_score(silhouette, data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
 
         # Non DTW case
         data = data.reshape(N, -1)
         dist = _compute_score("inertia", data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_score("max_inertia", data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_score("list_inertia", data, [c1, c2])
         assert type(dist) == list
-        assert (type(dist[0]) == float or type(dist[0]) == np.float64)
+        _aux_check_float(dist[0], or_None=False)
         dist = _compute_score(Inertia(), data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
         dist = _compute_score(silhouette, data, [c1, c2])
-        assert (type(dist) == float or type(dist) == np.float64)
+        _aux_check_float(dist, or_None=False)
 
 def test_compute_all_scores():
     for multivariate in [True, False]:
@@ -131,12 +134,7 @@ def test_compute_all_scores():
         # T_w = 1
         # Dict[int, float]
         assert (type(scores_t_k) == dict)
-        assert (
-            type(scores_t_k[0]) == float
-            or type(scores_t_k[0]) == np.float64
-            # returns None when the score was used with an
-            # incompatible number of clusters
-            or type(scores_t_k[0]) == type(None))
+        _aux_check_float(scores_t_k[0], or_None=True)
         for k in range(N+1):
             # all clusterings were computed
             assert k in scores_t_k
@@ -166,9 +164,4 @@ def test_compute_all_scores():
         # List[Dict[int, float]]
         assert (type(scores_t_k) == list)
         assert (type(scores_t_k[0]) == dict)
-        assert (
-            type(scores_t_k[0][0]) == float
-            or type(scores_t_k[0][0]) == np.float64
-            # returns None when the score was used with an
-            # incompatible number of clusters
-            or type(scores_t_k[0][0]) == type(None))
+        _aux_check_float(scores_t_k[0][0], or_None=True)

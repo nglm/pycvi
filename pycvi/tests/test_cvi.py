@@ -6,7 +6,10 @@ from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
 from typing import Dict
 
-from ..cvi import CVIs, CVI
+from ._utils import _aux_check_float
+from ..cvi import (
+    CVIs, CVI, CVIAggregator, Diameter, CalinskiHarabasz, ScoreFunction
+)
 from ..datasets._mini import mini
 from ..compute_scores import (
     compute_all_scores,
@@ -35,6 +38,8 @@ def _aux_test_selected(cvi, scores_k: Dict[int, float]):
             k_selected = cvi.select(scores_k)
         except SelectionError:
             assert True
+        else:
+            assert False
     elif scores_valid == {} or np.all(np.isclose(
         list(scores_valid.values()), list(scores_valid.values())[0]
     )):
@@ -42,6 +47,8 @@ def _aux_test_selected(cvi, scores_k: Dict[int, float]):
             k_selected = cvi.select(scores_k)
         except SelectionError:
             assert True
+        except:
+            assert False
     else:
         k_selected = cvi.select(scores_k)
         assert type(k_selected) == int
@@ -78,12 +85,9 @@ def test_Scores():
                     assert k in scores_t_k
                 # List[Dict[int, float]]
                 assert (type(scores_t_k) == dict)
-                assert (
-                    type(scores_t_k[0]) == float
-                    or type(scores_t_k[0]) == np.float64
-                    # returns None when the score was used with an
-                    # incompatible number of clusters
-                    or type(scores_t_k[0]) == type(None))
+
+                # float
+                _aux_check_float(scores_t_k[0], or_None=True)
 
                 # int
                 _aux_test_selected(s, scores_t_k)
@@ -115,12 +119,8 @@ def test_Scores():
                 # List[Dict[int, float]]
                 assert (type(scores_t_k) == list)
                 assert (type(scores_t_k[0]) == dict)
-                assert (
-                    type(scores_t_k[0][0]) == float
-                    or type(scores_t_k[0][0]) == np.float64
-                    # returns None when the score was used with an
-                    # incompatible number of clusters
-                    or type(scores_t_k[0][0]) == type(None))
+                # float
+                _aux_check_float(scores_t_k[0][0], or_None=True)
 
                 # List[int]
                 for scores_k in scores_t_k:
