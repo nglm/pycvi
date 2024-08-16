@@ -1602,7 +1602,7 @@ class Inertia(CVI):
 
         f_k_condition = lambda k: k>=0
 
-        def cvi_function(X, clusters):
+        def cvi_function(X, clusters, reduction=reduction):
             return reduce(_compute_score(
                 "list_inertia", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
@@ -1658,7 +1658,7 @@ class Diameter(CVI):
 
         f_k_condition = lambda k: k>=0
 
-        def cvi_function(X, clusters):
+        def cvi_function(X, clusters, reduction=reduction):
             return reduce(_compute_score(
                 "list_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
