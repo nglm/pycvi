@@ -4,7 +4,7 @@ import pytest
 from aeon.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
-from typing import Dict
+from typing import Dict, List, Union
 
 from ._utils import _aux_check_float
 from ..cvi import (
@@ -52,6 +52,50 @@ def _aux_test_selected(cvi, scores_k: Dict[int, float]):
     else:
         k_selected = cvi.select(scores_k)
         assert type(k_selected) == int
+
+def _aux_test_select_aggr(
+    aggr,
+    scores_i_t_k: Union[List[List[Dict[int, float]]], List[Dict[int, float]]],
+):
+    # Check in which type case we should be
+    if type(scores_i_t_k[0]) == dict:
+        should_be_list = False
+    else:
+        should_be_list = True
+
+    # ---------------- Check the select method -------------------
+    # --- Check if SelectionError correctly triggered ---
+    try:
+        selected_k = aggr.select(scores_i_t_k)
+    except SelectionError:
+        if (
+            (not should_be_list and aggr.votes == {})
+            or (should_be_list and {} in aggr.votes)
+        ):
+            assert True
+        else:
+            assert False
+    # ----------------- Check types -------------------
+    else:
+        if should_be_list:
+            # List[dict]
+            assert type(aggr.votes) == list
+            assert type(aggr.votes[0]) == dict
+            # List[List[int]]
+            assert type(aggr.all_selected_k) == list
+            assert type(aggr.all_selected_k[0]) == list
+            assert type(aggr.all_selected_k[0][0]) == int
+            # List[int]
+            assert type(selected_k) == list
+            assert type(selected_k[0]) == int
+        else:
+            # dict
+            assert type(aggr.votes) == dict
+            # List[int]
+            assert type(aggr.all_selected_k) == list
+            assert type(aggr.all_selected_k[0]) == int
+            # int
+            assert type(selected_k) == int
 
 
 def test_Scores():
@@ -247,3 +291,117 @@ def test_cviaggregator_init():
     else:
         assert False
 
+def test_cviaggregator():
+    # ---------------- Test on toy datasets ----------------------------
+    list_cvis = [ Diameter, CalinskiHarabasz, ScoreFunction]
+    lists_kwargs = [ {"reduction" : "sum"}, {}, {} ]
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
+        (N, T, d) = data.shape
+
+        # ========== Using DTW but not window ==========
+        model = TimeSeriesKMeans
+        DTW = True
+        clusterings_t_k = generate_all_clusterings(
+                data, model,
+                DTW=DTW, time_window=None, transformer=None,
+                scaler=StandardScaler(),
+                model_kw={}, fit_predict_kw={}, model_class_kw={}
+            )
+
+        for aggregator in [
+            CVIAggregator(), CVIAggregator(list_cvis, lists_kwargs)
+        ]:
+
+            scores_i_t_k = compute_all_scores(
+                aggregator, data, clusterings_t_k,
+                transformer=None, scaler=StandardScaler(), DTW=DTW,
+                time_window=None
+            )
+
+            # ----------- Testing type of scores_i_t_k -----------------
+            # List[dict]
+            assert type(scores_i_t_k) == list
+            assert (type(scores_i_t_k[0]) == dict)
+
+            for i in range(aggregator.n_cvis):
+                for k in range(N+1):
+                    # all clustering score were computed
+                    assert k in scores_i_t_k[i]
+                    _aux_check_float(scores_i_t_k[i][k], or_None=True)
+
+            # ----------- Testing select method ------------------------
+            # int
+            _aux_test_select_aggr(aggregator, scores_i_t_k)
+
+        # ====== No DTW nor window but forcing list ======
+        DTW = False
+        model = KMeans
+        clusterings_t_k = generate_all_clusterings(
+                data, model,
+                DTW=DTW, time_window=None, transformer=None,
+                scaler=StandardScaler(),
+                model_kw={}, fit_predict_kw={}, model_class_kw={}
+            )
+
+        for aggregator in [CVIAggregator(), CVIAggregator(list_cvis)]:
+
+            scores_i_t_k = compute_all_scores(
+                aggregator, data, clusterings_t_k,
+                transformer=None, scaler=StandardScaler(), DTW=DTW,
+                time_window=None, return_list=True
+            )
+
+            # ----------- Testing type of scores_i_t_k -----------------
+            # List[List[dict]]
+            assert type(scores_i_t_k) == list
+            assert (type(scores_i_t_k[0]) == list)
+            assert (type(scores_i_t_k[0][0]) == dict)
+
+            for i in range(aggregator.n_cvis):
+                for k in range(N+1):
+                    # all clustering score were computed
+                    assert k in scores_i_t_k[i][0]
+                    _aux_check_float(scores_i_t_k[i][0][k], or_None=True)
+
+            # ----------- Testing select method ------------------------
+            # int
+            _aux_test_select_aggr(aggregator, scores_i_t_k)
+
+    # ---------- Test on clustering benchmark dataset ------------------
+    # ====== No DTW nor window nor forcing list ======
+    DTW = False
+    model = AgglomerativeClustering
+    data, meta = _load_data_from_github(PATH + "xclara.arff")
+    n_clusters_range = [i for i in range(15)]
+
+    clusterings_t_k = generate_all_clusterings(
+            data, model, n_clusters_range=n_clusters_range,
+            DTW=DTW, time_window=None, transformer=None,
+            scaler=StandardScaler(),
+            model_kw={}, fit_predict_kw={}, model_class_kw={}
+        )
+
+    for aggregator in [CVIAggregator(), CVIAggregator(list_cvis)]:
+
+        scores_i_t_k = compute_all_scores(
+            aggregator, data, clusterings_t_k,
+            transformer=None, scaler=StandardScaler(), DTW=DTW,
+            time_window=None
+        )
+
+        # ----------- Testing type of scores_i_t_k -----------------
+        # List[dict]
+        assert type(scores_i_t_k) == list
+        assert (type(scores_i_t_k[0]) == dict)
+
+        for i in range(aggregator.n_cvis):
+            for k in range(N+1):
+                # all clustering score were computed
+                assert k in scores_i_t_k[i]
+                _aux_check_float(scores_i_t_k[i][k], or_None=True)
+
+
+        # ----------- Testing select method ------------------------
+        # int
+        _aux_test_select_aggr(aggregator, scores_i_t_k)
