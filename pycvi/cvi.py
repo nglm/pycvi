@@ -757,7 +757,7 @@ class CVIAggregator():
             for t in range(n_time_windows):
                 best_k = np.inf
                 best_vote = 0
-                for k, vote in self.votes.items():
+                for k, vote in self.votes[t].items():
                     if (vote > best_vote) or (vote == best_vote and k < best_k):
                         best_vote = vote
                         best_k = k
@@ -767,6 +767,8 @@ class CVIAggregator():
         if return_list or was_list:
             return k_selected
         else:
+            self.votes = self.votes[0]
+            self.all_selected_k = self.all_selected_k[0]
             return k_selected[0]
 
     def __str__(self) -> str:
