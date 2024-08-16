@@ -211,3 +211,39 @@ def test_select():
     assert S_monotone_ignore0.select(l_score_mono_ignore0) == [4]
     assert S_abs_max.select(score_abs, return_list=True) == [3]
     assert S_abs_min.select(score_abs, return_list=True) == [5]
+
+def test_cviaggregator_init():
+    list_cvis = [ Diameter, CalinskiHarabasz, ScoreFunction]
+    lists_kwargs = [ {"reduction" : "sum"}, {}, {} ]
+
+    aggr = CVIAggregator()
+    assert len(aggr.cvis) == len(CVIs)
+    assert aggr.n_cvis == len(aggr.cvis)
+    assert aggr.n_cvis == len(aggr.cvi_kwargs)
+    assert aggr.votes == None
+    assert aggr.all_selected_k == None
+    assert aggr._is_aggregator == True
+
+    aggr = CVIAggregator(list_cvis)
+    assert len(aggr.cvis) == 3
+    assert aggr.n_cvis == len(aggr.cvis)
+    assert aggr.n_cvis == len(aggr.cvi_kwargs)
+    assert aggr.votes == None
+    assert aggr.all_selected_k == None
+    assert aggr._is_aggregator == True
+
+    aggr = CVIAggregator(list_cvis, lists_kwargs)
+    assert len(aggr.cvis) == 3
+    assert aggr.n_cvis == len(aggr.cvis)
+    assert aggr.n_cvis == len(aggr.cvi_kwargs)
+    assert aggr.votes == None
+    assert aggr.all_selected_k == None
+    assert aggr._is_aggregator == True
+
+    try:
+        aggr = CVIAggregator(list_cvis, lists_kwargs[:1])
+    except ValueError:
+        assert True
+    else:
+        assert False
+
