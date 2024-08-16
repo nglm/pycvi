@@ -648,6 +648,120 @@ class CVIAggregator():
                 raise ValueError(msg)
         self.cvis = cvis
         self.cvi_kwargs = cvi_kwargs
+        self.n_cvis = len(self.cvis)
+        # dict or List[dict] containing a summary of the votes
+        # it's a List[dict] if time window or return_list was used
+        self.votes = None
+        # List[int] or List[List[int]]: Selected k for each individual CVI
+        # it's a List[List[int]] if time window or return_list was used
+        self.all_selected_k = None
+        # Helper for the compute_all_scores function
+        self._is_aggregator = True
+
+    def select(
+        self,
+        scores_i_t_k: Union[List[List[Dict[int, float]]], List[Dict[int, float]]],
+        return_list: bool = False,
+    ) -> Union[List[int], int]:
+        """
+        Select the best clusterings according to the CVI values given.
+
+        Select the best :math:`k` for each :math:`t` according to the
+        majority vote of the selected clustering according to each CVI.
+        Each CVI select k based on their corresponding CVI values and
+        selection rule. In case of a tie for the best clustering, the
+        clustering with fewer clusters is selected. If the data is not
+        time series or if the time series are clustered considering all
+        time steps at once, then the returned list has only one element.
+
+        If no k could be selected given the `scores_i_t_k` values
+        because no CVI could select one clustering, then returns a
+        SelectionError (check the values of `scores_i_t_k` for more
+        information on why the error was raised).
+
+        After calling this functions, all votes will be available in the
+        `CVIAggregator.votes` property and each individual selected k
+        will be available in the `CVIAggregator.all_selected_k`
+        property.
+
+        Parameters
+        ----------
+        scores_i_t_k : Union[List[List[Dict[int, float]]], List[Dict[int, float]]]
+            The CVI values for the provided :math:`k` range and for the
+            potential number :math:`t` of iterations to consider in
+            time and for each CVI aggregated.
+        return_list: bool, optional
+            Determines whether the output should be forced to be a
+            List[Dict], even when no sliding window is used, by default
+            False.
+
+        Returns
+        -------
+        Union[List[int], int]
+            The list of :math:`k` values corresponding to the best
+            clustering for each potential number :math:`t` of iterations
+            to consider in time. Some elements can be `None` if no
+            clustering could be selected at a given iteration :math:`t`.
+        """
+        # ------------------------ Initialisation ----------------------
+        # Just to force the list format and get the number of time windows
+        scores_0_t_k, was_list = _check_list_of_dict(scores_i_t_k[0])
+        n_time_windows = len(scores_0_t_k)
+        votes = [{} for _ in range(n_time_windows)]
+        # All k_selected for each CVI
+        all_selected = [
+            [None for _ in range(n_time_windows)]
+            for _ in range(self.n_cvis)
+        ]
+        # k selected after aggregation by majority vote
+        k_selected = [None for _ in range(n_time_windows)]
+
+
+        # --------------------- Select k for each CVI ------------------
+        for i in range(self.n_cvis):
+            # Select k (and force return_list to facilitate the majority vote)
+            scores_t_k, was_list = _check_list_of_dict(scores_i_t_k[i])
+            try:
+                k = self.cvis[i].select(scores_t_k)
+            # If no k could be selected with this CVI
+            except SelectionError as e:
+                k = [None for _ in range(n_time_windows)]
+            # Otherwise update votes
+            else:
+                for t in range(n_time_windows):
+                    votes[t][k[t]] = votes[t].pop(k[t], 0) + 1
+            # And in any case, keep track of the selected k for each CVI
+            finally:
+                all_selected[i] = k
+
+        # --------------------- Majority vote --------------------------
+        # If each individual CVI gave None, raise SelectionError
+        if {} in votes:
+            msg = (
+                f"No clustering could be selected by {self} "
+                + f"with the CVIs {self.cvis} and CVI values "
+                + f"given: {self.scores_i_t_k}"
+            )
+            raise SelectionError(msg)
+        # Otherwise find majority vote (take the lowest one in case of a tie)
+        else:
+            # update attributes
+            self.votes = votes
+            self.all_selected_k = all_selected
+            for t in range(n_time_windows):
+                best_k = np.inf
+                best_vote = 0
+                for k, vote in self.votes.items():
+                    if (vote > best_vote) or (vote == best_vote and k < best_k):
+                        best_vote = vote
+                        best_k = k
+                k_selected[t] = best_k
+
+        # --------------------- Fix output type ------------------------
+        if return_list or was_list:
+            return k_selected
+        else:
+            return k_selected[0]
 
     def __str__(self) -> str:
         name = "-".join([str(cvi) for cvi in self.cvis])
