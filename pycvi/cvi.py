@@ -702,6 +702,12 @@ class CVIAggregator():
             clustering for each potential number :math:`t` of iterations
             to consider in time. Some elements can be `None` if no
             clustering could be selected at a given iteration :math:`t`.
+
+        Raises
+        ------
+        SelectionError
+            If no clustering could be selected with the given CVIs and
+            their corresponding CVI values.
         """
         # ------------------------ Initialisation ----------------------
         # Just to force the list format and get the number of time windows
