@@ -370,7 +370,7 @@ def compute_all_scores(
     zero_type: str = "bounds",
     cvi_kwargs: dict = {},
     return_list: bool = False,
-) -> Union[List[Dict[int, float]], Dict[int, float]]:
+) -> Union[List[List[Dict[int, float]]], List[Dict[int, float]], Dict[int, float]]:
     """
     Computes all CVI values for the given clusterings.
 
@@ -382,8 +382,8 @@ def compute_all_scores(
 
     Parameters
     ----------
-    cvi : an instance of a CVI class.
-        The CVI to use to compute all the scores.
+    cvi : an instance of a CVI class or a CVIAggregator.
+        The CVI(s) to use to compute all the scores.
     data : np.ndarray
         Original data. Acceptable input shapes and their corresponding
         output shapes in the PyCVI package:
@@ -434,9 +434,20 @@ def compute_all_scores(
 
     Returns
     -------
-    Union[List[Dict[int, float]], Dict[int, float]]
+    Union[List[List[Dict[int, float]]], List[Dict[int, float]],
+    Dict[int, float]]
         The computed CVI values for each of the clustering given as
         input.
+
+        The type is:
+
+        - `Dict[int, float]]`: only if a CVI class was used (not a
+          CVIAggregator and if no time window was used)
+        - `List[List[Dict[int, float]]]`: only if both a CVIAggregator
+          was used and a time window
+        - `List[Dict[int, float]]`: otherwise, that is to say, if a
+          CVIAggregator was used without time window, or if a CVI was
+          used with a time window.
     """
 
     # --------------------------------------------------------------
@@ -469,10 +480,6 @@ def compute_all_scores(
     ]
     n_windows = len(data_clus)
 
-    # temporary variable to help remember scores
-    # scores_t_n[t_w][k] is the score for the clustering assuming k
-    # clusters for the extracted time window t_w
-    scores_t_n = [{} for _ in range(n_windows)]
     try:
         clusterings, was_list = _check_list_of_dict(clusterings)
     except ValueError as e:
@@ -480,68 +487,94 @@ def compute_all_scores(
         raise ValueError(msg)
     return_list = return_list or was_list
 
+    # Special case with aggregators
+    if hasattr(cvi, '_is_aggregator') and cvi._is_aggregator:
+        list_cvi = cvi.cvis
+        list_cvi_kwargs = cvi.cvi_kwargs
+        is_aggregator = True
+    else:
+        list_cvi = [cvi]
+        list_cvi_kwargs = [cvi_kwargs]
+        is_aggregator = False
+
+    # temporary variable to help remember scores
+    # scores_i_t_n[[i]t_w][k] is the score for the clustering assuming k
+    # clusters for the extracted time window t_w with CVI i
+    scores_i_t_n = [
+        [{} for _ in range(n_windows)] for _ in range(len(list_cvi))
+    ]
+
     # Note that in this function, "clusterings" corresponds to
     # "clusterings_t_k" in "generate_all_clusterings" and not to
     # "clusters" in cvi functions
-    for t_w in range(n_windows):
+    for i in range(len(list_cvi)):
+        for t_w in range(n_windows):
+            for n_clusters in clusterings[t_w].keys():
 
-        for n_clusters in clusterings[t_w].keys():
+                # Find cluster membership of each datapoint
+                clusters = clusterings[t_w][n_clusters]
 
-            # Find cluster membership of each datapoint
-            clusters = clusterings[t_w][n_clusters]
+                # Take the data used for clustering while taking into
+                # account the difference between time step indices
+                # with/without sliding window
+                X_clus = data_clus[t_w]
 
-            # Take the data used for clustering while taking into
-            # account the difference between time step indices
-            # with/without sliding window
-            X_clus = data_clus[t_w]
+                score_kw = list_cvi[i].get_cvi_kwargs(
+                    X_clus=X_clus,
+                    clusterings_t=clusterings[t_w],
+                    n_clusters=n_clusters,
+                    cvi_kwargs=list_cvi_kwargs[i],
+                )
 
-            score_kw = cvi.get_cvi_kwargs(
-                X_clus=X_clus,
-                clusterings_t=clusterings[t_w],
-                n_clusters=n_clusters,
-                cvi_kwargs=cvi_kwargs,
-            )
+                # Special case if the clustering algorithm didn't converge,
+                # and raised a EmptyClusterError error.
+                if clusters is None:
+                    res_score = None
+                # Special case k=0: compute average score over N_zero
+                # samples
+                elif n_clusters == 0:
+                    l_res_score = []
+                    for data_clus0 in l_data_clus0:
+                        X_clus0 = data_clus0[t_w]
+                        try:
+                            l_res_score.append(list_cvi[i](
+                                X_clus0,
+                                clusters,
+                                cvi_kwargs=score_kw,
+                            ))
+                        except InvalidKError as e:
+                            pass
+                    if l_res_score:
+                        res_score = np.mean(l_res_score)
+                    # If it gave a "InvalidKError" for each sample return None
+                    else:
+                        res_score = None
+                else:
 
-            # Special case if the clustering algorithm didn't converge,
-            # and raised a EmptyClusterError error.
-            if clusters is None:
-                res_score = None
-            # Special case k=0: compute average score over N_zero
-            # samples
-            elif n_clusters == 0:
-                l_res_score = []
-                for data_clus0 in l_data_clus0:
-                    X_clus0 = data_clus0[t_w]
+                    # ------------ Score corresponding to 'n_clusters' ---------
                     try:
-                        l_res_score.append(cvi(
-                            X_clus0,
+                        res_score = list_cvi[i](
+                            X_clus,
                             clusters,
                             cvi_kwargs=score_kw,
-                        ))
+                        )
+                    # Ignore if the score was used with a wrong number
+                    # of clusters
                     except InvalidKError as e:
-                        pass
-                if l_res_score:
-                    res_score = np.mean(l_res_score)
-                # If it gave a "InvalidKError" for each sample return None
-                else:
-                    res_score = None
-            else:
+                        res_score = None
 
-                # ------------ Score corresponding to 'n_clusters' ---------
-                try:
-                    res_score = cvi(
-                        X_clus,
-                        clusters,
-                        cvi_kwargs=score_kw,
-                    )
-                # Ignore if the score was used with a wrong number of clusters
-                except InvalidKError as e:
-                    res_score = None
+                scores_i_t_n[i][t_w][n_clusters] = res_score
 
-            scores_t_n[t_w][n_clusters] = res_score
+    # -------------------------- Fix output type ------------------------------
 
-    # If no sliding window was used, return a Dict, else a List[Dict]
+    # If no sliding window was used, each element is Dict otherwise List[Dict]
     if return_list:
-        return scores_t_n
+        output = scores_i_t_n
     else:
-        return scores_t_n[0]
+        output = [score[0] for score in scores_i_t_n]
+    # If CVIAggregator was used return a list of Dict or a list of List[Dict]
+    # else return a Dict or a List[Dict]
+    if not is_aggregator:
+        output = output[0]
+
+    return output
