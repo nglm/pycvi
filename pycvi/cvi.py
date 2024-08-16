@@ -620,7 +620,7 @@ class CVIAggregator():
         to `None`, in that case, all CVIs implemented in PyCVI are used
         and with their default parameters. (see
         :attr:`pycvi.cvi.CVIs`).
-    cvi_kwargs : Union[List[CVI], None], optional
+    cvi_kwargs : Union[List[dict], None], optional
         List of CVIs specific kwargs to give to the corresponding CVI. Default to `None`, in that case, each CVI use their default parameters. If a list is given, its length must match the number of CVIs used in `cvi_classes`.
 
     Raises
@@ -632,7 +632,7 @@ class CVIAggregator():
     def __init__(
         self,
         cvi_classes: Union[List[CVI], None] = None,
-        cvi_kwargs: Union[List[CVI], None] = None
+        cvi_kwargs: Union[List[dict], None] = None
     ) -> None:
         cvis = []
         if cvi_classes is None:
