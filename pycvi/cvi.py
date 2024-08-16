@@ -423,7 +423,7 @@ class CVI():
 
     def select(
         self,
-        scores_t_k: List[Dict[int, float]],
+        scores_t_k: Union[List[Dict[int, float]], Dict[int, float]],
         return_list: bool = False,
     ) -> Union[List[int], int]:
         """
@@ -440,13 +440,13 @@ class CVI():
 
         Parameters
         ----------
-        scores_t_k : List[Dict[int, float]]
+        scores_t_k : Union[List[Dict[int, float]], Dict[int, float]]
             The CVI values for the provided :math:`k` range and for the
             potential number :math:`t` of iterations to consider in
             time.
         return_list: bool, optional
             Determines whether the output should be forced to be a
-            List[Dict], even when no sliding window is used by default
+            List[Dict], even when no sliding window is used, by default
             False.
 
         Returns
