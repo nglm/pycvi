@@ -22,6 +22,7 @@ To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/
 - Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for an easy integration into any clustering pipeline in python.
 - Can compute the clusterings beforehand if provided with a sklearn-like clustering class.
 - Enable users to define custom CVIs.
+- Multiple CVIs can easily be combined to select the best clustering based on a majority vote.
 - Variation of Information implemented (distances between clustering).
 
 ## Install
