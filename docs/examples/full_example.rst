@@ -1,5 +1,5 @@
 Full PyCVI pipeline
--------------------
+----------------------
 
 Here is an example using exclusively PyCVI for the entire clustering pipeline. The preprocessing steps and the clustering steps can be integrated into the PyCVI pipeline by providing sklearn-like classes of clustering models (e.g. `KMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html>`_) and data preprocessor (e.g. `StandardScaler <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_).
 

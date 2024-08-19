@@ -1,4 +1,4 @@
-pycvi.cvi
+﻿pycvi.cvi
 =========
 
 .. automodule:: pycvi.cvi
@@ -24,6 +24,7 @@ pycvi.cvi
    .. autosummary::
    
       CVI
+      CVIAggregator
       CalinskiHarabasz
       DB
       Diameter

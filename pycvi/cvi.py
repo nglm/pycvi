@@ -1,10 +1,31 @@
 """
-Python implementation of state-of the-art internal CVIs.
+Python implementation of state-of-the-art internal CVIs.
 
 Internal CVIs are used to select the best clustering among a set of
 pre-computed clustering when no information about the true clusters nor
-the number of clusters is available.
+the number of clusters is available. To assess the quality of different
+clusterings, CVIs compute distances between datapoints and most of them
+also rely on the concept of cluster center.
 
+In general for static data, the distance function used to compute
+pairwise distances is usually the euclidean distance and the center of a
+group of datapoints is defined as the barycentric average. Time-series
+data however are usually compared using time-series specific distances
+such as Dynamic Time Warping (DTW) [DTW]_ and the concept of average
+non-trivial and can be for example defined using DTW Barycentric Average
+(DBA) [DBA]_.
+
+PyCVI extends state-of-the-art internal CVIs to make them compatible
+with time-series data as well by using DTW and DBA when necessary.
+
+.. [DTW] Donald J. Berndt and James Clifford. Using dynamic time warping
+   to find patterns in time series. In Proceedings of the 3rd
+   International Conference on Knowledge Discovery and Data Mining,
+   AAAIWS’94, page 359–370. AAAI Press, 1994
+.. [DBA] F. Petitjean, A. Ketterlin, and P. Gan carski, “A global
+   averaging method for dynamic time warping, with applications to
+   clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
+   2011.
 .. [Hartigan] D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
    Biometrics, vol. 31, p. 793, sep 1975.
 .. [CH] T. Calinski and J. Harabasz, “A dendrite method for cluster
@@ -182,7 +203,7 @@ class CVI():
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {},
-    ) -> Union[dict, None]:
+    ) -> dict:
         """
         Get the kwargs parameters specific to the CVI.
 
@@ -208,7 +229,7 @@ class CVI():
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         return cvi_kwargs
@@ -402,7 +423,7 @@ class CVI():
 
     def select(
         self,
-        scores_t_k: List[Dict[int, float]],
+        scores_t_k: Union[List[Dict[int, float]], Dict[int, float]],
         return_list: bool = False,
     ) -> Union[List[int], int]:
         """
@@ -419,13 +440,13 @@ class CVI():
 
         Parameters
         ----------
-        scores_t_k : List[Dict[int, float]]
+        scores_t_k : Union[List[Dict[int, float]], Dict[int, float]]
             The CVI values for the provided :math:`k` range and for the
             potential number :math:`t` of iterations to consider in
             time.
         return_list: bool, optional
             Determines whether the output should be forced to be a
-            List[Dict], even when no sliding window is used by default
+            List[Dict], even when no sliding window is used, by default
             False.
 
         Returns
@@ -448,12 +469,12 @@ class CVI():
             equal).
         """
         try:
-            scores_t_k, should_return_list = _check_list_of_dict(scores_t_k)
+            scores_t_k, was_list = _check_list_of_dict(scores_t_k)
         except ValueError as e:
             msg = f"scores_t_k in CVI.select: {e}"
             raise ValueError(msg)
         # Time series case with sliding window
-        return_list = return_list or should_return_list
+        return_list = return_list or was_list
         if return_list:
             k_selected = [self.criterion(s_t) for s_t in scores_t_k]
             if None in k_selected:
@@ -588,6 +609,173 @@ class CVI():
         """
         return worst_score(scores, self.maximise)
 
+class CVIAggregator():
+    """
+    An aggregator of multiple CVIs.
+
+    Parameters
+    ----------
+    cvi_classes : Union[List[CVI], None], optional
+        List of CVIs to aggregate to select the best clustering. Default
+        to `None`, in that case, all CVIs implemented in PyCVI are used
+        and with their default parameters. (see
+        :attr:`pycvi.cvi.CVIs`).
+    cvi_kwargs : Union[List[dict], None], optional
+        List of CVIs specific kwargs to give to the corresponding CVI. Default to `None`, in that case, each CVI use their default parameters. If a list is given, its length must match the number of CVIs used in `cvi_classes`.
+
+    Raises
+    ------
+    ValueError
+        Raised if lengths of `cvi_classes` and `cvi_kwargs` not consistent.
+    """
+
+    def __init__(
+        self,
+        cvi_classes: Union[List[CVI], None] = None,
+        cvi_kwargs: Union[List[dict], None] = None
+    ) -> None:
+        cvis = []
+        if cvi_classes is None:
+            cvi_classes = CVIs.copy()
+        for cvi_class in cvi_classes:
+            cvis.append(cvi_class())
+        if cvi_kwargs is None:
+            cvi_kwargs = [{} for _ in range(len(cvis))]
+        else:
+            if len(cvi_kwargs) != len(cvis):
+                msg = "lengths of cvi_kwargs and cvis don't match. "
+                msg += f"{len(cvi_kwargs)} versus len(cvis)"
+                raise ValueError(msg)
+        self.cvis = cvis
+        self.cvi_kwargs = cvi_kwargs
+        self.n_cvis = len(self.cvis)
+        # Dict[int, int] or List[Dict[int, int]] containing a summary of
+        # the votes.
+        # it's a List[Dict[int, int]] if time window or return_list was used
+        self.votes = None
+        # List[int] or List[List[int]]: Selected k for each individual CVI
+        # it's a List[List[int]] if time window or return_list was used
+        self.all_selected_k = None
+        # Helper for the compute_all_scores function
+        self._is_aggregator = True
+
+    def select(
+        self,
+        scores_i_t_k: Union[List[List[Dict[int, float]]], List[Dict[int, float]]],
+        return_list: bool = False,
+    ) -> Union[List[int], int]:
+        """
+        Select the best clusterings according to the CVI values given.
+
+        Select the best :math:`k` for each :math:`t` according to the
+        majority vote of the selected clustering according to each CVI.
+        Each CVI select k based on their corresponding CVI values and
+        selection rule. In case of a tie for the best clustering, the
+        clustering with fewer clusters is selected. If the data is not
+        time series or if the time series are clustered considering all
+        time steps at once, then the returned list has only one element.
+
+        If no k could be selected given the `scores_i_t_k` values
+        because no CVI could select one clustering, then returns a
+        SelectionError (check the values of `scores_i_t_k` for more
+        information on why the error was raised).
+
+        After calling this functions, all votes will be available in the
+        `CVIAggregator.votes` property and each individual selected k
+        will be available in the `CVIAggregator.all_selected_k`
+        property.
+
+        Parameters
+        ----------
+        scores_i_t_k : Union[List[List[Dict[int, float]]], List[Dict[int, float]]]
+            The CVI values for the provided :math:`k` range and for the
+            potential number :math:`t` of iterations to consider in
+            time and for each CVI aggregated.
+        return_list: bool, optional
+            Determines whether the output should be forced to be a
+            List[Dict], even when no sliding window is used, by default
+            False.
+
+        Returns
+        -------
+        Union[List[int], int]
+            The list of :math:`k` values corresponding to the best
+            clustering for each potential number :math:`t` of iterations
+            to consider in time. Some elements can be `None` if no
+            clustering could be selected at a given iteration :math:`t`.
+
+        Raises
+        ------
+        SelectionError
+            If no clustering could be selected with the given CVIs and
+            their corresponding CVI values.
+        """
+        # ------------------------ Initialisation ----------------------
+        # Just to force the list format and get the number of time windows
+        scores_0_t_k, was_list = _check_list_of_dict(scores_i_t_k[0])
+        n_time_windows = len(scores_0_t_k)
+        votes = [{} for _ in range(n_time_windows)]
+        # All k_selected for each CVI
+        all_selected = [
+            [None for _ in range(n_time_windows)]
+            for _ in range(self.n_cvis)
+        ]
+        # k selected after aggregation by majority vote
+        k_selected = [None for _ in range(n_time_windows)]
+
+
+        # --------------------- Select k for each CVI ------------------
+        for i in range(self.n_cvis):
+            # Select k (and force return_list to facilitate the majority vote)
+            scores_t_k, was_list = _check_list_of_dict(scores_i_t_k[i])
+            try:
+                k = self.cvis[i].select(scores_t_k)
+            # If no k could be selected with this CVI
+            except SelectionError as e:
+                k = [None for _ in range(n_time_windows)]
+            # Otherwise update votes
+            else:
+                for t in range(n_time_windows):
+                    votes[t][k[t]] = votes[t].pop(k[t], 0) + 1
+            # And in any case, keep track of the selected k for each CVI
+            finally:
+                all_selected[i] = k
+
+        # --------------------- Majority vote --------------------------
+        # If each individual CVI gave None, raise SelectionError
+        if {} in votes:
+            msg = (
+                f"No clustering could be selected by {self} "
+                + f"with the CVIs {self.cvis} and CVI values "
+                + f"given: {self.scores_i_t_k}"
+            )
+            raise SelectionError(msg)
+        # Otherwise find majority vote (take the lowest one in case of a tie)
+        else:
+            # update attributes
+            self.votes = votes
+            self.all_selected_k = all_selected
+            for t in range(n_time_windows):
+                best_k = np.inf
+                best_vote = 0
+                for k, vote in self.votes[t].items():
+                    if (vote > best_vote) or (vote == best_vote and k < best_k):
+                        best_vote = vote
+                        best_k = k
+                k_selected[t] = best_k
+
+        # --------------------- Fix output type ------------------------
+        if return_list or was_list:
+            return k_selected
+        else:
+            self.votes = self.votes[0]
+            self.all_selected_k = self.all_selected_k[0]
+            return k_selected[0]
+
+    def __str__(self) -> str:
+        name = "-".join([str(cvi) for cvi in self.cvis])
+        return name
+
 class Hartigan(CVI):
     """
     The Hartigan index. [Hartigan]_
@@ -669,7 +857,7 @@ class Hartigan(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Hartigan.
 
@@ -702,7 +890,7 @@ class Hartigan(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {}
@@ -765,7 +953,7 @@ class CalinskiHarabasz(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Calinski-Harabasz.
 
@@ -803,7 +991,7 @@ class CalinskiHarabasz(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {}
@@ -897,7 +1085,7 @@ class GapStatistic(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Gap statistic.
 
@@ -934,7 +1122,7 @@ class GapStatistic(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {"B" : 10}
@@ -1088,7 +1276,7 @@ class ScoreFunction(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         """
         Get the kwargs parameters specific to Score Function.
 
@@ -1111,7 +1299,7 @@ class ScoreFunction(CVI):
 
         Returns
         -------
-        Union[dict, None]
+        dict
             The dictionary of kwargs necessary to compute the CVI.
         """
         cvi_kw = {}
@@ -1159,7 +1347,7 @@ class MaulikBandyopadhyay(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         cvi_kw = {"p" : 2}
         cvi_kw["k"] = n_clusters
         cvi_kw.update(cvi_kwargs)
@@ -1208,7 +1396,7 @@ class SD(CVI):
         clusterings_t: Dict[int, List] = None,
         n_clusters: int = None,
         cvi_kwargs: dict = {}
-    ) -> None:
+    ) -> dict:
         cvi_kw = {"alpha" : None}
         cvi_kw.update(cvi_kwargs)
         return cvi_kw
@@ -1423,7 +1611,7 @@ class Inertia(CVI):
 
         f_k_condition = lambda k: k>=0
 
-        def cvi_function(X, clusters):
+        def cvi_function(X, clusters, reduction=reduction):
             return reduce(_compute_score(
                 "list_inertia", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
@@ -1479,7 +1667,7 @@ class Diameter(CVI):
 
         f_k_condition = lambda k: k>=0
 
-        def cvi_function(X, clusters):
+        def cvi_function(X, clusters, reduction=reduction):
             return reduce(_compute_score(
                 "list_diameter", X, clusters, dist_kwargs={}, score_kwargs={}
                 ), reduction)
@@ -1514,5 +1702,20 @@ CVIs = [
     Diameter,
 ]
 """
-List of available CVI indices in PyCVI
+List of available CVI indices in PyCVI, as `pycvi.cvi` classes.
+
+- Hartigan: :class:`pycvi.cvi.Hartigan`
+- CalinskiHarabasz: :class:`pycvi.cvi.CalinskiHarabasz`
+- GapStatistic: :class:`pycvi.cvi.GapStatistic`
+- Silhouette: :class:`pycvi.cvi.Silhouette`
+- ScoreFunction: :class:`pycvi.cvi.ScoreFunction`
+- MaulikBandyopadhyay: :class:`pycvi.cvi.MaulikBandyopadhyay`
+- SD: :class:`pycvi.cvi.SD`
+- SDbw: :class:`pycvi.cvi.SDbw`
+- Dunn: :class:`pycvi.cvi.Dunn`
+- XB: :class:`pycvi.cvi.XB`
+- XBStar: :class:`pycvi.cvi.XBStar`
+- DB: :class:`pycvi.cvi.DB`
+- Inertia: :class:`pycvi.cvi.Inertia`
+- Diameter: :class:`pycvi.cvi.Diameter`
 """
