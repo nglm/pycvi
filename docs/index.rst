@@ -31,6 +31,7 @@
    examples/pdist_cdist
    examples/select_k
    examples/full_example
+   examples/cvi_aggregator
 
 .. include:: /examples/examples_reminders.rst
 

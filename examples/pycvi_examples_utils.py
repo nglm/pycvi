@@ -534,3 +534,102 @@ def plot_centers(
         ax = plot_center(ax, data, center, colors[i])
 
     return fig
+
+def plot_aggregator(
+    data: np.ndarray,
+    labels: np.ndarray,
+    clustering: List[List[int]],
+    votes: Dict[int, int],
+    ax_title: str,
+):
+    """
+    Plot the true, the selected clustering and the Aggregator votes.
+
+    Create the whole figure.
+
+    Parameters
+    ----------
+    data : np.ndarray, shape (N, d)
+        Original data, corresponding to a benchmark dataset
+    labels : np.ndarray, shape (N,)
+        True labels
+    clusterings : List[List[int]]
+        The clusterings obtained with k_true
+    votes: Dict[int, int]
+        The number of CVI votes each k value got.
+    ax_title : str
+        Ax title for the selected clustering
+
+    Returns
+    -------
+    A matplotlib figure
+        The figure with 3 plots on it.
+    """
+
+    (N, T, d), UCR = _get_shape_UCR(data)
+    colors = _get_colors()
+
+    # ----------------------- Create figure ----------------
+    if d <= 2:
+        fig, axes = plt.subplots(
+            nrows=1, ncols=3, sharex=False, sharey=False,
+            figsize=(24,8), tight_layout=True
+        )
+    else:
+        return None
+
+    # ----------------------- Labels ----------------
+    if labels is None:
+        labels = np.zeros(N)
+    classes = np.unique(labels)
+    n_labels = len(classes)
+    if n_labels == N:
+        labels = np.zeros(N)
+        n_labels = 1
+
+    # ====================== Plotting clusters ======================
+    # ------------------- variables for the 2 axes ----------------
+    clusters = [
+        # The true clustering
+        [labels == classes[i] for i in range(n_labels)],
+        # The clustering obtained with k_true
+        clustering
+    ]
+    ax_titles = [
+        f"True labels, k={n_labels}",
+        ax_title,
+    ]
+
+    # ------ True clustering and clustering assuming n_labels ----------
+    for i_ax in range(2):
+        if d <= 2:
+            ax = fig.axes[i_ax]
+
+        # ---------------  Plot clusters one by one --------------------
+        for i_label in range(n_labels):
+            c = clusters[i_ax][i_label]
+            color = colors[i_label % len(colors)]
+            ax = plot_cluster(ax, data, c, color)
+
+        # Add title
+        ax.set_title(ax_titles[i_ax])
+
+    # ====================== Plotting votes ======================
+    # Plot historgram
+    ax = fig.axes[2]
+    ax.bar(votes.keys(), votes.values())
+
+    # Force x_ticks to be int and to appear also for 0 values
+    xticks = list(votes.keys())
+    ax.xaxis.set_ticks(xticks, xticks)
+
+    # Force y_ticks to be int
+    vote_min, vote_max = ax.get_ylim()
+    ax.yaxis.set_ticks(np.arange(vote_min, vote_max+1, 1, dtype=int))
+
+    # Labels and titles
+    ax.set_xlabel("Selected number of clusters")
+    ax.set_ylabel("Number of CVIs' votes")
+    ax.set_title("Number of CVIs that selected a given number of clusters")
+
+    return fig
