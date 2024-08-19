@@ -10,7 +10,7 @@ In addition, all CVIs rely on the definition of a distance between datapoints an
 
 For non-time-series data, the distance used is usually the euclidean distance and the cluster center is defined as the usual average. Libraries such as [scipy](https://docs.scipy.org/doc/scipy/index.html), [numpy](https://numpy.org/doc/stable/), [scikit-learn](https://scikit-learn.org/stable/index.html), etc. offer a large selection of distance measures that are compatible with all their functions.
 
-For time-series data however, the common distance used is Dynamic Time Warping (DTW) [^DTW] and the barycenter of a group of time series is then not defined as the usual mean, but as the DTW Barycentric Average (DBA)[^DBA]. Unfortunately, DTW and DBA are not compatible with the libraries mentioned above.
+For time-series data however, the common distance used is Dynamic Time Warping (DTW) [^DTW] and the barycenter of a group of time series is then not defined as the usual mean, but as the DTW Barycentric Average (DBA)[^DBA]. Unfortunately, DTW and DBA are not compatible with the libraries mentioned above, which among other reasons, made additional machine learning libraries specialized in time series data such as [aeon](https://www.aeon-toolkit.org/en/latest/index.html), [sktime](https://www.sktime.net/en/stable/index.html) and [tslearn](https://tslearn.readthedocs.io/en/stable/) necessary.
 
 PyCVI then implements 12 state-of-the-art internal CVIs and extended them to make them compatible with DTW and DBA when using time-series data. To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/en/latest/index.html) library.
 
