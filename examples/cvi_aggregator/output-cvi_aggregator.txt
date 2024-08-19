@@ -1,12 +1,12 @@
 
  ***** KMeans and CVI aggregator with specific CVIs ***** 
 
-Clusterings generated in: 2.04s
-Code executed in 53.74 s
+Clusterings generated in: 1.79s
+Code executed in 52.88 s
 Selected k: 9 | True k: 9
 
  ***** AgglomerativeClustering-Single and CVI aggregator with all CVIs ***** 
 
-Clusterings generated in: 2.59s
-Code executed in 306.80 s
+Clusterings generated in: 2.38s
+Code executed in 328.50 s
 Selected k: 2 | True k: 2

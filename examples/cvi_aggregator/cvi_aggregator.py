@@ -108,7 +108,7 @@ def pipeline(
         selected_clustering = None
     else:
         ax_title = (
-            f'k={k_selected}, with {cvi_aggregator.votes[k_selected]}/'
+            f'Selected clustering. k={k_selected}, with {cvi_aggregator.votes[k_selected]}/'
             + f'{cvi_aggregator.n_cvis} votes'
         )
         selected_clustering = clusterings[k_selected]
