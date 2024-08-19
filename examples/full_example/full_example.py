@@ -56,7 +56,7 @@ def pipeline(
     # ------------------ Define true clustering  -----------------------
     # ------------------------------------------------------------------
     # From the label for each datapoint to a list of
-    # datapoints for each cluste.
+    # datapoints for each cluster.
     # true clusters: List[List[int]]
     true_clusters = get_clustering(y)
     k_true = len(true_clusters)

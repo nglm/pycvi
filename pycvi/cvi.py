@@ -649,8 +649,9 @@ class CVIAggregator():
         self.cvis = cvis
         self.cvi_kwargs = cvi_kwargs
         self.n_cvis = len(self.cvis)
-        # dict or List[dict] containing a summary of the votes
-        # it's a List[dict] if time window or return_list was used
+        # Dict[int, int] or List[Dict[int, int]] containing a summary of
+        # the votes.
+        # it's a List[Dict[int, int]] if time window or return_list was used
         self.votes = None
         # List[int] or List[List[int]]: Selected k for each individual CVI
         # it's a List[List[int]] if time window or return_list was used
