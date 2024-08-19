@@ -1,4 +1,4 @@
-CVIAggregator: Using multiple CVIs at once
+CVIAggregator: Combining CVIs
 -------------------------------------------
 
 Here is an example using exclusively PyCVI's :class:`pycvi.cvi.CVIAggregator` in order to guess the number of clusters in a dataset. The preprocessing steps and the clustering steps can be integrated into the PyCVI pipeline by providing sklearn-like classes of clustering models (e.g. `KMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html>`_) and data preprocessor (e.g. `StandardScaler <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_).
