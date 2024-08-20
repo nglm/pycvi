@@ -3,7 +3,7 @@ name = "pycvi-lib"
 packages = [
     {include = "pycvi"}
 ]
-version = "0.1.1"
+version = "0.1.3"
 description = "Internal Cluster Validity Indices in python, compatible with time-series data"
 authors = ["Natacha, Galmiche <natacha.galmiche@uib.no>"]
 readme = "README.md"
