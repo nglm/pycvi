@@ -47,29 +47,21 @@ PyCVI fills that gap by implementing 12 state-of-the-art internal CVIs: Hartigan
 
 # Example
 
-![KMeans on static data.\label{fig:kmeans}](./Barton_data_KMeans.png)
+![KMeans on static data. Selected clusterings according to each implemented CVIs. \label{fig:kmeans}](./Barton_data_KMeans-combined.png)
 
-![KMeans on static data, selected number of clusters according to each implemented CVIs. \label{fig:kmeans-hist}](./Barton_data_KMeans-histogram.png){width="30%"}
-
-![AgglomerativeClustering on static data.\label{fig:agglo}](./Barton_data_AgglomerativeClustering_Single.png)
-
-![AgglomerativeClustering on static data, selected number of clusters according to all implemented CVIs. \label{fig:agglo-hist}](./Barton_data_AgglomerativeClustering_Single-histogram.png){width="30%"}
+![AgglomerativeClustering on static data. Selected clusterings according to each implemented CVIs. \label{fig:agglo}](./Barton_data_AgglomerativeClustering_Single-combined.png)
 
 ![KMeans on time-series data, with DTW.\label{fig:DTW}](./UCR_data_DTW_TimeSeriesKMeans.png)
 
-![KMeans on time-series data, with DTW, selected number of clusters according to each implemented CVIs. \label{fig:DTW-hist}](./UCR_data_DTW_TimeSeriesKMeans-histogram.png){width="30%"}
-
 ![KMeans on time-series data, without DTW.\label{fig:no_DTW}](./UCR_data_no_DTW_KMeans.png)
-
-![KMeans on time-series data, without DTW, selected number of clusters according to each implemented CVIs. \label{fig:no_DTW-hist}](./UCR_data_no_DTW_KMeans-histogram.png){width="30%"}
 
 We experimented 3 cases: static data [@barton2015clustering], time-series data [@UCRArchive2018] with euclidean distance and then with DTW as distance measure and and DBA as center of clusters. In addition, we used different clustering methods from different libraries: KMeans [@lloyd1982least] and AgglomerativeClustering [@Ward1963] from [scikit-learn](https://scikit-learn.org/stable/index.html), TimeSeriesKMeans from [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and KMedoids [@Kaufman1990Partitioning] from [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/) to showcase PyCVI integration with other clustering libraries.
 
 As a first example, we individually ran all CVIs implemented in PyCVI, selected the best clustering according to each CVI and plotted the selected clustering. In addition, we computed the variation of information (VI) between each selected clustering and the true clustering. High VI values there mean large distances between the true clustering and the computed clusterings, meaning poor computed clusterings. In \autoref{fig:kmeans} and \autoref{fig:agglo}, we can see the difference of quality when assuming the correct number of clusters between the AgglomerativeClustering and the KMeans clustering method on static data. This is independent of the CVI used, meaning that a poor clustering quality will be due to the clustering method.
 
-In \autoref{fig:kmeans}, since the generated clusterings are poor due to the clustering method, the poor results indicated by the histogram in \autoref{fig:kmeans-hist} gives us no information about the correct number of clusters, nor about the quality of the CVIs used. This motivates further research on clustering methods. However, in \autoref{fig:agglo}, the quality of the clustering is excellent, as indicated by a null VI. The poor results shown in the corresponding histogram \autoref{fig:agglo-hist} tells us that the CVIs used here are not adapted to this dataset. This was expected since most CVIs rely on the cluster center to compute a good separation between clusters. The dataset here consisting of concentric circles, most CVIs fail to measure how well separated the clusters actually are. This illustrates the need of further research on CVIs, which is facilitated by PyCVI, notably in the case of concentric subgroups.
+In \autoref{fig:kmeans}, since the generated clusterings are poor due to the clustering method, the poor selection results gives us no information about the correct clustering, nor about the quality of the CVIs used. This motivates further research on clustering methods. However, in \autoref{fig:agglo}, the quality of the clustering is excellent, as indicated by a null VI. The corresponding selection results shown in the corresponding histogram tells us that the CVIs used here are not adapted to this dataset. This was expected since most CVIs rely on the cluster center to compute a good separation between clusters. The dataset here consisting of concentric circles, most CVIs fail to measure how well separated the clusters actually are. This illustrates the need of further research on CVIs, which is facilitated by PyCVI, notably in the case of concentric subgroups.
 
-Similarly, with time-series data, the quality of the clustering assuming the correct number of clusters varies between \autoref{fig:DTW}, \autoref{fig:DTW-hist} and \autoref{fig:no_DTW}, \autoref{fig:no_DTW-hist} although the same clustering method is used on the same dataset. This illustrates the difference between using DTW as a distance measure compared to using the euclidean distance, and between using DBA to compute the average of a group of time series and using the usual average.
+Similarly, with time-series data, the quality of the clustering assuming the correct number of clusters varies between \autoref{fig:DTW} and \autoref{fig:no_DTW} although the same clustering method is used on the same dataset. This illustrates the difference between using DTW as a distance measure compared to using the euclidean distance, and between using DBA to compute the average of a group of time series and using the usual average.
 
 In a second example, we demonstrate cases of successful clustering and clustering selection, while showcasing an additional feature of PyCVI: `CVIAggregator`. `CVIAggregator` selects the best clustering by combining several CVIs and by using the majority vote among the clusterings individually selected by the combined CVI.
 
