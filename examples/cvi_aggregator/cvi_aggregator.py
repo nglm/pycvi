@@ -6,7 +6,8 @@ sys.stdout = fout
 
 import numpy as np
 import time
-from sklearn.cluster import AgglomerativeClustering, KMeans
+from sklearn.cluster import AgglomerativeClustering
+from sklearn_extra.cluster import KMedoids
 from sklearn.preprocessing import StandardScaler
 
 from pycvi.cluster import generate_all_clusterings, get_clustering
@@ -131,11 +132,11 @@ X, y = load_data("diamond9", "barton")
 
 chosen_cvis = [GapStatistic, Silhouette, Dunn, CalinskiHarabasz, XB]
 cvi_aggregator = CVIAggregator(chosen_cvis)
-model_class = KMeans
+model_class = KMedoids
 model_kw = {}
 
-fig_title = "KMeans and CVI aggregator with specific CVIs"
-fig_name = "Barton_data_KMeans-specific_cvis"
+fig_title = "KMedoids and CVI aggregator with specific CVIs"
+fig_name = "Barton_data_KMedoids-specific_cvis"
 pipeline(cvi_aggregator, X, y, model_class, model_kw, fig_title, fig_name)
 
 # -------------- Using all CVIs ----------------------------
