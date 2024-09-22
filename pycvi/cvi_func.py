@@ -329,7 +329,7 @@ def hartigan(
     X1: np.ndarray = None,
 ) -> float:
     """
-    Compute the hartigan index for a given clustering.
+    Compute the Hartigan index for a given clustering.
 
     :param X: Dataset
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
@@ -343,7 +343,7 @@ def hartigan(
         then the values of all datapoints when sampled from a uniform
         distribution.
     :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :return: The hartigan index
+    :return: The Hartigan index
     :rtype: float
     """
     N = len(X)
