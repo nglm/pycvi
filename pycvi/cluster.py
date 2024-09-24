@@ -625,7 +625,7 @@ def generate_all_clusterings(
                 if verbose >= 2:
                     dt = t_end - t_start
                     msg = (
-                        f"Clustering with {n_clusters} clusters generated in:"+ f"{dt:.2f}s"
+                        f"Clustering with {n_clusters} clusters generated in:"+ f" {dt:.2f}s."
                     )
                     print(msg, flush=True)
 
