@@ -30,7 +30,7 @@ copyright = '2023, Natacha Galmiche'
 author = 'Natacha Galmiche'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = '0.1.4'
 
 
 # -- General configuration ---------------------------------------------------
