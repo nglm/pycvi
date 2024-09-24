@@ -17,6 +17,7 @@ from aeon.clustering.averaging._barycenter_averaging import (
     elastic_barycenter_average
 )
 from typing import List, Sequence, Union, Any, Dict, Tuple
+import time
 from ._configuration import set_data_shape, get_model_parameters
 from .exceptions import ShapeError, EmptyClusterError
 
@@ -453,7 +454,7 @@ def generate_all_clusterings(
     fit_predict_kw: dict = {},
     model_class_kw: dict = {},
     return_list: bool = False,
-    quiet: bool = True,
+    verbose: int = 0,
 ) -> Union[List[Dict[int, List[List[int]]]], Dict[int, List[List[int]]]]:
     """
     Generate all clusterings for the given data and clustering model.
@@ -527,8 +528,10 @@ def generate_all_clusterings(
     return_list: bool, optional
         Determines whether the output should be forced to be a
         List[Dict], even when no sliding window is used by default False.
-    quiet : bool, optional
-        Controls the verbosity of the function, by default True.
+    verbose : int, optional
+        Controls the verbosity of the function, by default 0, which
+        means that the function will be quiet. Max level of verbosity:
+        2.
 
     Returns
     -------
@@ -605,6 +608,9 @@ def generate_all_clusterings(
                 model_kw[model_class_kw["k_arg_name"]] = n_clusters
 
                 # ---------- Fit & predict using clustering model-------
+                t_start = time.time()
+
+                # print('Code executed in %.2f s' %(t_end - t_start))
                 try :
                     clusters = _generate_clustering(
                         model_class,
@@ -612,9 +618,16 @@ def generate_all_clusterings(
                         fit_predict_kw = fit_predict_kw,
                     )
                 except EmptyClusterError as e:
-                    if not quiet:
+                    if verbose >= 1:
                         print(str(e))
                     clusters = None
+                t_end = time.time()
+                if verbose >= 2:
+                    dt = t_end - t_start
+                    msg = (
+                        f"Clustering with {n_clusters} clusters generated in:"+ f"{dt:.2f}s"
+                    )
+                    print(msg, flush=True)
 
                 clusterings_t_k[t_w][n_clusters] = clusters
     # If no sliding window was used, return a Dict, else a List[Dict]
