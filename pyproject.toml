@@ -16,7 +16,7 @@ repository = "https://github.com/nglm/pycvi"
 python = ">=3.8,<3.12"
 aeon = [
     {version = ">=0.7.0", python = ">=3.8,<3.9"},
-    {version = ">=0.10.0", python = ">=3.9,<3.12"},
+    {version = ">=0.10.0, <0.11", python = ">=3.9,<3.12"},
 ]
 
 # Extra dependencies for "examples" scripts
