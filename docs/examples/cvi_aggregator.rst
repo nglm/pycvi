@@ -14,7 +14,7 @@ This example showcases 2 successful clusterings and clustering selections.
 .. literalinclude:: ../../examples/cvi_aggregator/cvi_aggregator.py
    :lines: 7-152
 
-.. image:: ../../examples/cvi_aggregator/Barton_data_KMeans-specific_cvis.png
+.. image:: ../../examples/cvi_aggregator/Barton_data_KMedoids-specific_cvis.png
 
 .. image:: ../../examples/cvi_aggregator/Barton_data_AgglomerativeClustering_Single-all_cvis.png
 
