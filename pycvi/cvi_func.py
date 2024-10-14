@@ -213,6 +213,7 @@ def gap_statistic(
     k: int = None,
     B: int = 10,
     zero_type: str = "variance",
+    rng = np.random.default_rng(611),
     return_s: bool = False,
 ) -> Union[float, Tuple[float, float]]:
     """
@@ -236,6 +237,9 @@ def gap_statistic(
         has the same bounds as the original data.
 
     :type zero_type: str, optional
+    :param rng: The numpy random generator to use to sample from the
+      uniform distribution, by default np.random.default_rng(611)
+    :type rng: A numpy Random Generator, optional
     :param return_s: Should s be returned as well?
     :type return_s: bool, optional
     :return: The gap statistics
@@ -249,7 +253,8 @@ def gap_statistic(
 
         # Generate B random datasets with the same shape as the input data
         # and the same parameters
-        random_datasets = generate_uniform(X, zero_type=zero_type, N_zero=B)
+        random_datasets = generate_uniform(
+            X, zero_type=zero_type, N_zero=B, rng=rng)
 
         # Compute the log of the within-cluster dispersion for each random dataset
         wcss_rand = []
@@ -327,6 +332,7 @@ def hartigan(
     k:int = None,
     clusters_next: List[List[int]] = None,
     X1: np.ndarray = None,
+    rng = np.random.default_rng(611),
 ) -> float:
     """
     Compute the Hartigan index for a given clustering.
@@ -343,6 +349,9 @@ def hartigan(
         then the values of all datapoints when sampled from a uniform
         distribution.
     :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param rng: The numpy random generator to use to sample from the
+        uniform distribution, by default np.random.default_rng(611)
+    :type rng: A numpy Random Generator, optional
     :return: The Hartigan index
     :rtype: float
     """
@@ -359,7 +368,7 @@ def hartigan(
     elif k == 0:
         # X0 shape: (N, d*w_t) or (N, w_t, d)
         if X1 is None:
-            l_X0 = generate_uniform(X, zero_type="bounds", N_zero=1)
+            l_X0 = generate_uniform(X, zero_type="bounds", N_zero=1, rng=rng)
             X1 = X
         else:
             l_X0 = [X]
@@ -442,6 +451,7 @@ def CH(
     k: int = None,
     X1: np.ndarray = None,
     zero_type: str = "variance",
+    rng = np.random.default_rng(611),
     dist_kwargs: dict = {},
 ) -> float:
     """
@@ -467,6 +477,9 @@ def CH(
         has the same bounds as the original data.
 
     :type zero_type: str, optional
+    :param rng: The numpy random generator to use to sample from the
+        uniform distribution, by default np.random.default_rng(611)
+    :type rng: A numpy Random Generator, optional
     :param dist_kwargs: kwargs for the distance function, defaults to {}
     :type dist_kwargs: dict, optional
     :return: The CH index
@@ -484,7 +497,7 @@ def CH(
 
         # X0 shape: (N, d*w_t) or (N, w_t, d)
         if X1 is None:
-            X0 = generate_uniform(X, zero_type=zero_type, N_zero=1)[0]
+            X0 = generate_uniform(X, zero_type=zero_type, N_zero=1, rng=rng)[0]
             X1 = X
         else:
             X0 = X

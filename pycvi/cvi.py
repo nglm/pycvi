@@ -114,6 +114,9 @@ class CVI():
         example used in the Hartigan index where we don't use
         :math:`k=0` as a reference score if :math:`k=0` is more
         relevant than :math:`k=1`, by default False
+    rng : A numpy Random Generator, optional
+        The numpy random generator to use when sampling from random
+        distributions, by default np.random.default_rng(611)
 
     Raises
     ------
@@ -134,6 +137,7 @@ class CVI():
         criterion_function: callable = None,
         k_condition: callable = None,
         ignore0: bool = False,
+        rng = np.random.default_rng(611),
     ) -> None:
         self.function = cvi_function
         self.criterion_function = criterion_function
@@ -150,6 +154,7 @@ class CVI():
         self.ignore0 = ignore0
         self.N = None
         self.d = None
+        self.rng = rng
 
     def __call__(
         self,
@@ -895,6 +900,7 @@ class Hartigan(CVI):
         """
         cvi_kw = {}
         cvi_kw["k"] = n_clusters
+        cvi_kw["rng"] = self.rng
         if n_clusters < len(X_clus):
             cvi_kw["clusters_next"] = clusterings_t.get(n_clusters+1, None)
         if n_clusters == 0:
@@ -996,6 +1002,7 @@ class CalinskiHarabasz(CVI):
         """
         cvi_kw = {}
         cvi_kw["k"] = n_clusters
+        cvi_kw["rng"] = self.rng
         if n_clusters == 0:
             cvi_kw["X1"] = X_clus
         if "zero_type" not in cvi_kw or cvi_kw["zero_type"] == None:
@@ -1127,6 +1134,7 @@ class GapStatistic(CVI):
         """
         cvi_kw = {"B" : 10}
         cvi_kw["k"] = n_clusters
+        cvi_kw["rng"] = self.rng
         if self.cvi_type == "original":
             cvi_kw["return_s"] = True
         cvi_kw.update(cvi_kwargs)

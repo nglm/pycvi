@@ -368,6 +368,7 @@ def compute_all_scores(
     time_window: int = None,
     N_zero: int = 10,
     zero_type: str = "bounds",
+    rng = np.random.default_rng(611),
     cvi_kwargs: dict = {},
     return_list: bool = False,
 ) -> Union[List[List[Dict[int, float]]], List[Dict[int, float]], Dict[int, float]]:
@@ -426,6 +427,9 @@ def compute_all_scores(
           has the same variance and mean as the original data.
         - `"bounds"`: the uniform distribution is defined such that it
           has the same bounds as the original data.
+    rng : A numpy Random Generator, optional
+        The numpy random generator to use to sample from the uniform
+        distribution, by default np.random.default_rng(611)
     cvi_kwargs : dict, optional
         Specific kwargs to give to the CVI, by default {}
     return_list: bool, optional
@@ -455,7 +459,9 @@ def compute_all_scores(
     # --------------------------------------------------------------
 
     data_copy = set_data_shape(data)
-    l_data0 = generate_uniform(data_copy, zero_type=zero_type, N_zero=N_zero)
+    l_data0 = generate_uniform(
+        data_copy, zero_type=zero_type, N_zero=N_zero, rng=rng
+    )
     (N, T, d) = data_copy.shape
     if scaler is not None:
         scaler.fit(data_copy.reshape(N*T, d))

@@ -81,6 +81,7 @@ def generate_uniform(
     data: np.ndarray,
     zero_type: str = "bounds",
     N_zero: int = 10,
+    rng = np.random.default_rng(611),
 ) -> List[np.ndarray]:
     """
     Generate `N_zero` samples from a uniform distribution based on data.
@@ -104,6 +105,9 @@ def generate_uniform(
 
     N_zero : int, optional
         Number of uniform distributions sampled, by default 10
+    rng : A numpy Random Generator, optional
+        The numpy random generator to use to sample from the uniform
+        distribution, by default np.random.default_rng(611)
 
     Returns
     -------
@@ -135,7 +139,7 @@ def generate_uniform(
     # Generate N_zero samples from a uniform distribution with shape
     # the same shape as data
     l_data0 = [
-        np.random.uniform(low=mins, high=maxs, size=data.shape)
+        rng.uniform(low=mins, high=maxs, size=data.shape)
         for _ in range(N_zero)
     ]
     return l_data0
