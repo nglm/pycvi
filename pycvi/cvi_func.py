@@ -974,7 +974,7 @@ def davies_bouldin(
     :type clusters: List[List[int]]
     :param dist_kwargs: kwargs for the distance function, defaults to {}
     :type dist_kwargs: dict, optional
-    :return: TheDavies-Bouldin (DB) index
+    :return: The Davies-Bouldin (DB) index
     :rtype: float
     """
     k = len(clusters)
@@ -1001,15 +1001,28 @@ def davies_bouldin(
         X, clusters, all=True, dist_kwargs=dist_kwargs
     )
 
-    DB_aux = [
-        np.amax([
+    # Compute R_ijs even when i=j
+    R_ijs = [
+        [
             (S_is[i] + S_is[j]) / dist_between_centroids[i][j]
             if dist_between_centroids[i][j] != 0 else np.inf
             for j in range(k)
-        ]) for i in range(k)
+        ] for i in range(k)
     ]
 
-    DB = (1/k) * np.sum(DB_aux)
+    # Remove the case i == j as described in the paper
+    R_ijs = [
+        [
+            R_ijs[i][j] for j in range(k) if i != j
+        ] for i in range(k)
+    ]
+
+    # Compute R_is = max_j of R_ijs when i != j
+    R_is = [
+        np.amax(R_ijs) for i in range(k)
+    ]
+
+    DB = (1/k) * np.sum(R_is)
     DB = float(DB)
 
     return DB
