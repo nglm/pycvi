@@ -10,7 +10,7 @@ The main functions of this module are:
 - :func:`pycvi.cluster.get_clustering`, that converts an array of predicted label for each datapoint (sklearn type of clustering encoding) to a list of datapoints for each cluster (PyCVI type of clustering encoding)
 
 """
-
+import inspect
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from aeon.clustering.averaging._barycenter_averaging import (
@@ -65,7 +65,25 @@ def compute_center(
         if dims[0] == 1:
             center = cluster[0]
         else:
-            center = elastic_barycenter_average(np.swapaxes(cluster, 1, 2))
+
+            # Check args of elastic_barycenter_average
+            f_args = inspect.getfullargspec(elastic_barycenter_average)
+
+            # aeon version >  0.8.1 (#1339)
+            if (
+                "init_barycenter" in f_args[0] and "method" in f_args[0]
+                and "distance" in f_args[0]
+            ):
+                center = elastic_barycenter_average(
+                    np.swapaxes(cluster, 1, 2),
+                    distance="dtw",
+                    init_barycenter="medoids",
+                    method="petitjean"
+                    )
+            # aeon version <= 0.8.1
+            else:
+                center = elastic_barycenter_average(np.swapaxes(cluster, 1, 2))
+
             center = np.swapaxes(center, 0, 1)
 
     else:
