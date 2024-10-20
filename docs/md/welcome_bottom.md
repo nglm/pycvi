@@ -9,7 +9,7 @@ If you are having issues, [please let me know](https://www.uib.no/en/persons/Nat
 
 ## How to cite PyCVI
 
-If you are using PyCVI in your work, please cite us using one of the following entries:
+If you are using PyCVI in your work, please cite us by using one of the following entries referring to the JOSS paper *PyCVI: A Python package for internal Cluster Validity Indices, compatible with time-series data* by N. Galmiche:
 
 **BibTeX**:
 
