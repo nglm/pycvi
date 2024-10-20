@@ -88,6 +88,33 @@ If you are having issues, [please let me know](https://www.uib.no/en/persons/Nat
 
 The project is licensed under the MIT license.
 
+## How to cite PyCVI
+
+If you are using PyCVI in your work, please cite us using one of the following entries:
+
+**BibTeX**:
+
+```tex
+@article{Galmiche2024,
+    author = {Natacha Galmiche},
+    title = {PyCVI: A Python package for internal Cluster Validity Indices, compatible with time-series data},
+    doi = {10.21105/joss.06841},
+    url = {https://doi.org/10.21105/joss.06841},
+    year = {2024},
+    publisher = {The Open Journal},
+    volume = {9},
+    number = {102},
+    pages = {6841},
+    journal = {Journal of Open Source Software}
+}
+```
+
+**Plain text**:
+
+```text
+Galmiche, N., (2024). PyCVI: A Python package for internal Cluster Validity Indices, compatible with time-series data. Journal of Open Source Software, 9(102), 6841, https://doi.org/10.21105/joss.06841
+```
+
 [^DTW]: Donald J. Berndt and James Clifford. Using dynamic time warping to find patterns in time series. In Proceedings of the 3rd International Conference on Knowledge Discovery and Data Mining, AAAIWS’94, page 359–370. AAAI Press, 1994
 [^DBA]:  F. Petitjean, A. Ketterlin, and P. Gan carski, “A global averaging method for dynamic time warping, with applications to clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar. 2011.
 [^Hart]: D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
