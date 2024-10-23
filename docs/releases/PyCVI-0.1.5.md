@@ -1,8 +1,6 @@
 # PyCVI 0.1.5 release notes
 
-YYYY/MM/DD
-
-_summary-XXX_
+2024/10/23
 
 ## Python versions
 
@@ -19,6 +17,11 @@ This version supports Python versions 3.8 to 3.11.
 ## Fixes
 
 - Fix Davies-Bouldin in order to ignore comparing the distance between a centroid to itself when computing the index.
+
+## Documentation
+
+- Added "how to cite" section
+- Fixed truncated examples
 
 ## Contributors
 
