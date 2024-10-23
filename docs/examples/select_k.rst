@@ -10,7 +10,7 @@ Here we assume that we are in real conditions, which means that we don't have ac
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/select_k/select_k.py
-   :lines: 7-220
+   :lines: 7-224
 
 .. image:: ../../examples/select_k/Barton_data_KMeans-histogram.png
 

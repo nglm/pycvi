@@ -8,7 +8,7 @@ In this example, we use time-series data and non-time-series data. In addition w
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/full_example/full_example.py
-   :lines: 7-222
+   :lines: 7-225
 
 .. image:: ../../examples/full_example/Barton_data_KMeans.png
 
