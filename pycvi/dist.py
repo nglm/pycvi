@@ -9,6 +9,7 @@ from aeon.distances import dtw_distance, dtw_pairwise_distance
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._utils import _match_dims
 from .exceptions import ShapeError
+from ._configuration import default_dtw_kwargs
 
 def reduce(
     dist: np.ndarray,
@@ -62,9 +63,12 @@ def f_pdist(
     cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW is used.
         A cluster of `N` datapoints.
     dist_kwargs : dict, optional
-        kwargs for
-        `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
+        kwargs for `scipy.spatial.distance.pdist
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
         , by default {}.
+        or for `aeon.distances.dtw_pairwise_distance
+        <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_,
+        by default uses `{"window" : 0.2}`.
 
     Returns
     -------
@@ -86,11 +90,12 @@ def f_pdist(
         # Option 1: Pairwise distances on the entire window using DTW
         (N_c, w_t, d) = cluster.shape
 
+        dist_kwargs_dtw = default_dtw_kwargs(dist_kwargs)
+
         dist_square = dtw_pairwise_distance(
             np.swapaxes(cluster, 1, 2),
             None,
-            # itakura_max_slope=0.1,
-            window=0.2,
+            **dist_kwargs_dtw,
         )
         # and condense this matrix using squareform
         # squareform gives a square if condensed is given but gives an

@@ -90,3 +90,22 @@ def get_model_parameters(
     ft_kw.update(fit_predict_kw)
     mc_kw.update(model_class_kw)
     return m_kw, ft_kw, mc_kw
+
+def default_dtw_kwargs(
+        dtw_kwargs: dict = {},
+) -> dict:
+    """
+    Returns default DTW kwargs for PyCVI functions
+
+    Returns
+    -------
+    dict
+        Default DTW kwargs
+    """
+    final_dtw_kwargs = {
+        "window" : 0.2,
+    }
+
+    final_dtw_kwargs.update(dtw_kwargs)
+
+    return final_dtw_kwargs
