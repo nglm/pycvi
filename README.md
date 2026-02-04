@@ -40,7 +40,7 @@ PyCVI relies on [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [s
 # From PyPI
 uv pip add pycvi-lib
 # Alternatively, from github directly
-uv pip add git+https://github.com/nglm/pycvi.git
+uv add "pycvi-lib @ git+https://github.com/nglm/pycvi.git"
 ```
 
 ### With poetry:
