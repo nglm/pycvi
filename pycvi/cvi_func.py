@@ -121,7 +121,7 @@ def _dist_between_centroids(
     clusters: List[List[int]],
     all: bool = False,
     dist_kwargs: dict = {},
-) -> Union[List[float], List[float]]:
+) -> Union[List[float], List[List[float]]]:
     """
     Helper function for some CVIs.
 
@@ -140,7 +140,7 @@ def _dist_between_centroids(
     :param dist_kwargs: kwargs for the distance function, defaults to {}
     :type dist_kwargs: dict, optional
     :return: List of pairwise distances between cluster centroids.
-    :rtype: Union[List[float], List[float]]
+    :rtype: Union[List[float], List[List[float]]]
     """
     if len(clusters) == 1:
         if all:
@@ -359,9 +359,12 @@ def score_function(
     X : np.ndarray,
     clusters: List[List[int]],
     k: int =None,
+    dist_kwargs: dict = {},
 ) -> float:
     """
     Compute the score function for a given clustering.
+
+    We use the square distance version of the score function.
 
     :param X: Dataset
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
