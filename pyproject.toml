@@ -1,5 +1,80 @@
-[tool.poetry]
+[project]
 name = "pycvi-lib"
+version = "0.1.5"
+description = "Internal Cluster Validity Indices in python, compatible with time-series data"
+readme = "README.md"
+authors = [
+    {name = "Natacha Galmiche", email = "natacha.galmiche@uib.no"}
+]
+license = "MIT"
+license-files = ["LICENSE.txt"]
+keywords = ["clustering", "time-series", "internal cluster validity indices", "CVI", "machine learning"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+# aeon doesn't support python >=3.13 yet
+requires-python = ">= 3.9,<3.13"
+
+dependencies = [
+    "aeon>=1.1.0 ; python_version == '3.9'",
+    "aeon>=1.3.0 ; python_version >= '3.10'",
+]
+
+[project.urls]
+Homepage = "https://pycvi.readthedocs.io/en/latest/"
+Documentation = "https://pycvi.readthedocs.io/en/latest/"
+Repository = "https://github.com/nglm/pycvi"
+
+[project.optional-dependencies]
+examples = [
+    "matplotlib>=3.9.4",
+    "scikit-learn-extra>=0.3.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2 ; python_version == '3.9'",
+    "pytest>=9.0.2 ; python_version >= '3.10'",
+]
+
+# -------------------------------------------------------
+#  ------------------ UV configuration ------------------
+# -------------------------------------------------------
+
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "pycvi"
+module-root = ""
+
+# -------------------------------------------------------
+#  ---------------- Poetry configuration ----------------
+# -------------------------------------------------------
+
+[tool.poetry]
+
+# Name on PyPI (pycvi was already taken)
+name = "pycvi-lib"
+# Package name to be imported
 packages = [
     {include = "pycvi"}
 ]
@@ -13,27 +88,31 @@ repository = "https://github.com/nglm/pycvi"
 [tool.poetry.dependencies]
 
 # Core dependencies
-python = ">=3.8,<3.12"
+python = ">= 3.9,<3.13"
 aeon = [
-    {version = ">=0.7.0", python = ">=3.8,<3.9"},
-    {version = ">=0.10.0", python = ">=3.9,<3.12"},
+    {version = ">=1.1.0", python = ">=3.9,<3.10"},
+    {version = ">=1.3.0", python = ">=3.10"},
 ]
 
 # Extra dependencies for "examples" scripts
-scikit-learn-extra = {version = "^0.3.0", python = ">=3.8,<3.12", optional = true}
-matplotlib = [
-    {version = "~3.7", python = ">=3.8,<3.9", optional = true},
-    {version = ">=3.8", python = ">=3.9,<3.12", optional = true}
-]
+scikit-learn-extra = {version = ">=0.3.0", optional = true}
+matplotlib = {version = ">=3.9.4", optional = true}
 
 # Dev dependencies for testing
 [tool.poetry.group.dev.dependencies]
-pytest = {version = ">=7.4.0", python = ">=3.8,<3.12"}
+pytest = [
+    {version = ">=8.4.2", python = "==3.9"},
+    {version = ">=9.0.2", python = ">=3.10"},]
 
 
 [tool.poetry.extras]
 examples = ["matplotlib", "scikit-learn-extra"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+# Now using uv as build backend, see [build-system] section above
+#
+# [build-system]
+# requires = ["poetry-core"]
+# build-backend = "poetry.core.masonry.api"
+
+
+
