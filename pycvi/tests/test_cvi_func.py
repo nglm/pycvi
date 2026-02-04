@@ -4,7 +4,7 @@ import pytest
 
 from ..cvi_func import (
     _compute_Wk, _clusters_from_uniform, _dist_centroids_to_global,
-    _dist_between_centroids, _var
+    _dist_between_centroids, _dist_to_centroids, _sum_sum_dist_to_centroids, _var
 )
 from .._utils import _load_data_from_github
 from ..datasets._mini import mini, normal, get_clusterings
@@ -119,6 +119,51 @@ def test__dist_between_centroids():
                     assert len(dist_all) == k
                     assert len(dist_all[0]) == k
                     assert isclose(2*np.sum(dist), np.sum(dist_all))
+
+def test__dist_to_centroids():
+    N = 30
+    C = get_clusterings(N)
+    l_w = [1, 2, 3, 5]
+    l_d = [1, 2]
+    l_DTW = [True, False]
+    l_squared = [True, False]
+    for w_t in l_w:
+        for d in l_d:
+            for DTW in l_DTW:
+                for squared in l_squared:
+                    X = get_X(N, d, w_t, DTW)
+                    for clusters in C.values():
+
+                        k = len(clusters)
+
+                        dist = _dist_to_centroids(X, clusters, squared=squared)
+                        assert type(dist) == list
+                        assert type(dist[0]) == np.ndarray
+                        assert np.shape(dist[0]) == (len(clusters[0]), 1)
+
+                        assert type(float(dist[0][0])) == float
+                        assert len(dist) == k
+
+
+
+def test__sum_sum_dist_to_centroids():
+    N = 30
+    C = get_clusterings(N)
+    l_w = [1, 2, 3, 5]
+    l_d = [1, 2]
+    l_DTW = [True, False]
+    l_squared = [True, False]
+    for w_t in l_w:
+        for d in l_d:
+            for DTW in l_DTW:
+                for squared in l_squared:
+                    X = get_X(N, d, w_t, DTW)
+                    for clusters in C.values():
+
+                        res = _sum_sum_dist_to_centroids(X, clusters, squared=squared)
+                        assert type(res) == float
+                        assert res >= 0
+
 
 def test__var():
     N = 30

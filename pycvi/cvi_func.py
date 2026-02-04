@@ -183,20 +183,23 @@ def _dist_between_centroids(
 def _dist_to_centroids(
     X: np.ndarray,
     clusters: List[List[int]],
+    squared: bool = False,
     dist_kwargs: dict = {},
 ) -> List[np.ndarray]:
     """
     Helper function for some CVIs.
 
-    List of distances arrays to cluster centroid.
+    List of distances arrays of shape (N_c, 1) to cluster centroid.
 
     :param X: Dataset
     :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
     :param clusters: List of datapoint indices for each cluster.
     :type clusters: List[List[int]]
+    :param squared: Whether to return squared distances or not.
+    :type squared: bool, optional
     :param dist_kwargs: kwargs for the distance function, defaults to {}
     :type dist_kwargs: dict, optional
-    :return: List of pairwise distances between cluster centroids.
+    :return: List of pairwise distances (shape (N_c, 1)) between cluster centroids.
     :rtype: List[np.ndarray]
     """
 
@@ -205,7 +208,71 @@ def _dist_to_centroids(
         f_cdist(X[cluster], center, dist_kwargs=dist_kwargs)
         for cluster, center in zip(clusters, centers)
     ]
+
+    if squared:
+        dist = [np.square(d) for d in dist]
+
     return dist
+
+def _sum_dist_to_centroids(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    squared: bool = False,
+    dist_kwargs = {},
+) -> List[float]:
+    """
+    Helper function for multiple CVIs
+
+    Computing the list of sum of (squared?) distances to centroids.
+
+    :param X: Dataset
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of datapoint indices for each cluster.
+    :type clusters: List[List[int]]
+    :param squared: Whether to use squared distances or not.
+    :type squared: bool, optional
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The list of sum of (squared?) distances to centroids
+    :rtype: List[float]
+    """
+
+    res = [
+        np.sum(dist) for dist in _dist_to_centroids(
+            X, clusters, squared=squared, dist_kwargs=dist_kwargs
+        )
+    ]
+
+    return res
+
+def _sum_sum_dist_to_centroids(
+    X : np.ndarray,
+    clusters: List[List[int]],
+    squared: bool = False,
+    dist_kwargs = {},
+) -> float:
+    """
+    Helper function for multiple CVIs
+
+    Computing the sum of sum of (squared?) distances to centroids.
+
+    :param X: Dataset
+    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
+    :param clusters: List of datapoint indices for each cluster.
+    :type clusters: List[List[int]]
+    :param squared: Whether to use squared distances or not.
+    :type squared: bool, optional
+    :param dist_kwargs: kwargs for the distance function, defaults to {}
+    :type dist_kwargs: dict, optional
+    :return: The sum of sum of (squared?) distances to centroids
+    :rtype: float
+    """
+
+    res = float(np.sum( _sum_dist_to_centroids(
+        X, clusters, squared=squared, dist_kwargs=dist_kwargs
+    )))
+
+    return res
 
 def gap_statistic(
     X : np.ndarray,
