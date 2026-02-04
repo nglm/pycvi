@@ -34,6 +34,15 @@ Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [sci
 
 PyCVI relies on [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html) to compute DTW and DBA for time-series data. As of now (February 2026), aeon only supports Python up to version 3.12. Therefore, PyCVI also only supports Python up to version 3.12.
 
+### With uv:
+
+```bash
+# From PyPI
+uv pip add pycvi-lib
+# Alternatively, from github directly
+uv pip add git+https://github.com/nglm/pycvi.git
+```
+
 ### With poetry:
 
 ```bash
