@@ -76,10 +76,13 @@ def _compute_Wk(
         (WCSS)
     :rtype: float
     """
-    dist_kwargs.setdefault("metric", "sqeuclidean")
     # Compute the log of the within-cluster dispersion of the clustering
     nis = [len(c) for c in clusters]
-    d_intra = [np.sum(f_pdist(X[c], dist_kwargs)) for c in clusters]
+
+    d_intra = [
+        # Sum of squared pairwise distances within cluster c
+        np.sum(np.square(f_pdist(X[c], dist_kwargs))) for c in clusters
+    ]
     Wk = float(np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)]))
     return Wk
 
@@ -377,19 +380,24 @@ def score_function(
     """
     N = len(X)
     k = len(clusters)
-    dist_kwargs = {"metric" : 'sqeuclidean'}
 
     nis = [len(c) for c in clusters]
 
-    bdc = 1/(N*k) * np.sum(
-        np.multiply(nis, _dist_centroids_to_global(
-            X, clusters, dist_kwargs=dist_kwargs))
+    # List[float]: squared distances between centroids and global centroid
+    sq_dist_centroids_to_global = np.square(
+        _dist_centroids_to_global(X, clusters, dist_kwargs=dist_kwargs)
     )
 
-    dist_kwargs = {"metric" : 'euclidean'}
+    bdc = 1/(N*k) * np.sum( np.multiply(nis, sq_dist_centroids_to_global) )
+
+
+    # List[float]: sum of squared distances to centroids
+    sum_sq_dist_to_centroids = _sum_dist_to_centroids(
+        X, clusters, squared=True, dist_kwargs=dist_kwargs
+    )
+
     wdc = np.sum([
-        f_inertia(X[c], dist_kwargs=dist_kwargs) / len(c)
-        for c in clusters
+        d / ni for (d, ni) in zip(sum_sq_dist_to_centroids, nis)
     ])
 
     sf = float(1 - (1 / (np.exp(np.exp(bdc - wdc)))))
@@ -556,7 +564,6 @@ def CH(
     :rtype: float
     """
     N = len(X)
-    dist_kwargs.setdefault("metric", "sqeuclidean")
 
     # If we forget about the (N-k) / (k-1) factor, CH is defined and
     # is equal to 0
@@ -583,18 +590,18 @@ def CH(
         # The numerator can be seen as the distance between the global
         # centroid and N singletons uniformly distributed
         # Which can be seen as d(C0, c)
-        sep = np.sum(
+        sep = np.sum(np.square(
             f_cdist(X0, np.expand_dims(compute_center(X1), 0), dist_kwargs)
-        )
+        ))
 
         # The denominator can be seen as the distance between the
         # original data and its centroid, which would correspond to the
         # denominator or the case k=1 (which is not used because CH(1) =
         # 0)
         # Note that the list has actually only one element
-        comp = np.sum([
-            f_inertia(X1[c], dist_kwargs) for c in clusters
-        ])
+        comp = _sum_sum_dist_to_centroids(
+            X1, clusters, squared=True, dist_kwargs=dist_kwargs
+        )
 
         if comp == 0:
             CH = -np.inf
@@ -605,11 +612,19 @@ def CH(
     # Normal case
     else:
         nis = [len(c) for c in clusters]
-        sep = np.sum(
-            np.multiply(nis, _dist_centroids_to_global(X, clusters, dist_kwargs))
+
+        # List[float]: squared distances between centroids and global centroid
+        sq_dist_centroids_to_global = np.square(
+            _dist_centroids_to_global(X, clusters, dist_kwargs=dist_kwargs)
         )
 
-        comp = np.sum([ f_inertia(X[c], dist_kwargs) for c in clusters ])
+        sep = np.sum(
+            np.multiply(nis, sq_dist_centroids_to_global)
+        )
+
+        comp = _sum_sum_dist_to_centroids(
+            X, clusters, squared=True, dist_kwargs=dist_kwargs
+        )
 
         if comp == 0:
             CH = np.inf
@@ -647,9 +662,12 @@ def MB(
         I = 0.
     else:
 
-        dist_kwargs.setdefault("metric", "euclidean")
-        E1 = _compute_Wk(X, [np.arange(N)], dist_kwargs=dist_kwargs)
-        Ek = _compute_Wk(X, clusters, dist_kwargs=dist_kwargs)
+        E1 = _sum_sum_dist_to_centroids(
+            X, [np.arange(N)], dist_kwargs=dist_kwargs
+        )
+        Ek = _sum_sum_dist_to_centroids(
+            X, clusters, dist_kwargs=dist_kwargs
+        )
 
         Dk = np.amax(
             _dist_between_centroids(
@@ -683,18 +701,21 @@ def _var(
     :return: "Var" vector of the SD index.
     :rtype: np.ndarray, shape: (d)
     """
-    dist_kwargs.setdefault("metric", "sqeuclidean")
     center = np.expand_dims(compute_center(X), 0)
     if len(X.shape) == 2:
         Var = [
             # shape is then (N, 1*w_t) or (N, w_t, 1)
-            np.mean(f_cdist(X[:, d:d+1], center[:, d:d+1], dist_kwargs))
+            np.mean(np.square(
+                f_cdist(X[:, d:d+1], center[:, d:d+1], dist_kwargs)
+            ))
             for d in range(X.shape[-1])
         ]
     elif len(X.shape) == 3:
         Var = [
             # shape is then (N, 1*w_t) or (N, w_t, 1)
-            np.mean(f_cdist(X[:, :, d:d+1], center[:, :, d:d+1], dist_kwargs))
+            np.mean(np.square(
+                f_cdist(X[:, :, d:d+1], center[:, :, d:d+1], dist_kwargs)
+            ))
             for d in range(X.shape[-1])
         ]
     return np.array(Var)
@@ -978,22 +999,27 @@ def xie_beni(
         XB = np.inf
     else:
 
-        dist_kwargs.setdefault("metric", "sqeuclidean")
-        dist_between_centroids = _dist_between_centroids(
-            X, clusters, dist_kwargs=dist_kwargs,
-        )
-
-        dist_to_centroids = [
-            np.sum(d)
-            for d in _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
+        # _dist_between_centroids gives a list of floats
+        # sq_dist_between_centroids is then a list floats as well
+        sq_dist_between_centroids = [
+            d**2 for d in _dist_between_centroids(
+                X, clusters, dist_kwargs=dist_kwargs,
+            )
         ]
 
-        denominator = np.amin(dist_between_centroids)
+        # float: sum of sum of squared distances to centroids
+        sq_dist_to_centroids = _sum_sum_dist_to_centroids(
+            X, clusters, squared=True, dist_kwargs=dist_kwargs
+        )
 
+        denominator = np.amin(sq_dist_between_centroids)
+
+        # Typically if there are identical centroids denominator is 0
+        # then give the worst possible score
         if denominator == 0:
             XB = np.inf
         else:
-            XB = (1/N) * (np.sum(dist_to_centroids) / denominator)
+            XB = (1/N) * (sq_dist_to_centroids / denominator)
 
     XB = float(XB)
     return XB
@@ -1022,22 +1048,27 @@ def xie_beni_star(
         XB = np.inf
     else:
 
-        dist_kwargs.setdefault("metric", "sqeuclidean")
-        dist_between_centroids = _dist_between_centroids(
-            X, clusters, dist_kwargs=dist_kwargs,
-        )
-
-        dist_to_centroids = [
-            np.mean(d)
-            for d in _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
+        # List[float]: list of distances to centroids
+        dist_between_centroids = [
+            d ** 2 for d in _dist_between_centroids(
+                X, clusters, dist_kwargs=dist_kwargs,
+            )
         ]
+
+
+        numerator = np.amax([
+            # _dist_to_centroids gives a list of (N_C, 1) arrays
+            np.mean(d) for d in _dist_to_centroids(
+                X, clusters, squared=True, dist_kwargs=dist_kwargs
+            )
+        ])
 
         denominator = np.amin(dist_between_centroids)
 
         if denominator == 0:
             XB = np.inf
         else:
-            XB = np.amax(dist_to_centroids) / denominator
+            XB = numerator / denominator
 
     XB = float(XB)
     return XB
@@ -1063,11 +1094,13 @@ def davies_bouldin(
     k = len(clusters)
 
     dist_kwargs_Sis = dist_kwargs.copy()
-    dist_kwargs_Sis.setdefault("metric", "minkowski")
-    dist_kwargs_Sis.setdefault("p", 1)
+
+    if len(np.shape(X)) == 2:
+        dist_kwargs_Sis.setdefault("metric", "minkowski")
+        dist_kwargs_Sis.setdefault("p", p)
 
     dist_to_centroids = _dist_to_centroids(
-        X, clusters, dist_kwargs=dist_kwargs
+        X, clusters, dist_kwargs=dist_kwargs_Sis
     )
 
     nis = [len(c) for c in clusters]
@@ -1077,11 +1110,13 @@ def davies_bouldin(
     ]
 
     dist_kwargs_btw_centroids = dist_kwargs.copy()
-    dist_kwargs_btw_centroids.setdefault("metric", "minkowski")
-    dist_kwargs_btw_centroids.setdefault("p", p)
+
+    if len(np.shape(X)) == 2:
+        dist_kwargs_btw_centroids.setdefault("metric", "minkowski")
+        dist_kwargs_btw_centroids.setdefault("p", p)
 
     dist_between_centroids = _dist_between_centroids(
-        X, clusters, all=True, dist_kwargs=dist_kwargs
+        X, clusters, all=True, dist_kwargs=dist_kwargs_btw_centroids
     )
 
     # Compute R_ijs even when i=j
