@@ -1,8 +1,7 @@
-"""
-Functional API of all implemented CVIs.
+"""Functional API for all implemented CVIs.
 
-These functions are the one on which the CVI classes defined in
-:mod:`pycvi.cvi` are based.
+These functions are the functional counterparts of the CVI classes in
+:mod:`pycvi.cvi`.
 """
 
 from typing import List, Sequence, Union, Any, Dict, Tuple
@@ -23,15 +22,27 @@ def _clusters_from_uniform(
     X,
     n_clusters,
 ) -> List[List[int]]:
-    """
-    Helper function for "compute_gap_statistic"
+    """Cluster a uniform sample with k-means.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param n_clusters: Number of clusters.
-    :type n_clusters: int, optional
-    :return:
-    :rtype: List[List[int]]
+    This helper is used by the gap statistic to cluster random datasets
+    drawn from a uniform distribution.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    n_clusters : int
+        Number of clusters.
+
+    Returns
+    -------
+    list[list[int]]
+        Cluster memberships as indices per cluster.
+
+    Raises
+    ------
+    ShapeError
+        If `X` does not have shape (N, T, d) or (N, T*d).
     """
     N = len(X)
 
@@ -56,25 +67,24 @@ def _compute_Wk(
     clusters: List[List[int]],
     dist_kwargs: dict = {},
 ) -> float:
-    """
-    Helper function for some CVIs (gap, hartigan, CH, etc.)
+    """Compute pooled within-cluster sum of squares (WCSS).
 
-    X is the entire data to be clustered and clusters contains the
-    cluster memberships. X can be of shape (N, T, d) or (N, T*d)
+    `X` is the full dataset and `clusters` contains cluster memberships.
+    The WCSS is computed from pairwise distances to avoid barycenters.
 
-    Pooled within-cluster sum of squares around the cluster means (WCSS)
-    There are two ways to compute it, using distance to centroid or
-    pairwise, we use pairwise, to avoid using barycenters.
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: Pooled within-cluster sum of squares around cluster means
-        (WCSS)
-    :rtype: float
+    Returns
+    -------
+    float
+        Pooled within-cluster sum of squares around cluster means.
     """
     # Compute the log of the within-cluster dispersion of the clustering
     nis = [len(c) for c in clusters]
@@ -91,20 +101,21 @@ def _dist_centroids_to_global(
     clusters: List[List[int]],
     dist_kwargs: dict = {},
 ) -> List[float]:
-    """
-    Helper function for some CVIs (CH, score function, etc.)
+    """Compute distances between cluster centroids and the global centroid.
 
-    List of distances between cluster centroids and global centroid.
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: List of distances between cluster centroids and global
-        centroid.
-    :rtype: List[float]
+    Returns
+    -------
+    list[float]
+        Distances from each cluster centroid to the global centroid.
     """
     global_center = np.expand_dims(compute_center(X), 0)
     centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
@@ -125,25 +136,27 @@ def _dist_between_centroids(
     all: bool = False,
     dist_kwargs: dict = {},
 ) -> Union[List[float], List[List[float]]]:
-    """
-    Helper function for some CVIs.
+    """Compute pairwise distances between cluster centroids.
 
-    List of pairwise distances between cluster centroids.
+    If there is only one cluster, returns ``[0]`` (or ``[[0.]]`` when
+    `all=True`).
 
-    If there is only one clustering, returns `[0]` (or `[0, 0]` if `all`
-    is `True`)
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    all : bool, optional
+        Whether to return all pairwise distances (including both
+        directions) instead of the upper triangle only.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param all: Should all pairwise distances be returned (all distances
-        appear twice) or should distance appear only once?
-    :type all: bool, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: List of pairwise distances between cluster centroids.
-    :rtype: Union[List[float], List[List[float]]]
+    Returns
+    -------
+    list[float] or list[list[float]]
+        Pairwise distances between cluster centroids.
     """
     if len(clusters) == 1:
         if all:
@@ -190,20 +203,23 @@ def _dist_to_centroids(
     dist_kwargs: dict = {},
 ) -> List[np.ndarray]:
     """
-    Helper function for some CVIs.
+    Compute (potentially squared) distances from points to their centroid.
 
-    List of distances arrays of shape (N_c, 1) to cluster centroid.
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    squared : bool, optional
+        Whether to return squared distances.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param squared: Whether to return squared distances or not.
-    :type squared: bool, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: List of pairwise distances (shape (N_c, 1)) between cluster centroids.
-    :rtype: List[np.ndarray]
+    Returns
+    -------
+    list[np.ndarray]
+        List of distance arrays of shape (N_c, 1) for each cluster.
     """
 
     centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
@@ -224,20 +240,23 @@ def _sum_dist_to_centroids(
     dist_kwargs = {},
 ) -> List[float]:
     """
-    Helper function for multiple CVIs
+    Sum (potentially squared) distances to centroids per cluster.
 
-    Computing the list of sum of (squared?) distances to centroids.
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    squared : bool, optional
+        Whether to use squared distances.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param squared: Whether to use squared distances or not.
-    :type squared: bool, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The list of sum of (squared?) distances to centroids
-    :rtype: List[float]
+    Returns
+    -------
+    list[float]
+        List of summed distances to centroids for each cluster.
     """
 
     res = [
@@ -255,20 +274,23 @@ def _sum_sum_dist_to_centroids(
     dist_kwargs = {},
 ) -> float:
     """
-    Helper function for multiple CVIs
+    Sum of summed (potentially squared) distances to centroids.
 
-    Computing the sum of sum of (squared?) distances to centroids.
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    squared : bool, optional
+        Whether to use squared distances.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param squared: Whether to use squared distances or not.
-    :type squared: bool, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The sum of sum of (squared?) distances to centroids
-    :rtype: float
+    Returns
+    -------
+    float
+        Sum of the per-cluster sums of distances to centroids.
     """
 
     res = float(np.sum( _sum_dist_to_centroids(
@@ -286,34 +308,29 @@ def gap_statistic(
     rng = np.random.default_rng(611),
     return_s: bool = False,
 ) -> Union[float, Tuple[float, float]]:
-    """
-    Compute the Gap statistics for a given clustering.
+    """Compute the gap statistic for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param B: Number of uniform samples drawn, defaults to 10.
-    :type B: int, optional
-    :param zero_type: Determines how to parametrize the uniform
-      distribution to sample from in the case :math:`k=0`, by default
-      "variance". Possible options:
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    k : int, optional
+        Number of clusters.
+    B : int, optional
+        Number of uniform samples drawn.
+    zero_type : {"variance", "bounds"}, optional
+        How to parametrize the uniform distribution when $k=0$.
+    rng : numpy.random.Generator, optional
+        Random generator used to sample from the uniform distribution.
+    return_s : bool, optional
+        Whether to return the standard deviation term `s`.
 
-      - `"variance"`: the uniform distribution is defined such that it
-        has the same variance and mean as the original data.
-      - `"bounds"`: the uniform distribution is defined such that it
-        has the same bounds as the original data.
-
-    :type zero_type: str, optional
-    :param rng: The numpy random generator to use to sample from the
-      uniform distribution, by default np.random.default_rng(611)
-    :type rng: A numpy Random Generator, optional
-    :param return_s: Should s be returned as well?
-    :type return_s: bool, optional
-    :return: The gap statistics
-    :rtype: Union[float, Tuple[float, float]]
+    Returns
+    -------
+    float or tuple[float, float]
+        Gap statistic, and optionally `s` when `return_s=True`.
     """
     if k == 0:
         gap = 0.
@@ -364,19 +381,26 @@ def score_function(
     k: int =None,
     dist_kwargs: dict = {},
 ) -> float:
-    """
-    Compute the score function for a given clustering.
+    """Compute the score function index for a clustering.
 
-    We use the square distance version of the score function.
+    The square-distance version of the score function is used. The
+    parameter `k` is accepted for API compatibility but ignored.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Ignored. Used for compatibility purpose.
-    :type k: int
-    :return: The score function index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    k : int, optional
+        Ignored. Present for compatibility.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Score function index.
     """
     N = len(X)
     k = len(clusters)
@@ -412,26 +436,29 @@ def hartigan(
     X1: np.ndarray = None,
     rng = np.random.default_rng(611),
 ) -> float:
-    """
-    Compute the Hartigan index for a given clustering.
+    """Compute the Hartigan index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param clusters_next: Next clustering (k+1)
-    :type clusters_next: List[List[int]]
-    :param X1: Dataset. This assumes that k=0 and that X is
-        then the values of all datapoints when sampled from a uniform
-        distribution.
-    :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param rng: The numpy random generator to use to sample from the
-        uniform distribution, by default np.random.default_rng(611)
-    :type rng: A numpy Random Generator, optional
-    :return: The Hartigan index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for the current clustering.
+    k : int, optional
+        Number of clusters.
+    clusters_next : list[list[int]], optional
+        Clustering for $k+1$.
+    X1 : np.ndarray, optional
+        Dataset used when $k=0$ (uniform sample case), representing the
+        original data when assuming there is only one cluster.
+    rng : numpy.random.Generator, optional
+        Random generator used for uniform sampling when needed.
+
+    Returns
+    -------
+    float or None
+        Hartigan index, or ``None`` when undefined for the provided
+        inputs.
     """
     N = len(X)
     # We can't compute using the next clustering, but in any case,
@@ -473,15 +500,19 @@ def silhouette(
     X : np.ndarray,
     clusters: List[List[int]],
 ) -> float:
-    """
-    Compute the silhouette score for a given clustering.
+    """Compute the silhouette score for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :return: The silhouette score
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+
+    Returns
+    -------
+    float
+        Silhouette score.
     """
 
     S_i1 = []
@@ -532,36 +563,29 @@ def CH(
     rng = np.random.default_rng(611),
     dist_kwargs: dict = {},
 ) -> float:
-    """
-    Compute the Calinski–Harabasz (CH) index  for a given clustering.
+    """Compute the Calinski–Harabasz (CH) index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param X1: Dataset. This assumes that k=0 and that X is
-      then the values of all datapoints when sampled from a uniform
-      distribution.
-    :type X1: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param zero_type: Determines how to parametrize the uniform
-      distribution to sample from in the case :math:`k=0`, by default
-      "variance". Possible options:
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    k : int, optional
+        Number of clusters.
+    X1 : np.ndarray, optional
+        Dataset used when $k=0$ (uniform sample case).
+    zero_type : {"variance", "bounds"}, optional
+        How to parametrize the uniform distribution when $k=0$.
+    rng : numpy.random.Generator, optional
+        Random generator used for uniform sampling when needed.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-      - `"variance"`: the uniform distribution is defined such that it
-        has the same variance and mean as the original data.
-      - `"bounds"`: the uniform distribution is defined such that it
-        has the same bounds as the original data.
-
-    :type zero_type: str, optional
-    :param rng: The numpy random generator to use to sample from the
-        uniform distribution, by default np.random.default_rng(611)
-    :type rng: A numpy Random Generator, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The CH index
-    :rtype: float
+    Returns
+    -------
+    float
+        Calinski–Harabasz index.
     """
     N = len(X)
 
@@ -641,21 +665,25 @@ def MB(
     p: int = 2,
     dist_kwargs = {},
 ) -> float:
-    """
-    Compute the Maulik-Bandyopadhyay index for a given clustering.
+    """Compute the Maulik–Bandyopadhyay index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param k: Number of clusters.
-    :type k: int, optional
-    :param p: power of the equation
-    :type p: int, optional
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Maulik-Bandyopadhyay index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    k : int, optional
+        Number of clusters.
+    p : int, optional
+        Exponent used in the index for the distance metric.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Maulik–Bandyopadhyay index.
     """
     N = len(X)
     if k == 1 or k==N:
@@ -687,19 +715,19 @@ def _var(
     X : np.ndarray,
     dist_kwargs = {},
 ) -> np.ndarray:
-    """
-    Helper function for the SD index, computing the "Var" vector.
+    """Compute the variance vector used in the SD index.
 
-    Var is a vector of shape (d,) (or (d*w_t,) if not DTW) of variances
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: "Var" vector of the SD index.
-    :rtype: np.ndarray, shape: (d)
+    Returns
+    -------
+    np.ndarray
+        Variance vector of shape (d,) (or (d*w_t,) for flattened series).
     """
     center = np.expand_dims(compute_center(X), 0)
     if len(X.shape) == 2:
@@ -725,17 +753,21 @@ def _dis(
     clusters: List[List[int]],
     dist_kwargs = {},
 ) -> float:
-    """
-    Helper function for the SD index, computing the "Dis" term.
+    """Compute the dispersion term used in the SD index.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The "Dis" term of the SD index.
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Dispersion ("Dis") term.
     """
     centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
     d_btw_centroids = _dist_between_centroids(
@@ -760,17 +792,21 @@ def _scat(
     clusters: List[List[int]],
     dist_kwargs = {},
 ) -> float:
-    """
-    Helper function for the SD and SDbw indices.
+    """Compute the scatter term used in SD and SDbw indices.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The "Scat" term of the SD and SDbw indices.
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Scatter ("Scat") term.
     """
     N = len(X)
     k = len(clusters)
@@ -791,19 +827,23 @@ def SD_index(
     alpha: float = None,
     dist_kwargs = {},
 ) -> float:
-    """
-    Compute the SD index for a given clustering.
+    """Compute the SD index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param alpha: The constant in the SD index formula (=Dis(k_max)).
-    :type alpha: float
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The SD index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    alpha : float, optional
+        Constant in the SD index formula (defaults to $Dis(k_{max})$).
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        SD index.
     """
     scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
 
@@ -832,17 +872,21 @@ def SDbw_index(
     clusters: List[List[int]],
     dist_kwargs = {},
 ) -> float:
-    """
-    Compute the SDbw index for a given clustering.
+    """Compute the SDbw index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The SDbw  index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        SDbw index.
     """
     k = len(clusters)
 
@@ -923,17 +967,21 @@ def dunn(
     clusters: List[List[int]],
     dist_kwargs = {},
 ) -> float:
-    """
-    Compute the Dunn index for a given clustering.
+    """Compute the Dunn index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Dunn index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Dunn index.
     """
     k=len(clusters)
     N = len(X)
@@ -980,17 +1028,21 @@ def xie_beni(
     clusters: List[List[int]],
     dist_kwargs = {},
 ) -> float:
-    """
-    Compute the Xie-Beni index for a given clustering.
+    """Compute the Xie–Beni index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Xie-Beni index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Xie–Beni index.
     """
 
     N = len(X)
@@ -1029,17 +1081,21 @@ def xie_beni_star(
     clusters: List[List[int]],
     dist_kwargs = {},
 ) -> float:
-    """
-    Compute the Xie-Beni* (XB*) index for a given clustering.
+    """Compute the Xie–Beni* (XB*) index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Xie-Beni* (XB*) index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Xie–Beni* (XB*) index.
     """
 
     N = len(X)
@@ -1079,17 +1135,23 @@ def davies_bouldin(
     p: int = 2,
     dist_kwargs = {},
 ) -> float:
-    """
-    Compute the Davies-Bouldin (DB) index for a given clustering.
+    """Compute the Davies–Bouldin (DB) index for a clustering.
 
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d*w_t) or (N, w_t, d)
-    :param clusters: List of datapoint indices for each cluster.
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for the distance function, defaults to {}
-    :type dist_kwargs: dict, optional
-    :return: The Davies-Bouldin (DB) index
-    :rtype: float
+    Parameters
+    ----------
+    X : np.ndarray
+        Dataset of shape (N, d*w_t) or (N, w_t, d).
+    clusters : list[list[int]]
+        Indices for each cluster.
+    p : int, optional
+        Minkowski order when using Euclidean data.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
+
+    Returns
+    -------
+    float
+        Davies–Bouldin index.
     """
     k = len(clusters)
 
