@@ -128,9 +128,12 @@ def f_cdist(
     clusterB : np.ndarray
         A cluster of size `NB`.
     dist_kwargs : dict, optional
-        kwargs for
-        `scipy.spatial.distance.cdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_
+        kwargs for `scipy.spatial.distance.pdist
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
         , by default {}.
+        or for `aeon.distances.dtw_pairwise_distance
+        <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_,
+        by default uses `{"window" : 0.2}`.
 
     Returns
     -------
@@ -152,12 +155,14 @@ def f_cdist(
             **dist_kwargs
         )
     elif len(dims) == 3:
+
+        dist_kwargs_dtw = default_dtw_kwargs(dist_kwargs)
+
         # Option 1: Pairwise distances on the entire window using DTW
         dist = dtw_pairwise_distance(
             np.swapaxes(clusterA, 1, 2),
             np.swapaxes(clusterB, 1, 2),
-            # itakura_max_slope=0.1,
-            window=0.2,
+            **dist_kwargs_dtw,
         )
     else:
         msg = (
