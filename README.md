@@ -77,6 +77,8 @@ pip install pycvi-lib
 In order to run the example scripts, extra dependencies are necessary. The install command is then:
 
 ```bash
+# For uv
+uv add pycvi-lib[examples]
 # For poetry
 poetry add pycvi-lib[examples]
 # For pip and anaconda
