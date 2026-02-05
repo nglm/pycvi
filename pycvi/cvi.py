@@ -88,11 +88,11 @@ class CVI():
 
     Parameters
     ----------
-    cvi_function : callable, optional
+    cvi_function : Callable, optional
         Function used to assess each clustering, by default None
     maximise : bool, optional
         Determines whether higher values mean better clustering
-        quality according to this CVI , by default True
+        quality according to this CVI, by default True
     improve : bool, optional
         Determines whether the quality of the clustering is expected
         to improve with increasing values of :math:`k` (concerns
@@ -102,10 +102,10 @@ class CVI():
         "absolute", "monotonous" or "original" (note that not all
         CVIs can have these 3 interpretations), by default
         "monotonous"
-    criterion_function : callable, optional
+    criterion_function : Callable, optional
         Determines how the best clustering should be selected
         according to their corresponding CVI values, by default None
-    k_condition : callable, optional
+    k_condition : Callable, optional
         :math:`k` values that are compatible with this CVI, by
         default None
     ignore0 : bool, optional
@@ -114,7 +114,7 @@ class CVI():
         example used in the Hartigan index where we don't use
         :math:`k=0` as a reference score if :math:`k=0` is more
         relevant than :math:`k=1`, by default False
-    rng : A numpy Random Generator, optional
+    rng : numpy.random.Generator, optional
         The numpy random generator to use when sampling from random
         distributions, by default np.random.default_rng(611)
 
@@ -168,11 +168,11 @@ class CVI():
         Parameters
         ----------
         X : np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`
-            Dataset/
+            Dataset.
         clustering : List[List[int]]
             List of clusters.
         cvi_kwargs : dict, optional
-            kwargs specific for the CVI, by default {}
+            Kwargs specific for the CVI, by default {}
 
         Returns
         -------
@@ -620,13 +620,15 @@ class CVIAggregator():
 
     Parameters
     ----------
-    cvi_classes : Union[List[CVI], None], optional
+    cvi_classes : list[CVI] or None, optional
         List of CVIs to aggregate to select the best clustering. Default
-        to `None`, in that case, all CVIs implemented in PyCVI are used
-        and with their default parameters. (see
-        :attr:`pycvi.cvi.CVIs`).
-    cvi_kwargs : Union[List[dict], None], optional
-        List of CVIs specific kwargs to give to the corresponding CVI. Default to `None`, in that case, each CVI use their default parameters. If a list is given, its length must match the number of CVIs used in `cvi_classes`.
+        to `None`, in which case all CVIs implemented in PyCVI are used
+        with their default parameters (see :attr:`pycvi.cvi.CVIs`).
+    cvi_kwargs : list[dict] or None, optional
+        List of CVI-specific kwargs to give to the corresponding CVI.
+        Default to `None`, in which case each CVI uses its default
+        parameters. If a list is given, its length must match the number
+        of CVIs used in `cvi_classes`.
 
     Raises
     ------
@@ -1155,17 +1157,17 @@ class GapStatistic(CVI):
         Computes the CVI value of the clustering.
 
         If `cvi_type=original`, then an attribute `s[k]` is computed,
-        corresponding to the std around the CVI value (with `k` begin
+        corresponding to the std around the CVI value (with `k` being
         the number of clusters).
 
         Parameters
         ----------
         X : np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`
-            Dataset/
+            Dataset.
         clustering : List[List[int]]
             List of clusters.
         cvi_kwargs : dict, optional
-            kwargs specific for the CVI, by default {}
+            Kwargs specific for the CVI, by default {}
 
         Returns
         -------
@@ -1356,6 +1358,24 @@ class MaulikBandyopadhyay(CVI):
         n_clusters: int = None,
         cvi_kwargs: dict = {}
     ) -> dict:
+        """Get kwargs parameters specific to Maulik-Bandyopadhyay index.
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, optional
+            Dataset to cluster (already processed), by default None.
+        clusterings_t : dict[int, list], optional
+            All the clusterings computed for the provided k range, by default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None.
+        cvi_kwargs : dict, optional
+            Pre-defined kwargs, by default {}.
+
+        Returns
+        -------
+        dict
+            The dictionary of kwargs necessary to compute the CVI.
+        """
         cvi_kw = {"p" : 2}
         cvi_kw["k"] = n_clusters
         cvi_kw.update(cvi_kwargs)
@@ -1405,6 +1425,24 @@ class SD(CVI):
         n_clusters: int = None,
         cvi_kwargs: dict = {}
     ) -> dict:
+        """Get kwargs parameters specific to SD index.
+
+        Parameters
+        ----------
+        X_clus : np.ndarray, optional
+            Dataset to cluster (already processed), by default None.
+        clusterings_t : dict[int, list], optional
+            All the clusterings computed for the provided k range, by default None.
+        n_clusters : int, optional
+            Current number of clusters considered, by default None.
+        cvi_kwargs : dict, optional
+            Pre-defined kwargs, by default {}.
+
+        Returns
+        -------
+        dict
+            The dictionary of kwargs necessary to compute the CVI.
+        """
         cvi_kw = {"alpha" : None}
         cvi_kw.update(cvi_kwargs)
         return cvi_kw
