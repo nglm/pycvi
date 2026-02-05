@@ -134,6 +134,8 @@ def generate_uniform(
         according to the original dataset given `data`
     """
     # Determines how to measure the score of the 0th component
+    # TODO: We should use a mean and a var that makes sense in the
+    # case of DTW
     if zero_type == 'variance':
         # Get the parameters of the uniform distrib using mean and variance
         # mean = (1/2)*(a+b)
