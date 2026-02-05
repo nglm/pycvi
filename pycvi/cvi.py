@@ -172,7 +172,14 @@ class CVI():
         clustering : List[List[int]]
             List of clusters.
         cvi_kwargs : dict, optional
-            Kwargs specific for the CVI, by default {}
+            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+
+            In particular, all CVI functions accept a `dist_kwargs` parameter that can be used to specify the parameters of the distance function used to compute pairwise distances between datapoints.
+
+            - If the dataset `X` is time-series data and if DTW is used, then the `dist_kwargs` can include parameters such as `window` or `itakura_max_slope`. See `aeon.distances.dtw_pairwise_distance
+            <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_ for more information.
+            - If the dataset `X` is static data, then the distance function used is based on `scipy.spatial.distance.pdist
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_ and accept the same parameters as this function.
 
         Returns
         -------
