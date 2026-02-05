@@ -307,6 +307,7 @@ def gap_statistic(
     zero_type: str = "variance",
     rng = np.random.default_rng(611),
     return_s: bool = False,
+    dist_kwargs: dict = {},
 ) -> Union[float, Tuple[float, float]]:
     """Compute the gap statistic for a clustering.
 
@@ -326,6 +327,8 @@ def gap_statistic(
         Random generator used to sample from the uniform distribution.
     return_s : bool, optional
         Whether to return the standard deviation term `s`.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
     Returns
     -------
@@ -336,7 +339,7 @@ def gap_statistic(
         gap = 0.
     else:
         # Compute the log of the within-cluster dispersion of the clustering
-        wcss = np.log(_compute_Wk(X, clusters))
+        wcss = np.log(_compute_Wk(X, clusters, dist_kwargs))
 
         # Generate B random datasets with the same shape as the input data
         # and the same parameters
@@ -347,7 +350,7 @@ def gap_statistic(
         wcss_rand = []
         for X_rand in random_datasets:
             clusters_rand = _clusters_from_uniform(X_rand, k)
-            wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand)))
+            wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand, dist_kwargs)))
 
         # Compute the gap statistic for the current clustering
         mean_wcss_rand = np.mean(wcss_rand)
@@ -435,6 +438,7 @@ def hartigan(
     clusters_next: List[List[int]] = None,
     X1: np.ndarray = None,
     rng = np.random.default_rng(611),
+    dist_kwargs: dict = {},
 ) -> float:
     """Compute the Hartigan index for a clustering.
 
@@ -453,6 +457,8 @@ def hartigan(
         original data when assuming there is only one cluster.
     rng : numpy.random.Generator, optional
         Random generator used for uniform sampling when needed.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
     Returns
     -------
@@ -479,15 +485,15 @@ def hartigan(
             l_X0 = [X]
         l_Wk = []
         for X0 in l_X0:
-            l_Wk.append(_compute_Wk(X0, clusters))
+            l_Wk.append(_compute_Wk(X0, clusters, dist_kwargs))
         Wk = np.mean(l_Wk)
-        Wk_next = _compute_Wk(X1, clusters)
+        Wk_next = _compute_Wk(X1, clusters, dist_kwargs)
         # We use the normal formula but with k=1 so that we get the
         res = (Wk/Wk_next - 1)*(N-1-1)
     # Regular case
     else:
-        Wk = _compute_Wk(X, clusters)
-        Wk_next = _compute_Wk(X, clusters_next)
+        Wk = _compute_Wk(X, clusters, dist_kwargs)
+        Wk_next = _compute_Wk(X, clusters_next, dist_kwargs)
         if Wk_next == 0:
             res = np.inf
         else:
@@ -499,6 +505,7 @@ def hartigan(
 def silhouette(
     X : np.ndarray,
     clusters: List[List[int]],
+    dist_kwargs: dict = {},
 ) -> float:
     """Compute the silhouette score for a clustering.
 
@@ -508,6 +515,8 @@ def silhouette(
         Dataset of shape (N, d*w_t) or (N, w_t, d).
     clusters : list[list[int]]
         Indices for each cluster.
+    dist_kwargs : dict, optional
+        Keyword arguments for the distance function.
 
     Returns
     -------
@@ -528,13 +537,13 @@ def silhouette(
         # x in c1, we don't get the same number of operations
         else:
             a = [
-                (1/(nis[i1]-1)) * np.sum(f_cdist(X[c1], X[m]))
+                (1/(nis[i1]-1)) * np.sum(f_cdist(X[c1], X[m], dist_kwargs))
                 for m in c1
             ]
 
         # Compute 'b' for all x (=X[m]) in c1
         b = [np.amin([
-                np.mean(f_cdist(X[c2], np.expand_dims(X[m], 0)))
+                np.mean(f_cdist(X[c2], np.expand_dims(X[m], 0), dist_kwargs))
                 for i2, c2 in enumerate(clusters) if i1 != i2
             ]) for m in c1]
 
