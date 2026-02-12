@@ -32,6 +32,7 @@
    examples/select_k
    examples/full_example
    examples/cvi_aggregator
+   examples/functional_or_OO
 
 .. include:: /examples/examples_reminders.rst
 

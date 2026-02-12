@@ -8,7 +8,6 @@ import numpy as np
 import time
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
-from sklearn_extra.cluster import KMedoids
 from aeon.clustering import TimeSeriesKMeans
 
 from pycvi.cluster import generate_all_clusterings, get_clustering

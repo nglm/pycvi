@@ -2,6 +2,9 @@
 
 These functions are the functional counterparts of the CVI classes in
 :mod:`pycvi.cvi`.
+
+For more information about the functional API and the Object-Oriented API in practice, see the example described in :doc:`/examples/functional_or_OO`.
+
 """
 
 from typing import List, Sequence, Union, Any, Dict, Tuple

@@ -1,8 +1,11 @@
 """
 Python implementation of state-of-the-art internal CVIs.
 
+Internal Cluster Validity Indices (CVIs)
+-----------------------------------------
+
 Internal CVIs are used to select the best clustering among a set of
-pre-computed clustering when no information about the true clusters nor
+pre-computed clusterings when no information about the true clusters nor
 the number of clusters is available. To assess the quality of different
 clusterings, CVIs compute distances between datapoints and most of them
 also rely on the concept of cluster center.
@@ -17,6 +20,39 @@ non-trivial and can be for example defined using DTW Barycentric Average
 
 PyCVI extends state-of-the-art internal CVIs to make them compatible
 with time-series data as well by using DTW and DBA when necessary.
+
+Implementation and usage of CVIs in PyCVI
+-----------------------------------------
+
+PyCVI implements a large number of CVIs, all inhering from the base
+class :class:`pycvi.cvi.CVI` and they can be used with both static and
+time-series data, with exactly the same interface.
+
+.. literalinclude:: ../examples/cvi_call/cvi_call.py
+   :linenos:
+   :emphasize-lines: 29, 32
+   :lines: 7-39
+
+.. literalinclude:: ../examples/cvi_call/output-cvi_call.txt
+   :language: text
+
+Once instanciated (line 35 in the example above), a CVI can be called
+with a dataset ``X`` and a clustering ``clustering`` and a dictionary of
+additional keywords arguments available for this specific CVI, to
+compute the CVI value of this clustering (line 38 in the example above).
+
+For more details about the ``__call__`` method, common to all CVIs, see the dedicated section below.
+
+In addition, there is a functional API for each CVI class implemented in this module. For more information about the functional API and the Object-Oriented API in practice, see the example described in :doc:`/examples/functional_or_OO`.
+
+.. automethod:: pycvi.cvi.CVI.__call__
+
+For more detailed examples on using the implemented CVIs, you can take a
+look at the examples in this documentation, notably
+:doc:`/examples/basic_usage` and
+:doc:`/examples/basic_usage_time_series` and
+:doc:`/examples/cvi_aggregator`.
+
 
 .. [DTW] Donald J. Berndt and James Clifford. Using dynamic time warping
    to find patterns in time series. In Proceedings of the 3rd
@@ -174,12 +210,19 @@ class CVI():
         cvi_kwargs : dict, optional
             Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
 
-            In particular, all CVI functions accept a `dist_kwargs` parameter that can be used to specify the parameters of the distance function used to compute pairwise distances between datapoints.
+            In particular, all CVI functions accept a ``dist_kwargs``
+            parameter that can be used to specify the parameters of the
+            distance function used to compute pairwise distances between
+            datapoints.
 
-            - If the dataset `X` is time-series data and if DTW is used, then the `dist_kwargs` can include parameters such as `window` or `itakura_max_slope`. See `aeon.distances.dtw_pairwise_distance
-            <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_ for more information.
-            - If the dataset `X` is static data, then the distance function used is based on `scipy.spatial.distance.pdist
-            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_ and accept the same parameters as this function.
+            - If the dataset ``X`` is time-series data and if DTW is
+              used, then the ``dist_kwargs`` can include parameters such
+              as ``window`` or ``itakura_max_slope``. See
+              `aeon.distances.dtw_pairwise_distance <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_
+              for more information.
+            - Otherwise, the distance function used is based on
+              `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
+              and accepts the same parameters as this function.
 
         Returns
         -------
@@ -1755,7 +1798,7 @@ CVIs = [
     Diameter,
 ]
 """
-List of available CVI indices in PyCVI, as `pycvi.cvi` classes.
+List of available CVI in PyCVI, as `pycvi.cvi` classes.
 
 - Hartigan: :class:`pycvi.cvi.Hartigan`
 - CalinskiHarabasz: :class:`pycvi.cvi.CalinskiHarabasz`

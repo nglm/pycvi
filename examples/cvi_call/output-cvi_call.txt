@@ -1,0 +1,1 @@
+Assumed number of clusters: 3  |  CVI value: 0.6918
