@@ -26,6 +26,7 @@ This version supports Python versions 3.9 to 3.12.
 ## Documentation
 
 - Added installation instructions using UV.
+- Added example and documentation about the ``__call__`` method of the CVI classes.
 - More examples about how to use the CVIs and their parameters, notably using ``dist_kwargs`` in the functional API and ``cvi_kwargs`` in the object-oriented API.
 
 ## Contributors
