@@ -19,10 +19,6 @@ This version supports Python versions 3.9 to 3.12.
 
 - Now uses UV to manage the dependencies and build the package.
 
-## Fixes
-
-- XXX
-
 ## Documentation
 
 - Added installation instructions using UV.
