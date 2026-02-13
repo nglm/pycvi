@@ -81,5 +81,5 @@ typing-extensions==4.15.0
     #   exceptiongroup
 tzdata==2025.3
     # via pandas
-wrapt==2.1.0
+wrapt==2.1.1
     # via deprecated
