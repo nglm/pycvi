@@ -11,4 +11,5 @@
 tmp/*
 # no notes files
 notes/*
-README.pdf
+*.pdf
+!paper.pdf
