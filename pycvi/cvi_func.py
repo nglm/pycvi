@@ -9,12 +9,9 @@ For more information about the functional API and the Object-Oriented API in pra
 
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
 from aeon.clustering import TimeSeriesKMeans
 import numpy as np
-from math import sqrt
 
-from .compute_scores import f_inertia
 from .dist import f_pdist, f_cdist
 from .cluster import (
     compute_center, generate_uniform, get_clustering

@@ -5,7 +5,7 @@ Low-level distance functions for (non-) time-series data.
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
-from aeon.distances import dtw_distance, dtw_pairwise_distance
+from aeon.distances import dtw_pairwise_distance
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._utils import _match_dims
 from .exceptions import ShapeError

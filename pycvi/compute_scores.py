@@ -19,7 +19,8 @@ from.dist import f_cdist, f_pdist, reduce
 from ._configuration import set_data_shape
 from ._utils import _check_list_of_dict
 from .cluster import (
-    compute_center, prepare_data, sliding_window, generate_uniform
+    compute_center, prepare_data, sliding_window,
+    generate_uniform
 )
 from .exceptions import InvalidScoreError, InvalidKError
 
