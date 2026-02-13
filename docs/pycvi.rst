@@ -28,12 +28,12 @@
    :recursive:
    :toctree:
 
-   pycvi.cluster
-   pycvi.compute_scores
-   pycvi.cvi
-   pycvi.cvi_func
-   pycvi.datasets
-   pycvi.dist
-   pycvi.exceptions
-   pycvi.vi
+   cluster
+   compute_scores
+   cvi
+   cvi_func
+   datasets
+   dist
+   exceptions
+   vi
 

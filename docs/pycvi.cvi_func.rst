@@ -4,11 +4,6 @@ pycvi.cvi\_func
 .. automodule:: pycvi.cvi_func
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -26,15 +21,3 @@ pycvi.cvi\_func
       xie_beni
       xie_beni_star
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

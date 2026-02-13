@@ -1,21 +1,8 @@
-﻿pycvi.exceptions
+pycvi.exceptions
 ================
 
 .. automodule:: pycvi.exceptions
 
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
    
    .. rubric:: Exceptions
 
@@ -28,7 +15,3 @@
       SelectionError
       ShapeError
    
-   
-
-
-

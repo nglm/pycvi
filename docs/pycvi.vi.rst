@@ -4,11 +4,6 @@ pycvi.vi
 .. automodule:: pycvi.vi
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -19,15 +14,3 @@ pycvi.vi
       mutual_information
       variation_information
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ pycvi.dist
 .. automodule:: pycvi.dist
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@ pycvi.dist
       f_pdist
       reduce
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -1,13 +1,8 @@
-﻿pycvi.cluster
+pycvi.cluster
 =============
 
 .. automodule:: pycvi.cluster
 
-   
-   
-   
-
-   
    
    .. rubric:: Functions
 
@@ -21,15 +16,3 @@
       prepare_data
       sliding_window
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

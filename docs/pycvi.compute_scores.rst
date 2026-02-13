@@ -4,11 +4,6 @@ pycvi.compute\_scores
 .. automodule:: pycvi.compute_scores
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -18,15 +13,3 @@ pycvi.compute\_scores
       f_inertia
       f_intra
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

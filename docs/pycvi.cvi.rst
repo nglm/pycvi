@@ -1,23 +1,14 @@
-﻿pycvi.cvi
+pycvi.cvi
 =========
 
 .. automodule:: pycvi.cvi
 
-   
    
    .. rubric:: Module Attributes
 
    .. autosummary::
    
       CVIs
-   
-   
-
-   
-   
-   
-
-   
    
    .. rubric:: Classes
 
@@ -40,11 +31,3 @@
       XB
       XBStar
    
-   
-
-   
-   
-   
-
-
-
