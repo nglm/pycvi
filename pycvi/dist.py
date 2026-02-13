@@ -60,15 +60,15 @@ def f_pdist(
 
     Parameters
     ----------
-    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW is used.
+    cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if DTW is
+    used.
         A cluster of `N` datapoints.
     dist_kwargs : dict, optional
         kwargs for `scipy.spatial.distance.pdist
         <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
-        , by default {}.
-        or for `aeon.distances.dtw_pairwise_distance
+        , by default {}. or for `aeon.distances.dtw_pairwise_distance
         <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_,
-        by default uses `{"window" : 0.2}`.
+        by default uses ``{"window" : 0.2}``.
 
     Returns
     -------
@@ -78,7 +78,8 @@ def f_pdist(
     Raises
     ------
     ShapeError
-        Raised if cluster doesn't have the shape `(N, d)` or `(N, w, d)`
+        Raised if cluster doesn't have the shape ``(N, d)`` or ``(N, w,
+        d)``
     """
     dims = cluster.shape
     if len(dims) == 2:
