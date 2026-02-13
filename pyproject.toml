@@ -1,6 +1,6 @@
 [project]
 name = "pycvi-lib"
-version = "0.1.5"
+version = "0.1.6"
 description = "Internal Cluster Validity Indices in python, compatible with time-series data"
 readme = "README.md"
 authors = [
@@ -48,8 +48,12 @@ examples = [
 ]
 
 [dependency-groups]
+
+# m2r is outdated and doesn't support docutils >= 0.21
+
 dev = [
     "m2r==0.3.1",
+    "docutils==0.20.1",
     "pytest>=8.4.2 ; python_version == '3.9'",
     "pytest>=9.0.2 ; python_version >= '3.10'",
     "sphinx==7.4.7",
@@ -81,7 +85,7 @@ name = "pycvi-lib"
 packages = [
     {include = "pycvi"}
 ]
-version = "0.1.5"
+version = "0.1.6"
 description = "Internal Cluster Validity Indices in python, compatible with time-series data"
 authors = ["Natacha, Galmiche <natacha.galmiche@uib.no>"]
 readme = "README.md"
