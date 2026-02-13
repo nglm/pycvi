@@ -1,6 +1,6 @@
 # PyCVI 0.1.6 release notes
 
-2026/02/XX
+2026/02/13
 
 ## Python versions
 
@@ -18,12 +18,15 @@ This version supports Python versions 3.9 to 3.12.
 ## Changes
 
 - Now uses UV to manage the dependencies and build the package.
+- Dev dependencies are now separated from the main dependencies and are defined in the `requirements-dev.txt`.
+- Dependencies required to build the documentation are now specified in the dev dependencies.
 
 ## Documentation
 
 - Added installation instructions using UV.
 - Added example and documentation about the ``__call__`` method of the CVI classes.
 - More examples about how to use the CVIs and their parameters, notably using ``dist_kwargs`` in the functional API and ``cvi_kwargs`` in the object-oriented API.
+- Added warnings in the documentation because scikit-learn-extra is not yet compatible with numpy >= 2.0
 
 ## Contributors
 
