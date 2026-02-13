@@ -72,6 +72,7 @@ More low-level functions are defined to perform common operations but that can h
    pycvi.dist.f_cdist
    pycvi.compute_scores.f_inertia
    pycvi.cluster.compute_center
+   pycvi.cluster.compute_centers
 
 .. Full API section
    ---------------------------------------

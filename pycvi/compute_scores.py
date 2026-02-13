@@ -49,7 +49,7 @@ def f_intra(
     float
         The sum of pairwise distances within the cluster.
     """
-    return float(np.sum(f_pdist(cluster, dist_kwargs)))
+    return float(np.sum(f_pdist(cluster, dist_kwargs=dist_kwargs)))
 
 def f_inertia(
     cluster: np.ndarray,
@@ -74,8 +74,8 @@ def f_inertia(
     float
         The inertia of the cluster.
     """
-    centroid = np.expand_dims(compute_center(cluster), 0)
-    dist = f_cdist(cluster, centroid, dist_kwargs )
+    centroid = compute_center(cluster, keepdims=True, dist_kwargs=dist_kwargs)
+    dist = f_cdist(cluster, centroid, dist_kwargs=dist_kwargs)
     return float(np.sum(dist))
 
 def _f_generalized_var(
@@ -117,8 +117,10 @@ def _f_med_dev_centroid(
     if len(cluster) == 1:
         return 0.
     else:
-        centroid = np.expand_dims(compute_center(cluster), 0)
-        dist = f_cdist(cluster, centroid, **dist_kwargs )
+        centroid = compute_center(
+            cluster, keepdims=True, dist_kwargs=dist_kwargs
+        )
+        dist = f_cdist(cluster, centroid, dist_kwargs=dist_kwargs)
         return np.median(dist)
 
 def _f_mean_dev_med(
@@ -138,8 +140,10 @@ def _f_mean_dev_med(
     if len(cluster) == 1:
         return 0.
     else:
-        centroid = np.expand_dims(compute_center(cluster), 0)
-        dist = f_cdist(cluster, centroid, **dist_kwargs )
+        centroid = compute_center(
+            cluster, keepdims=True, dist_kwargs=dist_kwargs
+        )
+        dist = f_cdist(cluster, centroid, dist_kwargs=dist_kwargs)
         return np.mean(dist)
 
 def _f_med_dev_med(
@@ -191,7 +195,7 @@ def f_diameter(
     if len(cluster) == 1:
         return 0.
     else:
-        pdist = f_pdist(cluster, dist_kwargs)
+        pdist = f_pdist(cluster, dist_kwargs=dist_kwargs)
         return np.amax(pdist)
 
 def _compute_subscores(

@@ -14,7 +14,7 @@ import numpy as np
 
 from .dist import f_pdist, f_cdist
 from .cluster import (
-    compute_center, generate_uniform, get_clustering
+    compute_center, compute_centers, generate_uniform, get_clustering
 )
 from .exceptions import ShapeError
 
@@ -91,7 +91,8 @@ def _compute_Wk(
 
     d_intra = [
         # Sum of squared pairwise distances within cluster c
-        np.sum(np.square(f_pdist(X[c], dist_kwargs))) for c in clusters
+        np.sum(np.square(f_pdist(X[c], dist_kwargs=dist_kwargs)))
+        for c in clusters
     ]
     Wk = float(np.sum([intra/(2*ni) for (ni, intra) in zip(nis, d_intra)]))
     return Wk
@@ -117,8 +118,10 @@ def _dist_centroids_to_global(
     list[float]
         Distances from each cluster centroid to the global centroid.
     """
-    global_center = np.expand_dims(compute_center(X), 0)
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+    global_center = compute_center(X, keepdims=True, dist_kwargs=dist_kwargs)
+    centers = compute_centers(
+        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+    )
     dist = [
         # Distance between the centroids and the global centroid
         float(f_cdist(
@@ -164,7 +167,9 @@ def _dist_between_centroids(
         else:
             dist = [0.]
     else:
-        centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+        centers = compute_centers(
+            X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+        )
         if all:
             dist = [
                 [
@@ -222,7 +227,9 @@ def _dist_to_centroids(
         List of distance arrays of shape (N_c, 1) for each cluster.
     """
 
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+    centers = compute_centers(
+        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+    )
     dist = [
         f_cdist(X[cluster], center, dist_kwargs=dist_kwargs)
         for cluster, center in zip(clusters, centers)
@@ -537,14 +544,18 @@ def silhouette(
         # x in c1, we don't get the same number of operations
         else:
             a = [
-                (1/(nis[i1]-1)) * np.sum(f_cdist(X[c1], X[m], dist_kwargs))
-                for m in c1
+                (1/(nis[i1]-1)) * np.sum(
+                    f_cdist(X[c1], X[m], dist_kwargs=dist_kwargs)
+                ) for m in c1
             ]
 
         # Compute 'b' for all x (=X[m]) in c1
         b = [np.amin([
-                np.mean(f_cdist(X[c2], np.expand_dims(X[m], 0), dist_kwargs))
-                for i2, c2 in enumerate(clusters) if i1 != i2
+                np.mean(f_cdist(
+                    X[c2],
+                    np.expand_dims(X[m], 0),
+                    dist_kwargs=dist_kwargs
+                )) for i2, c2 in enumerate(clusters) if i1 != i2
             ]) for m in c1]
 
         # Silhouette score for cluster c1
@@ -624,7 +635,10 @@ def CH(
         # centroid and N singletons uniformly distributed
         # Which can be seen as d(C0, c)
         sep = np.sum(np.square(
-            f_cdist(X0, np.expand_dims(compute_center(X1), 0), dist_kwargs)
+            f_cdist(
+                X0,
+                compute_center(X1, keepdims=True, dist_kwargs=dist_kwargs), dist_kwargs=dist_kwargs
+            )
         ))
 
         # The denominator can be seen as the distance between the
@@ -738,12 +752,12 @@ def _var(
     np.ndarray
         Variance vector of shape (d,) (or (d*w_t,) for flattened series).
     """
-    center = np.expand_dims(compute_center(X), 0)
+    center = compute_center(X, keepdims=True, dist_kwargs=dist_kwargs)
     if len(X.shape) == 2:
         Var = [
             # shape is then (N, 1*w_t) or (N, w_t, 1)
             np.mean(np.square(
-                f_cdist(X[:, d:d+1], center[:, d:d+1], dist_kwargs)
+                f_cdist(X[:, d:d+1], center[:, d:d+1], dist_kwargs=dist_kwargs)
             ))
             for d in range(X.shape[-1])
         ]
@@ -751,7 +765,11 @@ def _var(
         Var = [
             # shape is then (N, 1*w_t) or (N, w_t, 1)
             np.mean(np.square(
-                f_cdist(X[:, :, d:d+1], center[:, :, d:d+1], dist_kwargs)
+                f_cdist(
+                    X[:, :, d:d+1],
+                    center[:, :, d:d+1],
+                    dist_kwargs=dist_kwargs
+                )
             ))
             for d in range(X.shape[-1])
         ]
@@ -778,15 +796,20 @@ def _dis(
     float
         Dispersion ("Dis") term.
     """
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+    centers = compute_centers(
+        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+    )
     d_btw_centroids = _dist_between_centroids(
         X, clusters=clusters, dist_kwargs=dist_kwargs
     )
 
     # For each center, compute the sum of distances to all other centers
     dis_aux = [
-        np.sum(f_cdist(np.concatenate(centers, axis=0), c, dist_kwargs))
-        for c in centers
+        np.sum(f_cdist(
+            np.concatenate(centers, axis=0),
+            c,
+            dist_kwargs=dist_kwargs
+        )) for c in centers
     ]
 
     dis = float(
@@ -902,7 +925,9 @@ def SDbw_index(
     scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
 
     # Get centroids
-    centers = [np.expand_dims(compute_center(X[c]), 0) for c in clusters]
+    centers = compute_centers(
+        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+    )
 
     # Get each (i-j) pair in a flat list and get each pair only once
     nested_ijs = [

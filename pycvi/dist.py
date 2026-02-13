@@ -133,7 +133,7 @@ def f_cdist(
         , by default {}.
         or for `aeon.distances.dtw_pairwise_distance
         <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_,
-        by default uses `{"window" : 0.2}`.
+        by default uses ``{"window" : 0.2}``.
 
     Returns
     -------

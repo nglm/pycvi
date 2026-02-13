@@ -7,6 +7,8 @@ The main functions of this module are:
 
 - :func:`pycvi.cluster.generate_all_clusterings`, that generate all clusterings for a given range of number of clusters :math:`k`.
 - :func:`pycvi.cluster.compute_center`, that computes the center of a cluster.
+- :func:`pycvi.cluster.compute_centers`, that computes the centers of
+  all clusters.
 - :func:`pycvi.cluster.get_clustering`, that converts an array of predicted label for each datapoint (sklearn type of clustering encoding) to a list of datapoints for each cluster (PyCVI type of clustering encoding)
 
 """
@@ -18,11 +20,15 @@ from aeon.clustering.averaging._barycenter_averaging import (
 )
 from typing import List, Sequence, Union, Any, Dict, Tuple
 import time
-from ._configuration import set_data_shape, get_model_parameters
+from ._configuration import (
+    set_data_shape, get_model_parameters, default_dtw_kwargs
+)
 from .exceptions import ShapeError, EmptyClusterError
 
 def compute_center(
     cluster: np.ndarray,
+    keepdims: bool = False,
+    dist_kwargs: dict = {},
 ) -> np.ndarray:
     """
     Compute the center of a cluster.
@@ -31,7 +37,10 @@ def compute_center(
     datapoints in the given cluster, but for time-series data and when
     DTW is used as the distance measure, then the cluster center is
     defined as the DBA (DTW barycentric average) as defined by Petitjean
-    et al [DBA]_.
+    et al [DBA]_. In this case, additional parameters for computing DTW
+    can be passed in ``dist_kwargs``, as described in
+    `aeon.distances.dtw_pairwise_distance <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_.
+    By default, uses ``{"window" : 0.2}``.
 
     Note that the `"N"` dimension is not included in the result.
 
@@ -42,19 +51,37 @@ def compute_center(
 
     Parameters
     ----------
-    cluster : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`
+    cluster : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)`` if DTW
+    is used.
         Data values in this cluster.
+    keepdims : bool, optional
+        Whether to keep the dimension ``N`` of the input cluster, by default False.
+    dist_kwargs : dict, optional
+        Additional parameters for the distance function used to
+        compute the cluster center, by default {}.
 
     Returns
     -------
-    np.ndarray, shape `(d*w_t)` or `(w_t, d)` if DTW is used.
+    np.ndarray, shape ``(d*w_t)``, ``(w_t, d)``, ``(1, d*w_t)`` or ``(1,
+    w_t, d)``
         The cluster center.
+
+        - If ``keepdims=True`` then the shape is ``(1, d*w_t)`` or ``(1,
+          w_t, d)`` if DTW is used.
+        - If ``keepdims=False`` then the shape is ``(d*w_t)`` or ``(w_t, d)`` if DTW is used.
+
+    Raises
+    ------
+    ShapeError
+        Raised if cluster doesn't have the shape ``(N, d*w_t)`` or
+        ``(N, w_t, d)``.
     """
     dims = cluster.shape
 
     # Regular case
     # center shape: (d)
     if len(dims) == 2:
+        #TODO: allow for different types of center
         center = np.mean(cluster, axis=0).reshape(-1)
 
     # DTW case
@@ -65,6 +92,8 @@ def compute_center(
         if dims[0] == 1:
             center = cluster[0]
         else:
+
+            dist_kwargs_dtw = default_dtw_kwargs(dist_kwargs)
 
             # Check args of elastic_barycenter_average
             f_args = inspect.getfullargspec(elastic_barycenter_average)
@@ -78,7 +107,8 @@ def compute_center(
                     np.swapaxes(cluster, 1, 2),
                     distance="dtw",
                     init_barycenter="medoids",
-                    method="petitjean"
+                    method="petitjean",
+                    **dist_kwargs_dtw,
                     )
             # aeon version <= 0.8.1
             else:
@@ -92,8 +122,52 @@ def compute_center(
             + "and not " + str(dims)
         )
         raise ShapeError(msg)
+
+    if keepdims:
+        center = np.expand_dims(center, 0)
+
     return center
 
+def compute_centers(
+    X: np.ndarray,
+    clusters: List[List[int]] = [],
+    keepdims: bool = False,
+    dist_kwargs: dict = {},
+) -> List[np.ndarray]:
+    """
+    Compute the centers of all clusters.
+
+    Parameters
+    ----------
+    X : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`
+        The original data.
+    clusters : List[List[int]]
+        A list of clusters with indices.
+    keepdims : bool, optional
+        Whether to keep the dimension ``N`` of the input cluster, by
+        default False.
+    dist_kwargs : dict, optional
+        Additional parameters for the distance function used to
+        compute the cluster center, by default {}.
+
+    Returns
+    -------
+    List[np.ndarray]
+        A list of cluster centers. For each center:
+
+        - If ``keepdims=True`` then the shape is ``(1, d*w_t)`` or ``(1,
+          w_t, d)`` if DTW is used.
+        - If ``keepdims=False`` then the shape is ``(d*w_t)`` or ``(w_t, d)`` if DTW is used.
+    """
+
+    if len(clusters) == 0:
+        clusters = [list(range(X.shape[0]))]
+
+    centers = [
+        compute_center(X[c], keepdims=keepdims, dist_kwargs=dist_kwargs)
+        for c in clusters
+    ]
+    return centers
 
 def generate_uniform(
     data: np.ndarray,

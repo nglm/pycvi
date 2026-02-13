@@ -2,7 +2,7 @@ import sys
 sys.path.append('./examples')
 
 from pycvi.datasets.benchmark import load_data
-from pycvi.cluster import get_clustering, compute_center
+from pycvi.cluster import get_clustering, compute_centers
 
 from pycvi_examples_utils import plot_centers
 
@@ -15,7 +15,7 @@ data, labels = load_data("xclara", "barton")
 clustering_true = get_clustering(labels)
 
 # -------------------- Compute cluster centers -------------------------
-cluster_centers = [compute_center(data[c]) for c in clustering_true]
+cluster_centers = compute_centers(data, clustering_true)
 
 # ------------------------ Summary plot --------------------------------
 fig = plot_centers(data, clustering_true, cluster_centers)
@@ -33,7 +33,7 @@ data, labels = load_data("Trace", "ucr")
 clustering_true = get_clustering(labels)
 
 # -------------------- Compute cluster centers -------------------------
-cluster_centers = [compute_center(data[c]) for c in clustering_true]
+cluster_centers = compute_centers(data, clustering_true)
 
 # ------------------------ Summary plot --------------------------------
 fig = plot_centers(data, clustering_true, cluster_centers)
