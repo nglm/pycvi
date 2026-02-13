@@ -32,6 +32,17 @@ To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/
 
 ## Install
 
+PyCVI relies on [aeon](https://www.aeon-toolkit.org/en/latest/index.html) to compute DTW and DBA for time-series data. As of now (February 2026), aeon only supports Python up to version 3.12. Therefore, PyCVI also only supports Python up to version 3.12.
+
+### With uv:
+
+```bash
+# From PyPI
+uv add pycvi-lib
+# Alternatively, from github directly
+uv add "pycvi-lib @ git+https://github.com/nglm/pycvi.git"
+```
+
 ### With poetry
 
 ```bash
@@ -66,6 +77,8 @@ pip install pycvi-lib
 In order to run the example scripts, extra dependencies are necessary. The install command is then:
 
 ```bash
+# For uv
+uv add pycvi-lib[examples]
 # For poetry
 poetry add pycvi-lib[examples]
 # For pip and anaconda
@@ -73,3 +86,5 @@ pip install pycvi-lib[examples]
 ```
 
 Alternatively, you can manually install in your environment the packages that are necessary to run the example scripts (`matplotlib` and/or `scikit-learn-extra` depending on the example).
+
+If you wish to run the example scripts on your own computer, please follow the instructions detailed in the documentation first: [Running example scripts on your computer](https://pycvi.readthedocs.io/en/latest/examples/examples_instructions.html).
