@@ -82,7 +82,7 @@ for py in "${PYTHONS[@]}"; do
         # --group dev because we want to install the dev dependencies (which include pytest)
         # 1) uv sync --active --group dev --resolution "$resolution": installs the correct env
         # 2) >>"$log_file": redirects stdout (anything the command would normally print) to a logfile.
-        # 3) 2>>&1: redirects stderr (any error messages) to the same place as stdout.
+        # 3) 2>&1: redirects stderr (any error messages) to the same place as stdout.
         if ! uv sync --active --group dev --resolution "$resolution" >> "$log_file" 2>&1; then
             printf 'py%s | %-14s: FAIL (uv sync failed)\n' "$py" "$resolution"
             ((failed += 1))
@@ -111,9 +111,14 @@ for py in "${PYTHONS[@]}"; do
             printf 'py%s | %-14s: PASS | %s\n' "$py" "$resolution" "$pytest_summary"
         else
             ((failed += 1))
+
             # Try to pull out the most relevant failure line for the one-liner.
             short_reason=$(grep -E "FAILED|ERROR" "$log_file" | tail -n 1 || true)
-            [[ -z "$short_reason" ]] && short_reason="$pytest_summary"
+
+            if [[ -z "$short_reason" ]]; then
+                short_reason="$pytest_summary"
+            fi
+
             printf 'py%s | %-14s: FAIL(rc=%s) | %s\n' "$py" "$resolution" "$rc" "$short_reason"
         fi
 
