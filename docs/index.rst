@@ -6,7 +6,8 @@
 .. Main welcoming text
    ---------------------------------------
 
-.. mdinclude:: md/welcome_top.md
+.. include:: md/welcome_top.md
+   :parser: myst_parser.sphinx_
 
 .. Tutorials sections
    ---------------------------------------
@@ -82,7 +83,8 @@ More low-level functions are defined to perform common operations but that can h
 .. Contribute / Issues, etc.
    ---------------------------------------
 
-.. mdinclude:: md/welcome_bottom.md
+.. include:: md/welcome_bottom.md
+   :parser: myst_parser.sphinx_
 
 Index
 -------------------

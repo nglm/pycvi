@@ -50,20 +50,24 @@ extensions = [
     # it as a toctree
     'sphinx.ext.autosummary',
     # To tell sphinx that we are also using markdown
-    # 'myst_parser',
-    # To be able to include md files directly in rst files
-    # adds the mdinclude directive
-    'm2r',
+    'myst_parser',
     # Allow reference sections using its title
     'sphinx.ext.autosectionlabel',
     # better math support
     'sphinx.ext.mathjax',
+    # Add a copy button to your code blocks
+    'sphinx_copybutton',
+    # Add canvas with inner tabs (typically to write the same thing with)
+    # different languages
+    'sphinx_design',
+    # Allows you to create collapsible adminitions with the "dropdown" class
+    'sphinx_togglebutton',
 ]
 
 # Uncomment if m2r is NOT included in the extension
 # But myst_parser IS
 # To tell sphinx to look also for .md files.
-# source_suffix = ['.rst', '.md']
+source_suffix = ['.rst', '.md']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -98,7 +102,7 @@ autodoc_default_options = {
     'undoc-members': True,
     # will also generate document for private members (_ or __)
     'private_members': False,
-    'exclude-members': '__weakref__'
+    'exclude-members': '__weakref__',
 }
 
 # -- Autosummary options -----------------------------------------------
@@ -112,3 +116,14 @@ autosummary_generate = True  # Turn on sphinx.ext.autosummary
 # Otherwise:
 # :ref:`My section`
 autosectionlabel_prefix_document = True
+
+
+# -- Myst-Parser options ------------------
+myst_enable_extensions = [
+#    "colon_fence", # Enable code fences using ::: delimiters
+#    "amsmath",     # enable direct parsing of amsmath LaTeX equations
+#    "dollarmath",  # Enable parsing of dollar $ and $$ encapsulated math
+#    "tasklist",    # enable task lists with [ ] and [x]:
+#    "alert",       # Enable GitHub-style alerts (also known as callouts)
+#    "attrs_block", # Enable (among others) attributing author of quotes
+]
