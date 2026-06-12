@@ -1,6 +1,6 @@
 # PyCVI 0.1.6 release notes
 
-2026/02/13
+2026/06/12
 
 ## Python versions
 
