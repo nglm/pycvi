@@ -22,8 +22,13 @@
 # Exit code:
 # - 0 if all tested combinations pass
 # - 1 if at least one combination fails
-# ----------------------------------------------------------------------
 
+# ----------------------------------------------------------------------
+# -----------------------  What it does --------------------------------
+# Basically runs pytest in a loop, for each combination of:
+# - Python version
+# - Dependency resolution strategy
+# ----------------------------------------------------------------------
 
 # "-u" makes Bash fail on undefined variables.
 # "-o pipefail" makes a pipeline fail if any command in it fails.
