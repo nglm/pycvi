@@ -157,7 +157,7 @@ def f_cdist(
         )
     elif len(dims) == 3:
 
-        dist_kwargs_dtw = default_dtw_kwargs(dist_kwargs)
+        dist_kwargs_dtw = default_ts_distance_kwargs(dist_kwargs)
 
         # Option 1: Pairwise distances on the entire window using DTW
         dist = dtw_pairwise_distance(

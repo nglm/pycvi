@@ -114,7 +114,7 @@ def default_ts_average_kwargs(
 
     final_kwargs.update(user_kwargs)
 
-    return final_dtw_kwargs
+    return final_kwargs
 
 def default_ts_distance_kwargs(
     user_kwargs: dict = {},
