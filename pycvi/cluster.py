@@ -12,12 +12,9 @@ The main functions of this module are:
 - :func:`pycvi.cluster.get_clustering`, that converts an array of predicted label for each datapoint (sklearn type of clustering encoding) to a list of datapoints for each cluster (PyCVI type of clustering encoding)
 
 """
-import inspect
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from aeon.clustering.averaging._barycenter_averaging import (
-    elastic_barycenter_average
-)
+from aeon.clustering.averaging import elastic_barycenter_average
 from typing import List, Sequence, Union, Any, Dict, Tuple
 import time
 from ._configuration import (
@@ -35,11 +32,11 @@ def compute_center(
 
     For non time-series data, this is simply the average of all
     datapoints in the given cluster, but for time-series data and when
-    DTW is used as the distance measure, then the cluster center is
+    DTW is used as the distance measure, then the cluster center is by default
     defined as the DBA (DTW barycentric average) as defined by Petitjean
     et al [DBA]_. In this case, additional parameters for computing DTW
     can be passed in ``dist_kwargs``, as described in
-    `aeon.distances.dtw_pairwise_distance <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_.
+    `aeon.clustering.averaging.elastic_barycenter_average <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
     By default, uses ``{"window" : 0.2}``.
 
     Note that the `"N"` dimension is not included in the result.
@@ -95,21 +92,10 @@ def compute_center(
 
             dist_kwargs_dtw = default_ts_average_kwargs(dist_kwargs)
 
-            # aeon version >  0.8.1 (#1339)
-            if (
-                "init_barycenter" in f_args[0] and "method" in f_args[0]
-                and "distance" in f_args[0]
-            ):
-                center = elastic_barycenter_average(
-                    np.swapaxes(cluster, 1, 2),
-                    distance="dtw",
-                    init_barycenter="medoids",
-                    method="petitjean",
-                    **dist_kwargs_dtw,
-                    )
-            # aeon version <= 0.8.1
-            else:
-                center = elastic_barycenter_average(np.swapaxes(cluster, 1, 2))
+            center = elastic_barycenter_average(
+                np.swapaxes(cluster, 1, 2),
+                **dist_kwargs_dtw,
+                )
 
             center = np.swapaxes(center, 0, 1)
 
