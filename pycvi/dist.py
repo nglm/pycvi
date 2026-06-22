@@ -5,11 +5,11 @@ Low-level distance functions for (non-) time-series data.
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
-from aeon.distances import dtw_pairwise_distance
+from aeon.distances import pairwise_distance
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._utils import _match_dims
 from .exceptions import ShapeError
-from ._configuration import default_ts_distance_kwargs
+from .config import default_ts_distance_kwargs
 
 def reduce(
     dist: np.ndarray,
@@ -91,12 +91,17 @@ def f_pdist(
         # Option 1: Pairwise distances on the entire window using DTW
         (N_c, w_t, d) = cluster.shape
 
-        dist_kwargs_dtw = default_ts_distance_kwargs(dist_kwargs)
+        dist_kwargs_final = default_ts_distance_kwargs(dist_kwargs)
 
-        dist_square = dtw_pairwise_distance(
+        if "CALLABLE" in dist_kwargs_final:
+            distance_function = dist_kwargs_final.pop("CALLABLE")
+        else:
+            distance_function = pairwise_distance
+
+        dist_square = distance_function(
             np.swapaxes(cluster, 1, 2),
             None,
-            **dist_kwargs_dtw,
+            **dist_kwargs_final,
         )
         # and condense this matrix using squareform
         # squareform gives a square if condensed is given but gives an
@@ -157,13 +162,18 @@ def f_cdist(
         )
     elif len(dims) == 3:
 
-        dist_kwargs_dtw = default_ts_distance_kwargs(dist_kwargs)
+        dist_kwargs_final = default_ts_distance_kwargs(dist_kwargs)
+
+        if "CALLABLE" in dist_kwargs_final:
+            distance_function = dist_kwargs_final.pop("CALLABLE")
+        else:
+            distance_function = pairwise_distance
 
         # Option 1: Pairwise distances on the entire window using DTW
-        dist = dtw_pairwise_distance(
+        dist = distance_function(
             np.swapaxes(clusterA, 1, 2),
             np.swapaxes(clusterB, 1, 2),
-            **dist_kwargs_dtw,
+            **dist_kwargs_final,
         )
     else:
         msg = (

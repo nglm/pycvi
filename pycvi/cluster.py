@@ -17,8 +17,8 @@ from sklearn.preprocessing import StandardScaler
 from aeon.clustering.averaging import elastic_barycenter_average
 from typing import List, Sequence, Union, Any, Dict, Tuple
 import time
-from ._configuration import (
-    set_data_shape, get_model_parameters, default_ts_average_kwargs
+from .config import (
+    set_data_shape, _get_model_parameters, default_ts_average_kwargs
 )
 from .exceptions import ShapeError, EmptyClusterError
 
@@ -90,11 +90,11 @@ def compute_center(
             center = cluster[0]
         else:
 
-            dist_kwargs_dtw = default_ts_average_kwargs(dist_kwargs)
+            dist_kwargs_final = default_ts_average_kwargs(dist_kwargs)
 
             center = elastic_barycenter_average(
                 np.swapaxes(cluster, 1, 2),
-                **dist_kwargs_dtw,
+                **dist_kwargs_final,
                 )
 
             center = np.swapaxes(center, 0, 1)
@@ -665,7 +665,7 @@ def generate_all_clusterings(
 
         # Get clustering model parameters required by the
         # clustering model
-        model_kw, fit_predict_kw, model_class_kw = get_model_parameters(
+        model_kw, fit_predict_kw, model_class_kw = _get_model_parameters(
             model_class,
             model_kw = model_kw,
             fit_predict_kw = fit_predict_kw,
