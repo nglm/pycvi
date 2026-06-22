@@ -91,21 +91,46 @@ def get_model_parameters(
     mc_kw.update(model_class_kw)
     return m_kw, ft_kw, mc_kw
 
-def default_dtw_kwargs(
-        dtw_kwargs: dict = {},
+def default_ts_average_kwargs(
+    user_kwargs: dict = {},
 ) -> dict:
     """
-    Returns default DTW kwargs for PyCVI functions
+    Complete with default time-series kwargs for average functions
+
+    Returns
+    -------
+    dict
+        Default time-series kwargs for average functions
+    """
+
+    default_dist_kwargs = default_ts_distance_kwargs({})
+
+    final_kwargs = {
+        "distance": "dtw",
+        "init_barycenter": "medoids",
+        "method": "petitjean",
+        **default_dist_kwargs
+    }
+
+    final_kwargs.update(user_kwargs)
+
+    return final_dtw_kwargs
+
+def default_ts_distance_kwargs(
+    user_kwargs: dict = {},
+) -> dict:
+    """
+    Complete with default time-series kwargs for distances functions
 
     Returns
     -------
     dict
         Default DTW kwargs
     """
-    final_dtw_kwargs = {
+    final_kwargs = {
         "window" : 0.2,
     }
 
-    final_dtw_kwargs.update(dtw_kwargs)
+    final_kwargs.update(user_kwargs)
 
-    return final_dtw_kwargs
+    return final_kwargs

@@ -9,7 +9,7 @@ from aeon.distances import dtw_pairwise_distance
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from ._utils import _match_dims
 from .exceptions import ShapeError
-from ._configuration import default_dtw_kwargs
+from ._configuration import default_ts_distance_kwargs
 
 def reduce(
     dist: np.ndarray,
@@ -91,7 +91,7 @@ def f_pdist(
         # Option 1: Pairwise distances on the entire window using DTW
         (N_c, w_t, d) = cluster.shape
 
-        dist_kwargs_dtw = default_dtw_kwargs(dist_kwargs)
+        dist_kwargs_dtw = default_ts_distance_kwargs(dist_kwargs)
 
         dist_square = dtw_pairwise_distance(
             np.swapaxes(cluster, 1, 2),
