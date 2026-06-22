@@ -204,16 +204,6 @@ def _compute_score(
         score = score_type(X, clusters, **score_kwargs)
     else:
         # --------------------------------------------------------------
-        # Implemented CVI
-        # if score_type == "gap_statistic":
-        #     score = gap_statistic(X, clusters_data)
-        # elif score_type == "score_function":
-        #     score = score_function(X, clusters_data)
-        # elif score_type == "silhouette":
-        #     score = silhouette(X, clusters_data)
-        # elif score_type == "CH":
-        #     score = CH(X, clusters_data)
-        # --------------------------------------------------------------
         # Inertia-based scores
         if (score_type.endswith("inertia")):
             score = _compute_subscores(
@@ -226,37 +216,6 @@ def _compute_score(
                 score_type, X, clusters, "intra", f_intra,
                 dist_kwargs, score_kwargs
             )
-        # --------------------------------------------------------------
-        # Variance based scores
-        # Shouldn't be used: use inertia or distortion instead
-        # Don't confuse generalized variance and total variation
-        # Here it's generalized variance
-        elif score_type.endswith("variance"):
-            score = _compute_subscores(
-                score_type, X, clusters, "variance", _f_generalized_var,
-                dist_kwargs, score_kwargs
-            )
-        # --------------------------------------------------------------
-        # Median around mean based scores
-        elif score_type.endswith("MedDevCentroid"):
-            score = _compute_subscores(
-                score_type, X, clusters, "MedDevCentroid", _f_med_dev_centroid,
-                dist_kwargs, score_kwargs
-            )
-        # Median around mean based scores
-        elif score_type.endswith("MeanDevMed"):
-            score = _compute_subscores(
-                score_type, X, clusters, "MeanDevMed", _f_mean_dev_med,
-                dist_kwargs, score_kwargs
-            )
-        # Median around median based scores
-        # Shouldn't be used, see _f_med_dev_med
-        elif score_type.endswith("MedDevMed"):
-            score = _compute_subscores(
-                score_type, X, clusters, "MedDevMed", _f_med_dev_med,
-                dist_kwargs, score_kwargs
-            )
-        # --------------------------------------------------------------
         elif score_type.endswith("diameter"):
             score = _compute_subscores(
                 score_type, X, clusters, "diameter", f_diameter,
