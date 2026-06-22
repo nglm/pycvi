@@ -21,7 +21,7 @@ from aeon.clustering.averaging._barycenter_averaging import (
 from typing import List, Sequence, Union, Any, Dict, Tuple
 import time
 from ._configuration import (
-    set_data_shape, get_model_parameters, default_dtw_kwargs
+    set_data_shape, get_model_parameters, default_ts_average_kwargs
 )
 from .exceptions import ShapeError, EmptyClusterError
 
@@ -93,10 +93,7 @@ def compute_center(
             center = cluster[0]
         else:
 
-            dist_kwargs_dtw = default_dtw_kwargs(dist_kwargs)
-
-            # Check args of elastic_barycenter_average
-            f_args = inspect.getfullargspec(elastic_barycenter_average)
+            dist_kwargs_dtw = default_ts_average_kwargs(dist_kwargs)
 
             # aeon version >  0.8.1 (#1339)
             if (
