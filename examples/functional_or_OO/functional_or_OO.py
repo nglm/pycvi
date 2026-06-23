@@ -1,8 +1,8 @@
 import sys
 out_fname = f'./output-functional_or_OO.txt'
 fout = open(out_fname, 'wt')
-sys.stdout = fout
 sys.path.append('./examples')
+sys.stdout = fout
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler

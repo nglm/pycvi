@@ -1,8 +1,8 @@
 import sys
 out_fname = f'./output-basic_usage_TS_KMeans_Dunn.txt'
 fout = open(out_fname, 'wt')
-sys.stdout = fout
 sys.path.append('./examples')
+sys.stdout = fout
 
 from aeon.clustering import TimeSeriesKMeans
 from sklearn.preprocessing import MinMaxScaler

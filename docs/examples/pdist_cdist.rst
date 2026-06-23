@@ -8,7 +8,9 @@ Note that in the case of :func:`pycvi.dist.f_pdist`, a condensed distance matrix
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/pdist_cdist/pdist_cdist.py
-   :lines: 7-65
+   :linenos:
+   :start-after: sys.stdout = fout
+   :end-before: fout.close()
 
 .. literalinclude:: ../../examples/pdist_cdist/output-pdist_cdist.txt
    :language: text

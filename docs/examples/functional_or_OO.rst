@@ -9,7 +9,9 @@ All implemented CVIs take as mandatory input a dataset ``X`` and a clustering ``
 In addition, some CVI functions take additional optional parameters, which can be specified when using the ``__call__`` method of the corresponding CVI class via the ``cvi_kwargs`` keyword argument. Below is an example of the correspondance between the functional API (:func:`pycvi.cvi_func.silhouette`) and the object-oriented API (:class:`pycvi.cvi.Silhouette`) for the silhouette CVI, but the same principle applies to all CVIs.
 
 .. literalinclude:: ../../examples/functional_or_OO/functional_or_OO.py
-   :lines: 7-44
+   :linenos:
+   :start-after: sys.stdout = fout
+   :end-before: fout.close()
    :emphasize-lines: 30-32,36-37
 
 .. literalinclude:: ../../examples/functional_or_OO/output-functional_or_OO.txt

@@ -6,7 +6,9 @@ In this example, we integrate PyCVI into the usual clustering pipeline in order 
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/basic_usage/basic_usage.py
-   :lines: 7-61
+   :linenos:
+   :start-after: sys.stdout = fout
+   :end-before: fout.close()
 
 .. image:: ../../examples/basic_usage/basic_usage_KMeans_Silhouette.png
 

@@ -6,7 +6,9 @@ In this example, we integrate PyCVI into the usual clustering pipeline with time
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/basic_usage_time_series/basic_usage_time_series.py
-   :lines: 7-63
+   :linenos:
+   :start-after: sys.stdout = fout
+   :end-before: fout.close()
 
 .. image:: ../../examples/basic_usage_time_series/basic_usage_TS_KMeans_Dunn.png
 

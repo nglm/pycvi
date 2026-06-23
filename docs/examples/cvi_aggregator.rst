@@ -12,7 +12,9 @@ This example showcases 2 successful clusterings and clustering selections.
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/cvi_aggregator/cvi_aggregator.py
-   :lines: 7-154
+   :linenos:
+   :start-after: sys.stdout = fout
+   :end-before: fout.close()
 
 .. image:: ../../examples/cvi_aggregator/Barton_data_KMedoids-specific_cvis.png
 

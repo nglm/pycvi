@@ -6,7 +6,9 @@ In this example, we compute the variation of information between the true cluste
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/variation_information/variation_information.py
-   :lines: 7-54
+   :linenos:
+   :start-after: sys.stdout = fout
+   :end-before: fout.close()
 
 .. image:: ../../examples/variation_information/variation_information_KMedoids_xclara.png
 
