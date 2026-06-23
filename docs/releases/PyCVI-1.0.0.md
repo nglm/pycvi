@@ -12,6 +12,10 @@ This version supports Python versions 3.11 to 3.14.
 - `pycvi.dist.f_pdist`, `pycvi.dist.f_cdist` now accept custom callable.
 - `pycvi.cluster.compute_center` now allow a wider range of parameters for the elastique averaging computation.
 
+## changes
+
+- Examples are not featuring compatibility with sklearn-extra, because sklearn-extra is not maintained anymore (and becoming incompatible with everything else).
+
 ## Contributors
 
 - Natacha Galmiche (@nglm)
