@@ -24,10 +24,6 @@ from .cluster import (
 )
 from .exceptions import InvalidScoreError, InvalidKError
 
-DEFAULT_DIST_KWARGS = {
-    "metric" : 'sqeuclidean',
-}
-
 def f_intra(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
