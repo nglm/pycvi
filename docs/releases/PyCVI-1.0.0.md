@@ -1,0 +1,17 @@
+# PyCVI 1.0.0 release notes
+
+2026/06/23
+
+## Python versions
+
+This version supports Python versions 3.11 to 3.14.
+
+## New Features
+
+- `pycvi.dist.f_pdist`, `pycvi.dist.f_cdist` now accept a wide range of distance functions and parameters, both for static and time-series data, leveraging `scipy` and `aeon` packages.
+- `pycvi.dist.f_pdist`, `pycvi.dist.f_cdist` now accept custom callable.
+- `pycvi.cluster.compute_center` now allow a wider range of parameters for the elastique averaging computation.
+
+## Contributors
+
+- Natacha Galmiche (@nglm)
