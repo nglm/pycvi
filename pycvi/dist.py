@@ -120,11 +120,21 @@ def f_pdist(
         information on acceptable shapes.
     """
     dims = cluster.shape
+    # ------------------- Static data ------------------------------
     if len(dims) == 2:
-        dist = pdist(
+
+        # Case where the user provides a custom callable
+        if "CALLABLE" in dist_kwargs:
+            distance_function = dist_kwargs.pop("CALLABLE")
+        # Uses scipy.spatial.distance.pdist by default
+        else:
+            distance_function = pdist
+
+        dist = distance_function(
             cluster,
             **dist_kwargs
         )
+    # ------------------ Time series data ------------------------------
     elif len(dims) == 3:
         # Option 1: Pairwise distances on the entire window using DTW
         (N_c, w_t, d) = cluster.shape
@@ -229,12 +239,22 @@ def f_cdist(
     """
     clusterA, clusterB = _match_dims(clusterA, clusterB)
     dims = clusterA.shape
+    # ------------------- Static data ------------------------------
     if len(dims) == 2:
-        dist = cdist(
+
+        # Case where the user provides a custom callable
+        if "CALLABLE" in dist_kwargs:
+            distance_function = dist_kwargs.pop("CALLABLE")
+        # Uses scipy.spatial.distance.cdist by default
+        else:
+            distance_function = cdist
+
+        dist = distance_function(
             clusterA,
             clusterB,
             **dist_kwargs
         )
+    # ------------------ Time series data ------------------------------
     elif len(dims) == 3:
 
         dist_kwargs_final = default_ts_distance_kwargs(dist_kwargs)
