@@ -35,7 +35,6 @@ def pipeline(
     This function gives an example of typical use of CVIAggregator.
 
     In this example we assume that we are in real conditions, which
-    means that we don't have access to the true labels tions, which
     means that we don't have access to the true labels (except for the
     final figure). We then don't use the features included in the
     :mod:`pycvi.vi` module. In this function we:
@@ -57,7 +56,7 @@ def pipeline(
     # ------------------------------------------------------------------
     # ------------------ Define true clustering  -----------------------
     # ------------------------------------------------------------------
-    # From the label for each datapoint to a list ofdatapoints for each cluster.
+    # From the label for each datapoint to a list of datapoints for each cluster.
     # true clusters: List[List[int]]
     true_clusters = get_clustering(y)
     k_true = len(true_clusters)

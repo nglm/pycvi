@@ -9,11 +9,11 @@ PyCVI is a Python package specialized in internal Clustering Validity Indices (C
 
 In addition, all CVIs rely on the definition of a distance between datapoints and most of them on the notion of cluster center.
 
-For non-time-series data, the distance used is usually the euclidean distance and the cluster center is defined as the usual average. Libraries such as [scipy](https://docs.scipy.org/doc/scipy/index.html), [numpy](https://numpy.org/doc/stable/), [scikit-learn](https://scikit-learn.org/stable/index.html), etc. offer a large selection of distance measures that are compatible with all their functions.
+For non-time-series data, the distance used is usually the Euclidean distance and the cluster center is defined as the usual average. Libraries such as [scipy](https://docs.scipy.org/doc/scipy/index.html), [numpy](https://numpy.org/doc/stable/), [scikit-learn](https://scikit-learn.org/stable/index.html), etc. offer a large selection of distance measures that are compatible with all their functions.
 
 For time-series data however, the common distance used is Dynamic Time Warping (DTW) [^DTW] and the barycenter of a group of time series is then not defined as the usual mean, but as the DTW Barycentric Average (DBA)[^DBA]. Unfortunately, DTW and DBA are not compatible with the libraries mentioned above, which among other reasons, made additional machine learning libraries specialized in time series data such as [aeon](https://www.aeon-toolkit.org/en/latest/index.html), [sktime](https://www.sktime.net/en/stable/index.html) and [tslearn](https://tslearn.readthedocs.io/en/stable/) necessary.
 
-PyCVI then implements 12 state-of-the-art internal CVIs and extended them to make them compatible with DTW and DBA when using time-series data. To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/en/latest/index.html) library.
+PyCVI then implements 12 state-of-the-art internal CVIs and extends them to make them compatible with DTW and DBA when using time-series data. To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/en/latest/index.html) library.
 
 ## Documentation
 
@@ -23,12 +23,12 @@ The full documentation is available at [pycvi.readthedocs.io](https://pycvi.read
 
 - 12 internal CVIs implemented: Hartigan[^Hart], Calinski-Harabasz[^CH], GapStatistic[^Gap], Silhouette[^Sil], ScoreFunction[^SF], Maulik-Bandyopadhyay[^MB], SD[^SD], SDbw[^SDbw], Dunn[^D], Xie-Beni[^XB], XB*[^XB*] and Davies-Bouldin[^DB].
 - Compute CVI values and select the best clustering based on the results.
-- Compatible with time-series, Dynamic Time Warping (DTW) and Dynamic time warping Barycentric Average (DBA).
-Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for an easy integration into any clustering pipeline in python.
+- Compatible with time-series, Dynamic Time Warping (DTW) and Dynamic Time Warping Barycentric Average (DBA).
+- Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for easy integration into any clustering pipeline in Python.
 - Can compute the clusterings beforehand if provided with a sklearn-like clustering class.
-- Enable users to define custom CVIs.
+- Enables users to define custom CVIs.
 - Multiple CVIs can easily be combined to select the best clustering based on a majority vote.
-- Variation of Information[^VI] implemented (distances between clustering).
+- Variation of Information[^VI] implemented (distance between clusterings).
 
 ## Install
 
@@ -94,7 +94,7 @@ If you wish to run the example scripts on your own computer, please follow the i
 ## Contribute
 
 - Issue Tracker: [github.com/nglm/pycvi/issues](https://github.com/nglm/pycvi/issues).
-- Source Code: [github.com/nglm/pycvi](github.com/nglm/pycvi).
+- Source Code: [github.com/nglm/pycvi](https://github.com/nglm/pycvi).
 
 ## Support
 

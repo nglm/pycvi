@@ -11,11 +11,11 @@ clusterings, CVIs compute distances between datapoints and most of them
 also rely on the concept of cluster center.
 
 In general for static data, the distance function used to compute
-pairwise distances is usually the euclidean distance and the center of a
+pairwise distances is usually the Euclidean distance and the center of a
 group of datapoints is defined as the barycentric average. Time-series
-data however are usually compared using time-series specific distances
-such as Dynamic Time Warping (DTW) [DTW]_ and the concept of average
-non-trivial and can be for example defined using DTW Barycentric Average
+data, however, are usually compared using time-series specific distances
+such as Dynamic Time Warping (DTW) [DTW]_, and the concept of average is
+non-trivial and can, for example, be defined using DTW Barycentric Average
 (DBA) [DBA]_.
 
 PyCVI extends state-of-the-art internal CVIs to make them compatible
@@ -24,7 +24,7 @@ with time-series data as well by using DTW and DBA when necessary.
 Implementation and usage of CVIs in PyCVI
 -----------------------------------------
 
-PyCVI implements a large number of CVIs, all inhering from the base
+PyCVI implements a large number of CVIs, all inheriting from the base
 class :class:`pycvi.cvi.CVI` and they can be used with both static and
 time-series data, with exactly the same interface.
 
@@ -36,9 +36,9 @@ time-series data, with exactly the same interface.
 .. literalinclude:: ../examples/cvi_call/output-cvi_call.txt
    :language: text
 
-Once instanciated (line 35 in the example above), a CVI can be called
+Once instantiated (line 35 in the example above), a CVI can be called
 with a dataset ``X`` and a clustering ``clustering`` and a dictionary of
-additional keywords arguments available for this specific CVI, to
+additional keyword arguments available for this specific CVI, to
 compute the CVI value of this clustering (line 38 in the example above).
 
 For more details about the ``__call__`` method, common to all CVIs, see the dedicated section below.

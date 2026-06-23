@@ -5,7 +5,7 @@ Here is an example using exclusively PyCVI's :class:`pycvi.cvi.CVIAggregator` in
 
 In this example, we use non-time-series data, but the syntax would be the same for time-series data.
 
-Here we assume that we are in real conditions, which means that we don't have access to the true labels (except that we plot the true data for illustrating purpose). We then don't use the features included in the :mod:`pycvi.vi` module.
+Here we assume that we are in real conditions, which means that we don't have access to the true labels (except that we plot the true data for illustrative purposes). We then don't use the features included in the :mod:`pycvi.vi` module.
 
 This example showcases 2 successful clusterings and clustering selections.
 

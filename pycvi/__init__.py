@@ -9,7 +9,7 @@ Internal Cluster Validity Indices (CVIs), compatible with DTW and DBA.
 #
 # gap = cvi.gap_statistic(X, clusters_data)
 
-# We do that to skip the cvi file and access the functions directly)
+# We do that to skip the cvi file and access the functions directly
 from .cvi import CVIs
 
 from . import cvi
