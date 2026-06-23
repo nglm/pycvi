@@ -42,7 +42,6 @@ Repository = "https://github.com/nglm/pycvi"
 
 [project.optional-dependencies]
 examples = [
-    "scikit-learn-extra>=0.3.0",
     "matplotlib>=3.10.9",
 ]
 

@@ -1060,7 +1060,6 @@ dependencies = [
 [package.optional-dependencies]
 examples = [
     { name = "matplotlib" },
-    { name = "scikit-learn-extra" },
 ]
 
 [package.dev-dependencies]
@@ -1079,7 +1078,6 @@ dev = [
 requires-dist = [
     { name = "aeon", specifier = ">=1.4.0" },
     { name = "matplotlib", marker = "extra == 'examples'", specifier = ">=3.10.9" },
-    { name = "scikit-learn-extra", marker = "extra == 'examples'", specifier = ">=0.3.0" },
 ]
 provides-extras = ["examples"]
 
@@ -1271,22 +1269,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/60/18/4a52c635c71b536879f4b971c2cedf32c35ee78f48367885ed8025d1f7ee/scikit_learn-1.7.2-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:9656e4a53e54578ad10a434dc1f993330568cfee176dff07112b8785fb413106", size = 9426236, upload-time = "2025-09-09T08:21:22.645Z" },
     { url = "https://files.pythonhosted.org/packages/99/7e/290362f6ab582128c53445458a5befd471ed1ea37953d5bcf80604619250/scikit_learn-1.7.2-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:96dc05a854add0e50d3f47a1ef21a10a595016da5b007c7d9cd9d0bffd1fcc61", size = 9312593, upload-time = "2025-09-09T08:21:24.65Z" },
     { url = "https://files.pythonhosted.org/packages/8e/87/24f541b6d62b1794939ae6422f8023703bbf6900378b2b34e0b4384dfefd/scikit_learn-1.7.2-cp314-cp314-win_amd64.whl", hash = "sha256:bb24510ed3f9f61476181e4db51ce801e2ba37541def12dc9333b946fc7a9cf8", size = 8820007, upload-time = "2025-09-09T08:21:26.713Z" },
-]
-
-[[package]]
-name = "scikit-learn-extra"
-version = "0.3.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-    { name = "scikit-learn" },
-    { name = "scipy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1d/9a/dd90a682fe322b3f4d3bd909dc3316883223e1cbe71e15e7d729e3630d57/scikit-learn-extra-0.3.0.tar.gz", hash = "sha256:7912d43384470d77609e53819d0291967f21010e5c3a3847f9026fc02f9c7893", size = 818996, upload-time = "2023-03-27T11:23:14.477Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/86/57/0c503f598eec205b05e099fda1af2b914fd15f18754738f8f8150f533b85/scikit_learn_extra-0.3.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:8a39e141e060a61c951d9a14c72039b40bb5cd7d32a794b0b20470789d751214", size = 393571, upload-time = "2023-03-27T15:30:46.639Z" },
-    { url = "https://files.pythonhosted.org/packages/d3/72/db3106f3019cfabf2b3f0d65267edeb4d044ab53a2f311cd1592540e096f/scikit_learn_extra-0.3.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:91878f079da2d81b989c0bc3019befc7a3228fee29384065d06badc4ca60f4ec", size = 2122321, upload-time = "2023-03-27T15:30:44.271Z" },
-    { url = "https://files.pythonhosted.org/packages/22/2f/86f58cb2bd3f81bdb28555470761c27c0d62a566329aac70e8507cb744fd/scikit_learn_extra-0.3.0-cp311-cp311-win_amd64.whl", hash = "sha256:2cfadf9b6dbae0803db32cf477aff8a4ba5c15244ffd30d6312df2ef7043e16a", size = 340473, upload-time = "2023-03-27T15:30:39.766Z" },
 ]
 
 [[package]]
