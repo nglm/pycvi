@@ -6,6 +6,9 @@ from pycvi.cluster import get_clustering, compute_centers
 
 from pycvi_examples_utils import plot_centers
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 # ======================= Time series-data =============================
 
 data, labels = load_data("Trace", "ucr")
@@ -37,6 +40,7 @@ cluster_centers = compute_centers(data, clustering_true)
 
 # Condiser the cluster centers as time-series data again for plotting
 cluster_centers = [center.reshape(T, d) for center in cluster_centers]
+data = np.expand_dims(data, axis=2)
 fig = plot_centers(data, clustering_true, cluster_centers)
 fig_title = "Time-series data - Trace - Using Euclidean mean"
 fig_name = "cluster_centers_TS_without_DBA.png"
