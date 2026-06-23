@@ -30,6 +30,7 @@
 
    cluster
    compute_scores
+   config
    cvi
    cvi_func
    datasets

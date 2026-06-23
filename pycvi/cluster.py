@@ -30,16 +30,34 @@ def compute_center(
     """
     Compute the center of a cluster.
 
-    For non time-series data, this is simply the average of all
-    datapoints in the given cluster, but for time-series data and when
-    DTW is used as the distance measure, then the cluster center is by default
-    defined as the DBA (DTW barycentric average) as defined by Petitjean
-    et al [DBA]_. In this case, additional parameters for computing DTW
-    can be passed in ``dist_kwargs``, as described in
-    `aeon.clustering.averaging.elastic_barycenter_average <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
-    By default, uses ``{"window" : 0.2}``.
+    In the case of static data
+    ---------------------------
 
-    Note that the `"N"` dimension is not included in the result.
+    For non time-series data, this is simply the average of all
+    datapoints in the given cluster using the usual mean function, and
+    more precisely, calling `numpy.mean
+    <https://numpy.org/doc/stable/reference/generated/numpy.mean.html>`_.
+
+    In the case of time series data
+    --------------------------------
+
+    For time-series data the cluster center is by default defined as the
+    DBA (DTW barycentric average) as defined by Petitjean et al [DBA]_.
+    In this case, additional parameters can be passed in
+    ``dist_kwargs``, as described in
+    `aeon.clustering.averaging.elastic_barycenter_average
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
+    By default, uses
+    ``{ "distance": "dtw", "init_barycenter": "medoids", "method": "petitjean", "window" : 0.2}``
+    .
+
+    For more information about the importance of using an elastic
+    average instead of the euclidean mean for time series data, see our
+    example `Computing cluster centers
+    <https://pycvi.readthedocs.io/en/latest/examples/cluster_center.html>`_
+
+    See :func:`pycvi.config.default_ts_average_kwargs` for
+    more information about default averaging kwargs used in PyCVI.
 
     .. [DBA] F. Petitjean, A. Ketterlin, and P. Gan carski, “A global
        averaging method for dynamic time warping, with applications to
@@ -119,6 +137,40 @@ def compute_centers(
 ) -> List[np.ndarray]:
     """
     Compute the centers of all clusters.
+
+    In the case of static data
+    ---------------------------
+
+    For non time-series data, this is simply the average of all
+    datapoints in the given cluster using the usual mean function, and
+    more precisely, calling `numpy.mean
+    <https://numpy.org/doc/stable/reference/generated/numpy.mean.html>`_.
+
+    In the case of time series data
+    --------------------------------
+
+    For time-series data the cluster center is by default defined as the
+    DBA (DTW barycentric average) as defined by Petitjean et al [DBA]_.
+    In this case, additional parameters can be passed in
+    ``dist_kwargs``, as described in
+    `aeon.clustering.averaging.elastic_barycenter_average
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
+    By default, uses
+    ``{ "distance": "dtw", "init_barycenter": "medoids", "method": "petitjean", "window" : 0.2}``
+    .
+
+    For more information about the importance of using an elastic
+    average instead of the euclidean mean for time series data, see our
+    example `Computing cluster centers
+    <https://pycvi.readthedocs.io/en/latest/examples/cluster_center.html>`_
+
+    See :func:`pycvi.config.default_ts_average_kwargs` for
+    more information about default averaging kwargs used in PyCVI.
+
+    .. [DBA] F. Petitjean, A. Ketterlin, and P. Gan carski, “A global
+       averaging method for dynamic time warping, with applications to
+       clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
+       2011.
 
     Parameters
     ----------

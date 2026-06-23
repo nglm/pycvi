@@ -58,17 +58,54 @@ def f_pdist(
     """
     Pairwise distances within a group of elements.
 
+    The user can provide a custom callable together with its kwargs in
+    the ``dist_kwargs`` parameter. To provide a callable, use the key
+    ``"CALLABLE"``, otherwise the default distance function will be used,
+    which depends on the type of data (time series or static).
+
+    In the case of static data
+    ---------------------------
+
+    Calls `scipy.spatial.distance.pdist
+    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_,
+    which offers a wide range of distances and parameters, all of them
+    described in `scipy.spatial.distance.pdist
+    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_.
+
+    By default, PyCVI relies on scipy's default parameters, which means
+    that the actual distance used is the `euclidean distance
+    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.euclidean.html#scipy.spatial.distance.euclidean>`_.
+
+
+    In the case of time series data
+    --------------------------------
+
+    Calls `aeon.distances.pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.pairwise_distance.html#dtw-pairwise-distance>`_
+    which offers a wide range of distances and parameters. See
+    `aeon.distances
+    <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_
+    for an overview of the distance functions available in `aeon` as
+    well as their parameters. For each available distance function, you
+    can also use a short name as described in
+    `aeon.distances.get_pairwise_distance_function
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.get_pairwise_distance_function.html#aeon.distances.get_pairwise_distance_function>`_.
+
+    By default, PyCVI uses the following ``dist_kwargs`` value:
+    ``{"method" : "dtw", window : 0.2}``, which means that the actual
+    distance used is DTW, implemented in `aeon` in the
+    `aeon.distances.dtw_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#aeon.distances.dtw_pairwise_distance>`_
+    function. See :func:`pycvi.config.default_ts_distance_kwargs` for
+    more information about default distance kwargs used in PyCVI.
+
     Parameters
     ----------
     cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if DTW is
     used.
         A cluster of `N` datapoints.
     dist_kwargs : dict, optional
-        kwargs for `scipy.spatial.distance.pdist
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
-        , by default {}. or for `aeon.distances.dtw_pairwise_distance
-        <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_,
-        by default uses ``{"window" : 0.2}``.
+        Additional kwargs for the distance function.
 
     Returns
     -------
@@ -78,8 +115,9 @@ def f_pdist(
     Raises
     ------
     ShapeError
-        Raised if cluster doesn't have the shape ``(N, d)`` or ``(N, w,
-        d)``
+        Raised if cluster doesn't have the shape ``(N, d)`` or
+        ``(N, w, d)``. See :func:`pycvi.config.set_data_shape` for more
+        information on acceptable shapes.
     """
     dims = cluster.shape
     if len(dims) == 2:
@@ -127,6 +165,48 @@ def f_cdist(
     """
     Distances between two (groups of) elements.
 
+    The user can provide a custom callable together with its kwargs in
+    the ``dist_kwargs`` parameter. To provide a callable, use the key
+    ``"CALLABLE"``, otherwise the default distance function will be used,
+    which depends on the type of data (time series or static).
+
+    In the case of static data
+    ---------------------------
+
+    Calls `scipy.spatial.distance.cdist
+    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_,
+    which offers a wide range of distances and parameters, all of them
+    described in `scipy.spatial.distance.cdist
+    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_.
+
+    By default, PyCVI relies on scipy's default parameters, which means
+    that the actual distance used is the `euclidean distance
+    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.euclidean.html#scipy.spatial.distance.euclidean>`_.
+
+
+    In the case of time series data
+    --------------------------------
+
+    Calls `aeon.distances.pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.pairwise_distance.html#dtw-pairwise-distance>`_
+    which offers a wide range of distances and parameters. See
+    `aeon.distances
+    <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_
+    for an overview of the distance functions available in `aeon` as
+    well as their parameters. For each available distance function, you
+    can also use a short name as described in
+    `aeon.distances.get_pairwise_distance_function
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.get_pairwise_distance_function.html#aeon.distances.get_pairwise_distance_function>`_.
+
+    By default, PyCVI uses the following ``dist_kwargs`` value:
+    ``{"method" : "dtw", window : 0.2}``, which means that the actual
+    distance used
+    is DTW, implemented in `aeon` in the
+    `aeon.distances.dtw_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#aeon.distances.dtw_pairwise_distance>`_
+    function. See :func:`pycvi.config.default_ts_distance_kwargs` for
+    more information about default distance kwargs used in PyCVI.
+
     Parameters
     ----------
     clusterA : np.ndarray
@@ -134,12 +214,7 @@ def f_cdist(
     clusterB : np.ndarray
         A cluster of size `NB`.
     dist_kwargs : dict, optional
-        kwargs for `scipy.spatial.distance.pdist
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
-        , by default {}.
-        or for `aeon.distances.dtw_pairwise_distance
-        <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_,
-        by default uses ``{"window" : 0.2}``.
+        Additional kwargs for the distance function.
 
     Returns
     -------
@@ -149,8 +224,8 @@ def f_cdist(
     Raises
     ------
     ShapeError
-        Raised if `clusterA` or `clusterB` don't have the shape `(N, d)`
-        or `(N, w, d)`.
+        Raised if ``clusterA`` or ``clusterB`` don't have the shape
+        ``(N, d)`` or ``(N, w, d)``.
     """
     clusterA, clusterB = _match_dims(clusterA, clusterB)
     dims = clusterA.shape

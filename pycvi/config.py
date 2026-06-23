@@ -101,16 +101,16 @@ def default_ts_average_kwargs(
     value) will be overriden if a corresponding key-value pair is
     provided by the user:
 
-    `{ "distance": "dtw", "init_barycenter": "medoids", "method": "petitjean", "window" : 0.2, }`
+    ``{ "distance": "dtw", "init_barycenter": "medoids", "method": "petitjean", "window" : 0.2}``
 
-    If another method than `"dtw"` is used, then the default `"window"`
-    value is ignored.
+    If another method than ``"dtw"`` is used, then the default
+    ``"window"`` value is ignored.
 
     These kwargs are going to be used with the
     `aeon.clustering.averaging.elastic_barycenter_average
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_
-    function, and in addition, by default (if `"distance": "dtw"`), this
-    function calls `aeon.distances.dtw_distance
+    function, and in addition, by default (if ``"distance": "dtw"``),
+    this function calls `aeon.distances.dtw_distance
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_distance.html#aeon.distances.dtw_distance>`_.
 
     Returns
@@ -139,13 +139,13 @@ def default_ts_distance_kwargs(
     """
     Complete provided kwargs with default ones for time-series distance metrics
 
-    Add a `{"method" : "dtw", window : 0.2}` pair to the user provided
+    Adds a ``{"method" : "dtw", window : 0.2}`` pairs to the user provided
     kwargs (whose value will be overriden if a corresponding key-value
     pair is provided by the user).
 
-    If a custom callable is given (using the `"CALLABLE"` key) or if
-    another method than `"dtw"` is used, then the default kwargs are
-    simply `{}`, which means only user-specified kwargs are used.
+    If a custom callable is given (using the ``"CALLABLE"`` key) or if
+    another method than ``"dtw"`` is used, then the default kwargs are
+    simply ``{}``, which means only user-specified kwargs are used.
 
     If no custom callable is given, the function used is
     `aeon.distances.pairwise_distance
