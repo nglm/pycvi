@@ -17,6 +17,9 @@ In order to run the example scripts, extra dependencies are necessary. The insta
 
 Alternatively, you can manually install in your environment the packages that are necessary to run the example scripts (``matplotlib`` and/or ``scikit-learn-extra`` depending on the example).
 
+.. include:: ../md/warning_dependencies.md
+   :parser: myst_parser.sphinx_
+
 Utils functions
 --------------------
 
