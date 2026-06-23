@@ -10,9 +10,9 @@ In this example, we compute the variation of information between the true cluste
    :start-after: sys.stdout = fout
    :end-before: fout.close()
 
-.. image:: ../../examples/variation_information/variation_information_KMedoids_xclara.png
+.. image:: ../../examples/variation_information/variation_information_KMeans_xclara.png
 
-.. image:: ../../examples/variation_information/variation_information_KMedoids_zelnik1.png
+.. image:: ../../examples/variation_information/variation_information_KMeans_zelnik1.png
 
-.. literalinclude:: ../../examples/variation_information/output-variation_information_KMedoids.txt
+.. literalinclude:: ../../examples/variation_information/output-variation_information_KMeans.txt
    :language: text

@@ -8,7 +8,6 @@ import numpy as np
 import time
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
-from sklearn_extra.cluster import KMedoids
 from aeon.clustering import TimeSeriesKMeans
 
 from pycvi.cluster import generate_all_clusterings, get_clustering
@@ -215,11 +214,11 @@ pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 
 DTW = False
 
-model_class = KMedoids
+model_class = KMeans
 model_kw = {}
 scaler = StandardScaler()
-fig_title = "Time-series data without DTW with KMedoids"
-fig_name = "UCR_data_no_DTW_KMedoids"
+fig_title = "Time-series data without DTW with KMeans"
+fig_name = "UCR_data_no_DTW_KMeans"
 
 pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 

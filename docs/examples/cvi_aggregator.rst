@@ -16,7 +16,7 @@ This example showcases 2 successful clusterings and clustering selections.
    :start-after: sys.stdout = fout
    :end-before: fout.close()
 
-.. image:: ../../examples/cvi_aggregator/Barton_data_KMedoids-specific_cvis.png
+.. image:: ../../examples/cvi_aggregator/Barton_data_KMeans-specific_cvis.png
 
 .. image:: ../../examples/cvi_aggregator/Barton_data_AgglomerativeClustering_Single-all_cvis.png
 

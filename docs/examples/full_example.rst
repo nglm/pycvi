@@ -16,7 +16,7 @@ In this example, we use time-series data and non-time-series data. In addition w
 
 .. image:: ../../examples/full_example/Barton_data_AgglomerativeClustering_Single.png
 
-.. image:: ../../examples/full_example/UCR_data_no_DTW_KMedoids.png
+.. image:: ../../examples/full_example/UCR_data_no_DTW_KMeans.png
 
 .. image:: ../../examples/full_example/UCR_data_DTW_TimeSeriesKMeans.png
 
