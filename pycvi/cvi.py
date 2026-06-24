@@ -14,12 +14,13 @@ In general for static data, the distance function used to compute
 pairwise distances is usually the Euclidean distance and the center of a
 group of datapoints is defined as the barycentric average. Time-series
 data, however, are usually compared using time-series specific distances
-such as Dynamic Time Warping (DTW) [DTW]_, and the concept of average is
+such as Dynamic Time Warping (DTW) [DTW]_ or Move-Split-Merge (MSM) [MSM]_, and the concept of average is
 non-trivial and can, for example, be defined using DTW Barycentric Average
-(DBA) [DBA]_.
+(DBA) [DBA]_ or MBA (MSM DTW barycentric average) [MBA]_.
 
 PyCVI extends state-of-the-art internal CVIs to make them compatible
-with time-series data as well by using DTW and DBA when necessary.
+with time-series data as well by using for example DTW or MSM and DBA or
+MBA when necessary.
 
 Implementation and usage of CVIs in PyCVI
 -----------------------------------------
@@ -62,6 +63,13 @@ look at the examples in this documentation, notably
    averaging method for dynamic time warping, with applications to
    clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
    2011.
+.. [MSM] Stefan, Alexandra et al. “The Move-Split-Merge Metric for Time
+   Series.” IEEE Transactions on Knowledge and Data Engineering 25
+   (2013): 1425-1438.
+.. [MBA] Christopher Holder, David Guijo-Rubio, and Anthony Bagnall.
+   Barycentre averaging for the move-split-merge time series distance
+   measure. 15th International Joint Conference on Knowledge Discovery,
+   Knowledge Engineering and Knowledge Management (2023)
 .. [Hartigan] D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
    Biometrics, vol. 31, p. 793, sep 1975.
 .. [CH] T. Calinski and J. Harabasz, “A dendrite method for cluster
@@ -215,13 +223,16 @@ class CVI():
             distance function used to compute pairwise distances between
             datapoints.
 
-            - If the dataset ``X`` is time-series data and if DTW is
-              used, then the ``dist_kwargs`` can include parameters such
-              as ``window`` or ``itakura_max_slope``. See
-              `aeon.distances.dtw_pairwise_distance <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_
-              for more information.
+            - If the dataset ``X`` is time-series data and if
+              ``ts_dist=True``, then the ``dist_kwargs`` can include
+              parameters such as ``window`` or ``itakura_max_slope`` if
+              for example DTW (see `aeon.distances.dtw_pairwise_distance
+              <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_)
+              or MSM are used (see `aeon.distances.msm_pairwise_distance
+              <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.msm_pairwise_distance.html#msm-pairwise-distance>`_),
             - Otherwise, the distance function used is based on
-              `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
+              `scipy.spatial.distance.pdist
+              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
               and accepts the same parameters as this function.
 
         Returns

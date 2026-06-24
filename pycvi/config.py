@@ -97,23 +97,22 @@ def default_ts_average_kwargs(
     user_kwargs: dict = {},
 ) -> dict:
     """
-    Complete provided kwargs with default ones for time-series average functions
+    Complete provided kwargs with default ones for time-series average
+    functions
 
-    Add the following pairs to the user provided kwargs (whose
-    value) will be overriden if a corresponding key-value pair is
-    provided by the user:
+    Add the following pairs to the user provided kwargs (whose value)
+    will be overriden if a corresponding key-value pair is provided by
+    the user:
 
-    ``{ "distance": "dtw", "init_barycenter": "medoids", "method": "petitjean", "window" : 0.2}``
-
-    If another method than ``"dtw"`` is used, then the default
-    ``"window"`` value is ignored.
+    ``{ "distance": "msm", "init_barycenter": "medoids", "method":
+    "petitjean"``
 
     These kwargs are going to be used with the
     `aeon.clustering.averaging.elastic_barycenter_average
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_
-    function, and in addition, by default (if ``"distance": "dtw"``),
-    this function calls `aeon.distances.dtw_distance
-    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_distance.html#aeon.distances.dtw_distance>`_.
+    function, and in addition, by default (if ``"distance": "msm"``),
+    this function calls `aeon.distances.msm_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.msm_distance.html#aeon.distances.msm_distance>`_.
 
     Returns
     -------
@@ -122,14 +121,11 @@ def default_ts_average_kwargs(
     """
 
     final_kwargs = {
-        "distance": "dtw",
+        "distance": "msm",
         "init_barycenter": "medoids",
         "method": "petitjean",
-        "window" : 0.2,
     }
 
-    if ("distance" in user_kwargs) and (user_kwargs["distance"] != "dtw"):
-        final_kwargs.pop("window")
 
     final_kwargs.update(user_kwargs)
 
@@ -141,12 +137,12 @@ def default_ts_distance_kwargs(
     """
     Complete provided kwargs with default ones for time-series distance metrics
 
-    Adds a ``{"method" : "dtw", window : 0.2}`` pairs to the user provided
+    Adds a ``{"method" : "msm"}`` pair to the user provided
     kwargs (whose value will be overriden if a corresponding key-value
     pair is provided by the user).
 
     If a custom callable is given (using the ``"CALLABLE"`` key) or if
-    another method than ``"dtw"`` is used, then the default kwargs are
+    another method than ``"msm"`` is used, then the default kwargs are
     simply ``{}``, which means only user-specified kwargs are used.
 
     If no custom callable is given, the function used is
@@ -156,17 +152,16 @@ def default_ts_distance_kwargs(
     Returns
     -------
     dict
-        Default DTW kwargs
+        Default Time-Series distance kwargs
     """
     if (
         ("CALLABLE" in user_kwargs)
-        or ("method" in user_kwargs and user_kwargs["method"] != "dtw")
+        or ("method" in user_kwargs and user_kwargs["method"] != "msm")
     ):
         final_kwargs = {}
     else:
         final_kwargs = {
-            "method" : "dtw",
-            "window" : 0.2,
+            "method" : "msm",
         }
 
     final_kwargs.update(user_kwargs)

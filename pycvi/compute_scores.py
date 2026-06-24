@@ -33,8 +33,9 @@ def f_intra(
 
     Parameters
     ----------
-    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW.
-        A cluster of size `N`.
+    cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if
+    ``ts_dist=True``.
+        A cluster of size ``N``.
     dist_kwargs : dict, optional
         kwargs for
         `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
@@ -58,8 +59,9 @@ def f_inertia(
 
     Parameters
     ----------
-    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW.
-        A cluster of size `N`.
+    cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if
+    ``ts_dist=True``.
+        A cluster of size ``N``.
     dist_kwargs : dict, optional
         kwargs for
         `scipy.spatial.distance.cdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_
@@ -83,8 +85,9 @@ def f_diameter(
 
     Parameters
     ----------
-    cluster : np.ndarray, shape `(N, d)` or `(N, w, d)` if DTW.
-        A cluster of size `N`.
+    cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if
+    ``ts_dist=True``.
+        A cluster of size ``N``.
     dist_kwargs : dict, optional
         kwargs for
         `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
@@ -231,7 +234,7 @@ def compute_all_scores(
     clusterings: List[Dict[int, List[List[int]]]],
     transformer: callable = None,
     scaler = StandardScaler(),
-    DTW: bool = True,
+    ts_dist: bool = True,
     time_window: int = None,
     N_zero: int = 10,
     zero_type: str = "bounds",
@@ -256,9 +259,9 @@ def compute_all_scores(
         Original data. Acceptable input shapes and their corresponding
         output shapes in the PyCVI package:
 
-        - `(N,)` -> `(N, 1, 1)`
-        - `(N, d)` -> `(N, 1, d)`
-        - `(N, T, d)` -> `(N, T, d)`
+        - ``(N,)`` -> ``(N, 1, 1)``
+        - ``(N, d)`` -> ``(N, 1, d)``
+        - ``(N, T, d)`` -> ``(N, T, d)``
     clusterings : List[Dict[int, List[List[int]]]]
         All clusterings for the given range on the number of clusters
         and for the potential sliding windows if applicable.
@@ -276,8 +279,8 @@ def compute_all_scores(
         series data (i.e. :math:`T > 1`), all the time steps of all
         samples of a given feature are aggregated before fitting the
         scaler. If None, no scaling is applied on the data.
-    DTW : bool, optional
-        Determines if DTW should be used as the distance measure
+    ts_dist : bool, optional
+        Determines if ts_dist should be used as the distance measure
         (concerns only time series data), by default True.
     time_window : int, optional
         Length of the sliding window (concerns only time-series data),
@@ -339,15 +342,15 @@ def compute_all_scores(
         wind = None
 
     # list of T (if sliding window) or 1 array(s) of shape:
-    # (N, T|w_t, d) if DTW
-    # (N, (T|w_t)*d) if not DTW
+    # (N, T|w_t, d) if ts_dist
+    # (N, (T|w_t)*d) if not ts_dist
     data_clus = prepare_data(
-        data_copy, DTW=DTW, window=wind, transformer=transformer,
+        data_copy, ts_dist=ts_dist, window=wind, transformer=transformer,
         scaler=scaler
     )
     l_data_clus0 = [
         prepare_data(
-            data0, DTW=DTW, window=wind, transformer=transformer,
+            data0, ts_dist=ts_dist, window=wind, transformer=transformer,
             scaler=scaler
         ) for data0 in l_data0
     ]

@@ -42,13 +42,13 @@ def compute_center(
     --------------------------------
 
     For time-series data the cluster center is by default defined as the
-    DBA (DTW barycentric average) as defined by Petitjean et al [DBA]_.
+    MBA (MSM DTW barycentric average [DBA]_) as defined by Holder et al. [MBA]_.
     In this case, additional parameters can be passed in
     ``dist_kwargs``, as described in
     `aeon.clustering.averaging.elastic_barycenter_average
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
     By default, uses
-    ``{ "distance": "dtw", "init_barycenter": "medoids", "method": "petitjean", "window" : 0.2}``
+    ``{ "distance": "msm", "init_barycenter": "medoids", "method": "petitjean"}``
     .
 
     For more information about the importance of using an elastic
@@ -63,14 +63,20 @@ def compute_center(
        averaging method for dynamic time warping, with applications to
        clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
        2011.
+    .. [MBA] Christopher Holder, David Guijo-Rubio, and Anthony Bagnall.
+       Barycentre averaging for the move-split-merge time series
+       distance measure. 15th International Joint Conference on
+       Knowledge Discovery, Knowledge Engineering and Knowledge
+       Management (2023)
 
     Parameters
     ----------
-    cluster : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)`` if DTW
-    is used.
+    cluster : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)`` if
+    ``ts_dist=True``.
         Data values in this cluster.
     keepdims : bool, optional
-        Whether to keep the dimension ``N`` of the input cluster, by default False.
+        Whether to keep the dimension ``N`` of the input cluster, by
+        default False.
     dist_kwargs : dict, optional
         Additional parameters for the distance function used to
         compute the cluster center, by default {}.
@@ -82,8 +88,9 @@ def compute_center(
         The cluster center.
 
         - If ``keepdims=True`` then the shape is ``(1, d*w_t)`` or ``(1,
-          w_t, d)`` if DTW is used.
-        - If ``keepdims=False`` then the shape is ``(d*w_t)`` or ``(w_t, d)`` if DTW is used.
+          w_t, d)`` if ``ts_dist=True``.
+        - If ``keepdims=False`` then the shape is ``(d*w_t)`` or ``(w_t,
+          d)`` if ``ts_dist=True``.
 
     Raises
     ------
@@ -99,7 +106,7 @@ def compute_center(
         #TODO: allow for different types of center
         center = np.mean(cluster, axis=0).reshape(-1)
 
-    # DTW case
+    # Time series case
     # center shape: (w_t, d)
     elif len(dims) == 3:
 
@@ -156,8 +163,8 @@ def compute_centers(
     `aeon.clustering.averaging.elastic_barycenter_average
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
     By default, uses
-    ``{ "distance": "dtw", "init_barycenter": "medoids", "method": "petitjean", "window" : 0.2}``
-    .
+    ``{ "distance": "msm", "init_barycenter": "medoids", "method":
+    "petitjean"}``.
 
     For more information about the importance of using an elastic
     average instead of the euclidean mean for time series data, see our
@@ -174,7 +181,7 @@ def compute_centers(
 
     Parameters
     ----------
-    X : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`
+    X : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)``
         The original data.
     clusters : List[List[int]]
         A list of clusters with indices.
@@ -191,8 +198,9 @@ def compute_centers(
         A list of cluster centers. For each center:
 
         - If ``keepdims=True`` then the shape is ``(1, d*w_t)`` or ``(1,
-          w_t, d)`` if DTW is used.
-        - If ``keepdims=False`` then the shape is ``(d*w_t)`` or ``(w_t, d)`` if DTW is used.
+          w_t, d)`` if ``ts_dist=True``.
+        - If ``keepdims=False`` then the shape is ``(d*w_t)`` or ``(w_t,
+          d)`` if ``ts_dist=True``.
     """
 
     if len(clusters) == 0:
@@ -211,10 +219,10 @@ def generate_uniform(
     rng = np.random.default_rng(611),
 ) -> List[np.ndarray]:
     """
-    Generate `N_zero` samples from a uniform distribution based on data.
+    Generate ``N_zero`` samples from a uniform distribution based on data.
 
-    `data` and each element of the returned `l_data0` have the same
-    shape, either `(N, T, d)` or `(N, T*d)` if DTW is used.
+    ``data`` and each element of the returned ``l_data0`` have the same
+    shape, either ``(N, T, d)`` or ``(N, T*d)`` if ``ts_dist=True``.
 
     Parameters
     ----------
@@ -223,11 +231,11 @@ def generate_uniform(
     zero_type : str, optional
         Determines how to parametrize the uniform
         distribution to sample from in the case :math:`k=0`, by default
-        "bounds". Possible options:
+        ``"bounds"``. Possible options:
 
-        - `"variance"`: the uniform distribution is defined such that it
-          has the same variance and mean as the original data.
-        - `"bounds"`: the uniform distribution is defined such that it
+        - ``"variance"``: the uniform distribution is defined such that
+          it has the same variance and mean as the original data.
+        - ``"bounds"``: the uniform distribution is defined such that it
           has the same bounds as the original data.
 
     N_zero : int, optional
@@ -244,7 +252,7 @@ def generate_uniform(
     """
     # Determines how to measure the score of the 0th component
     # TODO: We should use a mean and a var that makes sense in the
-    # case of DTW
+    # case of Time series
     if zero_type == 'variance':
         # Get the parameters of the uniform distrib using mean and variance
         # mean = (1/2)*(a+b)
@@ -275,7 +283,7 @@ def generate_uniform(
 
 def prepare_data(
     X: np.ndarray,
-    DTW: bool = False,
+    ts_dist: bool = False,
     window: dict = None,
     transformer: callable = None,
     scaler = StandardScaler(),
@@ -286,42 +294,44 @@ def prepare_data(
     Scaler has to be fit beforehand on the original data (even for the
     case :math:`k=0`).
 
-    X_clus is:
+    ``X_clus`` is:
 
-    - a list of :math:`T` `(N, w_t, d)` arrays if sliding window and DTW
-      was used
-    - a list of :math:`T` `(N, w_t*d)` arrays if sliding window was used
-      but not DTW
-    - a list of :math:`1` `(N, T, d)` array  if DTW is used but not
-      sliding window
-    - a list of :math:`1` `(N, T*d)` array if DTW and sliding window
-      were not used
+    - a list of :math:`T` ``(N, w_t, d)`` arrays if sliding window and
+      ``ts_dist=True``
+    - a list of :math:`T` ``(N, w_t*d)`` arrays if sliding window was
+      used but ``ts_dist=False``
+    - a list of :math:`1` ``(N, T, d)`` array  if ``ts_dist=True`` but
+      sliding window was not used
+    - a list of :math:`1` ``(N, T*d)`` array if ``ts_dist=False`` and
+      sliding window was not used
 
     This function is notably called in
     :func:`pycvi.cluster.generate_all_clusterings`.
 
     Parameters
     ----------
-    X : np.ndarray, shape `(N, T, d)`
+    X : np.ndarray, shape ``(N, T, d)``
         Original data.
-    DTW : bool, optional
-        Determines whether DTW should be the distance used on the data
-        (concerns only time series data). If so, the time dimension is
-        kept, otherwise it is "merged" with the feature dimension. By
-        default, `False`.
+    ts_dist : bool, optional
+        Determines whether a time series distance should be used on the
+        data (concerns only time series data). If so, the time dimension
+        is kept, otherwise it is "merged" with the feature dimension. By
+        default, ``False``.
     window : dict, optional
         Information related to the sliding windows of time-series. By
-        default `None`, which means that no sliding window is done on
+        default ``None``, which means that no sliding window is done on
         the data. For more information, see
         :func:`pycvi.cluster.sliding_window`.
     transformer : callable, optional
-        A potential additional preprocessing step, by default None. If
-        None, no transformation is applied on the data
+        A potential additional preprocessing step, by default ``None``. If
+        ``None``, no transformation is applied on the data
     scaler : A sklearn-like scaler model, optional
-        A data scaler, by default StandardScaler(). In the case of time
-        series data (i.e. :math:`T > 1`), all the time steps of all
-        samples of a given feature are aggregated before fitting the
-        scaler. If None, no scaling is applied on the data.
+        A data scaler, by default `StandardScaler()
+        <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_.
+        In the case of time series data (i.e. :math:`T > 1`), all the
+        time steps of all samples of a given feature are aggregated
+        before fitting the scaler. If ``None``, no scaling is applied on
+        the data.
 
     Returns
     -------
@@ -347,7 +357,7 @@ def prepare_data(
         for t in range(T):
             ind = window["origin"][t]
             extracted_window = X_trans[:,ind,:]
-            if DTW:
+            if ts_dist:
                 # List of T (N, w_t, d) arrays
                 X_clus.append(extracted_window)
             else:
@@ -355,7 +365,7 @@ def prepare_data(
                 X_clus.append(extracted_window.reshape(N, -1))
     # Otherwise we return an array
     else:
-        if DTW:
+        if ts_dist:
             # List of one array of shape (N, T, d)
             X_clus = [X_trans]
         else:
@@ -363,10 +373,10 @@ def prepare_data(
             X_clus = [X_trans.reshape(N, -1)]
 
     # X_clus is:
-    # - a list of T (N, w_t, d) arrays if sliding window and DTW was used
-    # - a list of T (N, w_t*d) arrays if sliding window was used but not DTW
-    # - a list of 1 (N, T, d) array  if DTW is used but not sliding window
-    # - a list of 1 (N, T*d) array if DTW and sliding window were not used
+    # - a list of T (N, w_t, d) arrays if sliding window and ts_dist
+    # - a list of T (N, w_t*d) arrays if sliding window but not ts_dist
+    # - a list of 1 (N, T, d) array  if ts_dist but not sliding window
+    # - a list of 1 (N, T*d) array if ts_dist and sliding window were not used
     return X_clus
 
 def sliding_window(T: int, w: int) -> dict:
@@ -579,7 +589,7 @@ def generate_all_clusterings(
     data: np.ndarray,
     model_class,
     n_clusters_range: Sequence = None,
-    DTW: bool = True,
+    ts_dist: bool = True,
     time_window: int = None,
     transformer: callable = None,
     scaler = StandardScaler(),
@@ -627,9 +637,9 @@ def generate_all_clusterings(
     n_clusters_range : Sequence, optional
         Assumptions on the number of clusters to try out, by default
         None. If None, `n_clusters_range=range(N+1)`.
-    DTW : bool, optional
-        Determines if DTW should be used as the distance measure
-        (concerns only time series data), by default True.
+    ts_dist : bool, optional
+        Determines if a proper time series distance should be used
+        (concerns only time series data), by default ``True``.
     time_window : int, optional
         Length of the sliding window (concerns only time-series data),
         by default None. If None, no sliding window is used, and the
@@ -693,10 +703,10 @@ def generate_all_clusterings(
         return_list = False or return_list
 
     # list of T (if sliding window) or 1 array(s) of shape:
-    # (N, T|w_t, d) if DTW
-    # (N, (T|w_t)*d) if not DTW
+    # (N, T|w_t, d) if ts_dist
+    # (N, (T|w_t)*d) if not ts_dist
     data_clus = prepare_data(
-        data_copy, DTW=DTW, window=wind, transformer=transformer,
+        data_copy, ts_dist=ts_dist, window=wind, transformer=transformer,
         scaler=scaler
     )
     n_windows = len(data_clus)

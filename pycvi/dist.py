@@ -81,7 +81,7 @@ def f_pdist(
     --------------------------------
 
     Calls `aeon.distances.pairwise_distance
-    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.pairwise_distance.html#dtw-pairwise-distance>`_
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.pairwise_distance.html>`_
     which offers a wide range of distances and parameters. See
     `aeon.distances
     <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_
@@ -92,18 +92,17 @@ def f_pdist(
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.get_pairwise_distance_function.html#aeon.distances.get_pairwise_distance_function>`_.
 
     By default, PyCVI uses the following ``dist_kwargs`` value:
-    ``{"method" : "dtw", window : 0.2}``, which means that the actual
-    distance used is DTW, implemented in `aeon` in the
-    `aeon.distances.dtw_pairwise_distance
-    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#aeon.distances.dtw_pairwise_distance>`_
+    ``{"method" : "msm"}``, which means that the actual distance used is
+    MSM, implemented in `aeon` in the
+    `aeon.distances.msm_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.msm_pairwise_distance.html#aeon.distances.msm_pairwise_distance>`_
     function. See :func:`pycvi.config.default_ts_distance_kwargs` for
     more information about default distance kwargs used in PyCVI.
 
     Parameters
     ----------
-    cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if DTW is
-    used.
-        A cluster of `N` datapoints.
+    cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if ``ts_dist=True``.
+        A cluster of ``N`` datapoints.
     dist_kwargs : dict, optional
         Additional kwargs for the distance function.
 
@@ -136,7 +135,7 @@ def f_pdist(
         )
     # ------------------ Time series data ------------------------------
     elif len(dims) == 3:
-        # Option 1: Pairwise distances on the entire window using DTW
+        # Option 1: Pairwise distances on the entire window using aeon
         (N_c, w_t, d) = cluster.shape
 
         dist_kwargs_final = default_ts_distance_kwargs(dist_kwargs)
@@ -198,7 +197,7 @@ def f_cdist(
     --------------------------------
 
     Calls `aeon.distances.pairwise_distance
-    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.pairwise_distance.html#dtw-pairwise-distance>`_
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.pairwise_distance.html>`_
     which offers a wide range of distances and parameters. See
     `aeon.distances
     <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_
@@ -209,11 +208,10 @@ def f_cdist(
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.get_pairwise_distance_function.html#aeon.distances.get_pairwise_distance_function>`_.
 
     By default, PyCVI uses the following ``dist_kwargs`` value:
-    ``{"method" : "dtw", window : 0.2}``, which means that the actual
-    distance used
-    is DTW, implemented in `aeon` in the
-    `aeon.distances.dtw_pairwise_distance
-    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#aeon.distances.dtw_pairwise_distance>`_
+    ``{"method" : "msm"}``, which means that the actual distance used is
+    MSM, implemented in `aeon` in the
+    `aeon.distances.msm_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.msm_pairwise_distance.html#aeon.distances.msm_pairwise_distance>`_
     function. See :func:`pycvi.config.default_ts_distance_kwargs` for
     more information about default distance kwargs used in PyCVI.
 
@@ -264,7 +262,7 @@ def f_cdist(
         else:
             distance_function = pairwise_distance
 
-        # Option 1: Pairwise distances on the entire window using DTW
+        # Option 1: Pairwise distances on the entire window using aeon
         dist = distance_function(
             np.swapaxes(clusterA, 1, 2),
             np.swapaxes(clusterB, 1, 2),

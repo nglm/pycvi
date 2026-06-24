@@ -30,7 +30,7 @@ def _clusters_from_uniform(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     n_clusters : int
         Number of clusters.
 
@@ -42,11 +42,11 @@ def _clusters_from_uniform(
     Raises
     ------
     ShapeError
-        If `X` does not have shape (N, T, d) or (N, T*d).
+        If ``X`` does not have shape ``(N, T, d)`` or ``(N, T*d)``.
     """
     N = len(X)
 
-    # DTW case
+    # Time series case
     if len(X.shape) == 3:
         model = TimeSeriesKMeans(n_clusters=n_clusters)
     elif len(X.shape) == 2:
@@ -75,7 +75,7 @@ def _compute_Wk(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
@@ -843,7 +843,7 @@ def _scat(
     N = len(X)
     k = len(clusters)
     # Note that the use of np.linalg.norm is possible here, regardless
-    # of whether DTW and/or time series are used because _var always
+    # of whether ts_dist and/or time series are used because _var always
     # return a vector of shape (d,)
     total_var = np.linalg.norm(_var(X, dist_kwargs=dist_kwargs))
 

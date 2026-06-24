@@ -30,7 +30,7 @@ def test_prepare_data():
     """
     Test shapes of the output
 
-    Test with/without DTW/sliding window
+    Test with/without ts_dist/sliding window
     """
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
@@ -38,14 +38,14 @@ def test_prepare_data():
         scaler = StandardScaler().fit(data.reshape(N*T, d))
         l_w = [1, T//2, T]
 
-        # Using DTW and window
+        # Using ts_dist and window
         # data_clus is a list of T (N, w_t, d) arrays
-        DTW = True
+        ts_dist = True
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=DTW, window=window, transformer=None,
+                ts_dist=ts_dist, window=window, transformer=None,
                 scaler=scaler,
             )
 
@@ -58,24 +58,24 @@ def test_prepare_data():
             for t in range(T):
                 assert data_clus[t].shape == exp_shape[t]
 
-        # Using DTW but not window
+        # Using ts_dist but not window
         # data_clus is a list of 1 (N, T, d) array
         data_clus = prepare_data(
             data,
-            DTW=DTW, window=None, transformer=None,
+            ts_dist=ts_dist, window=None, transformer=None,
             scaler=scaler,
         )
         assert len(data_clus) == 1
         assert data_clus[0].shape == (N, T, d)
 
-        # Not using DTW but using window
+        # Not using ts_dist but using window
         # data_clus is a list of T (N, w_t*d) arrays
-        DTW = False
+        ts_dist = False
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=DTW, window=window, transformer=None,
+                ts_dist=ts_dist, window=window, transformer=None,
                 scaler=None,
             )
 
@@ -88,11 +88,11 @@ def test_prepare_data():
             for t in range(T):
                 assert data_clus[t].shape == exp_shape[t]
 
-        # Not using DTW nor window
+        # Not using ts_dist nor window
         # data_clus is a list of 1 (N, T*d) array
         data_clus = prepare_data(
             data,
-            DTW=DTW, window=None, transformer=None,
+            ts_dist=ts_dist, window=None, transformer=None,
             scaler=None,
         )
         assert len(data_clus) == 1
@@ -150,13 +150,13 @@ def test__generate_clustering():
     """
     Test shape and type of output of _generate_clustering
 
-    Test with/without DTW/sliding window
+    Test with/without ts_dist/sliding window
     """
     model_kw = {
         "n_clusters": 2
     }
     k = 2
-    model_DTW = TimeSeriesKMeans
+    model_TS = TimeSeriesKMeans
     model = KMeans
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
@@ -164,14 +164,14 @@ def test__generate_clustering():
         scaler = StandardScaler().fit(data.reshape(N*T, d))
         l_w = [1, T//2, T]
 
-        # Using DTW and window
+        # Using ts_dist and window
         # data_clus is a list of T (N, w_t, d) arrays
-        DTW = True
+        ts_dist = True
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=DTW, window=window, transformer=None,
+                ts_dist=ts_dist, window=window, transformer=None,
                 scaler=scaler,
             )
             fit_predict_kw = {
@@ -179,7 +179,7 @@ def test__generate_clustering():
             }
 
             clusters = _generate_clustering(
-                model_class=model_DTW, model_kw=model_kw,
+                model_class=model_TS, model_kw=model_kw,
                 fit_predict_kw=fit_predict_kw,
             )
 
@@ -190,11 +190,11 @@ def test__generate_clustering():
             assert (type(clusters[0]) == list)
             assert (type(clusters[0][0]) == int)
 
-        # Using DTW but not window
+        # Using ts_dist but not window
         # data_clus is a list of 1 (N, T, d) array
         data_clus = prepare_data(
             data,
-            DTW=DTW, window=None, transformer=None,
+            ts_dist=ts_dist, window=None, transformer=None,
             scaler=scaler,
         )
         fit_predict_kw = {
@@ -202,7 +202,7 @@ def test__generate_clustering():
         }
 
         clusters = _generate_clustering(
-            model_class=model_DTW, model_kw=model_kw,
+            model_class=model_TS, model_kw=model_kw,
             fit_predict_kw=fit_predict_kw,
         )
 
@@ -213,14 +213,14 @@ def test__generate_clustering():
         assert (type(clusters[0]) == list)
         assert (type(clusters[0][0]) == int)
 
-        # Not using DTW but using window
+        # Not using ts_dist but using window
         # data_clus is a list of T (N, w_t*d) arrays
-        DTW = False
+        ts_dist = False
         for w in l_w:
             window = sliding_window(T, w)
             data_clus = prepare_data(
                 data,
-                DTW=DTW, window=window, transformer=None,
+                ts_dist=ts_dist, window=window, transformer=None,
                 scaler=scaler,
             )
             fit_predict_kw = {
@@ -239,11 +239,11 @@ def test__generate_clustering():
             assert (type(clusters[0]) == list)
             assert (type(clusters[0][0]) == int)
 
-        # Not using DTW nor window
+        # Not using ts_dist nor window
         # data_clus is a list of 1 (N, T*d) array
         data_clus = prepare_data(
             data,
-            DTW=DTW, window=None, transformer=None,
+            ts_dist=ts_dist, window=None, transformer=None,
             scaler=scaler,
         )
         fit_predict_kw = {
@@ -266,21 +266,21 @@ def test_generate_all_clusterings():
     """
     Test shape and type of output of generate_all_clusterings
 
-    Test with/without DTW/sliding window
+    Test with/without ts_dist/sliding window
     """
-    model_DTW = TimeSeriesKMeans
+    model_TS = TimeSeriesKMeans
     model = KMeans
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         l_w = [1, T//2, T]
 
-        # Using DTW and window
+        # Using ts_dist and window
         # data_clus is a list of T (N, w_t, d) arrays
         for w in l_w:
             clusterings_t_k = generate_all_clusterings(
-                data, model_DTW,
-                DTW=True, time_window=w, transformer=None,
+                data, model_TS,
+                ts_dist=True, time_window=w, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -302,11 +302,11 @@ def test_generate_all_clusterings():
             assert (type(clusterings_t_k[0][0][0]) == list)
             assert (type(clusterings_t_k[0][0][0][0]) == int)
 
-        # Using DTW but not window
+        # Using ts_dist but not window
         # data_clus is a list of 1 (N, T, d) array
         clusterings_t_k = generate_all_clusterings(
-                data, model_DTW,
-                DTW=True, time_window=None, transformer=None,
+                data, model_TS,
+                ts_dist=True, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -326,12 +326,12 @@ def test_generate_all_clusterings():
         assert (type(clusterings_t_k[0][0]) == list)
         assert (type(clusterings_t_k[0][0][0]) == int)
 
-        # Not using DTW but using window
+        # Not using ts_dist but using window
         # data_clus is a list of T (N, w_t*d) arrays
         for w in l_w:
             clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=False, time_window=w, transformer=None,
+                ts_dist=False, time_window=w, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -353,11 +353,11 @@ def test_generate_all_clusterings():
             assert (type(clusterings_t_k[0][0][0]) == list)
             assert (type(clusterings_t_k[0][0][0][0]) == int)
 
-        # Not using DTW nor window but forcing output to be list
+        # Not using ts_dist nor window but forcing output to be list
         # data_clus is a list of 1 (N, T*d) array
         clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=False, time_window=None, transformer=None,
+                ts_dist=False, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={},
                 return_list=True,

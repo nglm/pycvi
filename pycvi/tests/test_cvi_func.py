@@ -16,9 +16,9 @@ def get_X(
     N:int = 30,
     d:int = 2,
     w_t:int  = 3,
-    DTW: bool = False,
+    ts_dist: bool = False,
 ) -> np.ndarray:
-    if DTW:
+    if ts_dist:
         shape = (N, w_t, d)
     else:
         shape = (N, w_t*d)
@@ -28,11 +28,11 @@ def test__clusters_from_uniform():
     N = 5
     l_w = [1, 2, 3, 5]
     l_d = [1, 2]
-    l_DTW = [True, False]
+    l_ts_dist = [True, False]
     for w_t in l_w:
         for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
+            for ts_dist in l_ts_dist:
+                X = get_X(N, d, w_t, ts_dist)
                 for n_clusters in [1, 2, 3, N]:
                     clusters = _clusters_from_uniform(X, n_clusters)
                     assert type(clusters) == list
@@ -54,13 +54,13 @@ def test__compute_Wk():
     ]
     for d in l_d:
         for T in l_T:
-            for DTW in [True, False]:
+            for ts_dist in [True, False]:
                 for clusters in l_clusters:
 
                     X = np.random.uniform(
                         low=mins[:d], high= maxs[:d], size=(N, T, d)
                     )
-                    if not DTW:
+                    if not ts_dist:
                         X = np.reshape(X, (N, T*d))
 
                     Wk = _compute_Wk(X, clusters)
@@ -84,11 +84,11 @@ def test__dist_centroids_to_global():
     C = get_clusterings(N)
     l_w = [1, 2, 3, 5]
     l_d = [1, 2]
-    l_DTW = [True, False]
+    l_ts_dist = [True, False]
     for w_t in l_w:
         for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
+            for ts_dist in l_ts_dist:
+                X = get_X(N, d, w_t, ts_dist)
                 for clusters in C.values():
                     dist = _dist_centroids_to_global(X, clusters)
                     assert type(dist) == list
@@ -100,11 +100,11 @@ def test__dist_between_centroids():
     C = get_clusterings(N)
     l_w = [1, 2, 3, 5]
     l_d = [1, 2]
-    l_DTW = [True, False]
+    l_ts_dist = [True, False]
     for w_t in l_w:
         for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
+            for ts_dist in l_ts_dist:
+                X = get_X(N, d, w_t, ts_dist)
                 for clusters in C.values():
                     k = len(clusters)
 
@@ -125,13 +125,13 @@ def test__dist_to_centroids():
     C = get_clusterings(N)
     l_w = [1, 2, 3, 5]
     l_d = [1, 2]
-    l_DTW = [True, False]
+    l_ts_dist = [True, False]
     l_squared = [True, False]
     for w_t in l_w:
         for d in l_d:
-            for DTW in l_DTW:
+            for ts_dist in l_ts_dist:
                 for squared in l_squared:
-                    X = get_X(N, d, w_t, DTW)
+                    X = get_X(N, d, w_t, ts_dist)
                     for clusters in C.values():
 
                         k = len(clusters)
@@ -151,13 +151,13 @@ def test__sum_sum_dist_to_centroids():
     C = get_clusterings(N)
     l_w = [1, 2, 3, 5]
     l_d = [1, 2]
-    l_DTW = [True, False]
+    l_ts_dist = [True, False]
     l_squared = [True, False]
     for w_t in l_w:
         for d in l_d:
-            for DTW in l_DTW:
+            for ts_dist in l_ts_dist:
                 for squared in l_squared:
-                    X = get_X(N, d, w_t, DTW)
+                    X = get_X(N, d, w_t, ts_dist)
                     for clusters in C.values():
 
                         res = _sum_sum_dist_to_centroids(X, clusters, squared=squared)
@@ -169,14 +169,14 @@ def test__var():
     N = 30
     l_w = [1, 2, 3, 5]
     l_d = [1, 2]
-    l_DTW = [True, False]
+    l_ts_dist = [True, False]
     for w_t in l_w:
         for d in l_d:
-            for DTW in l_DTW:
-                X = get_X(N, d, w_t, DTW)
+            for ts_dist in l_ts_dist:
+                X = get_X(N, d, w_t, ts_dist)
                 var = _var(X)
                 assert type(var) == np.ndarray
-                if DTW:
+                if ts_dist:
                     assert var.shape == (d, )
                 else:
                     assert var.shape == (d*w_t, )

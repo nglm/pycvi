@@ -26,7 +26,7 @@ def pipeline(
     model_kw: dict,
     k_max: int = 25,
     scaler = StandardScaler(),
-    DTW:bool = False,
+    ts_dist:bool = False,
     fig_title: str = "",
     fig_name: str = "",
 ) -> None:
@@ -72,7 +72,7 @@ def pipeline(
             model_class,
             model_kw=model_kw,
             n_clusters_range = k_range,
-            DTW = DTW,
+            ts_dist = ts_dist,
             scaler=scaler,
         )
 
@@ -98,7 +98,7 @@ def pipeline(
             cvi,
             X,
             clusterings,
-            DTW=DTW,
+            ts_dist=ts_dist,
             scaler=StandardScaler(),
         )
 
@@ -157,7 +157,7 @@ def pipeline(
 
 # ------------- KMeans ------------------------
 X, y = load_data("zelnik1", "barton")
-DTW = False
+ts_dist = False
 k_max = 10
 
 model_class = KMeans
@@ -165,23 +165,24 @@ model_kw = {}
 scaler = StandardScaler()
 
 fig_title = "Non time-series data with KMeans"
-fig_name = "Barton_data_KMeans"
-pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
+fig_name = "select-Barton_data_KMeans"
+pipeline(X, y, model_class, model_kw, k_max, scaler, ts_dist, fig_title, fig_name)
 
 # --------- AgglomerativeClustering ----------
 X, y = load_data("zelnik1", "barton")
-DTW = False
+ts_dist = False
 k_max = 10
 
 model_class = AgglomerativeClustering
-# sklearn kwargs for AgglomerativeClustering
+
+# Custom kwargs for sklearn.cluster.AgglomerativeClustering
 model_kw = {"linkage" : "single"}
 scaler = StandardScaler()
 
 fig_title = "Non time-series data with AgglomerativeClustering-Single"
-fig_name = "Barton_data_AgglomerativeClustering_Single"
+fig_name = "select-Barton_data_AgglomerativeClustering_Single"
 
-pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
+pipeline(X, y, model_class, model_kw, k_max, scaler, ts_dist, fig_title, fig_name)
 
 # ======================================================================
 # PyCVI on time series data
@@ -190,35 +191,37 @@ pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
 X, y = load_data("Trace", "UCR")
 
 # ==========================
-# PyCVI using DTW
+# PyCVI using a time series distance
 # ==========================
 
-DTW = True
+ts_dist = True
 
 model_class = TimeSeriesKMeans
-# aeon kwargs for TimeSeriesKMeans
+
+# Custom kwargs for aeon.clustering.TimeSeriesKMeans
 model_kw = {
-    "distance" : "dtw",
+    "distance" : "msm",
     "distance_params" : {"window": 0.2},
 }
 scaler = StandardScaler()
-fig_title = "Time-series data using DTW with TimeSeriesKMeans"
-fig_name = "UCR_data_DTW_TimeSeriesKMeans"
 
-pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
+fig_title = "Time-series data using MSM with TimeSeriesKMeans"
+fig_name = "select-UCR_data_MSM_TimeSeriesKMeans"
+
+pipeline(X, y, model_class, model_kw, k_max, scaler, ts_dist, fig_title, fig_name)
 
 # ==========================
-# PyCVI not using DTW
+# PyCVI not using a time series distance
 # ==========================
 
-DTW = False
+ts_dist = False
 
 model_class = KMeans
 model_kw = {}
 scaler = StandardScaler()
-fig_title = "Time-series data without DTW with KMeans"
-fig_name = "UCR_data_no_DTW_KMeans"
+fig_title = "Time-series data without MSM with KMeans"
+fig_name = "select-UCR_data_no_MSM_KMeans"
 
-pipeline(X, y, model_class, model_kw, k_max, scaler, DTW, fig_title, fig_name)
+pipeline(X, y, model_class, model_kw, k_max, scaler, ts_dist, fig_title, fig_name)
 
 fout.close()

@@ -1,5 +1,5 @@
 """
-Internal Cluster Validity Indices (CVIs), compatible with DTW and DBA.
+Internal Cluster Validity Indices (CVIs), compatible with time-series
 """
 
 # We typically want:

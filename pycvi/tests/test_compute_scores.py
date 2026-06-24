@@ -24,11 +24,11 @@ def test_f_intra():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
-        # DTW case
+        # ts_dist case
         dist = f_intra(data)
         assert type(dist) == float
 
-        # Non DTW case
+        # Non ts_dist case
         data = data.reshape(N, -1)
         dist = f_intra(data)
         assert type(dist) == float
@@ -37,11 +37,11 @@ def test_f_inertia():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
-        # DTW case
+        # ts_dist case
         dist = f_inertia(data)
         assert type(dist) == float
 
-        # Non DTW case
+        # Non ts_dist case
         data = data.reshape(N, -1)
         dist = f_inertia(data)
         assert type(dist) == float
@@ -53,7 +53,7 @@ def test_compute_subscores():
         c1 = [i for i in range(N//2)]
         c2 = [i for i in range(N//2, N)]
 
-        # DTW case
+        # ts_dist case
         dist = _compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
         # float
         _aux_check_float(dist, or_None=False)
@@ -63,7 +63,7 @@ def test_compute_subscores():
         assert type(dist) == list
         _aux_check_float(dist[0], or_None=False)
 
-        # Non DTW case
+        # Non ts_dist case
         data = data.reshape(N, -1)
         dist = _compute_subscores("inertia", data, [c1, c2], "inertia", f_inertia)
         _aux_check_float(dist, or_None=False)
@@ -83,7 +83,7 @@ def test_compute_score():
         c1 = [i for i in range(N//2)]
         c2 = [i for i in range(N//2, N)]
 
-        # DTW case
+        # ts_dist case
         dist = _compute_score("inertia", data, [c1, c2])
         _aux_check_float(dist, or_None=False)
         dist = _compute_score("max_inertia", data, [c1, c2])
@@ -96,7 +96,7 @@ def test_compute_score():
         dist = _compute_score(silhouette, data, [c1, c2])
         _aux_check_float(dist, or_None=False)
 
-        # Non DTW case
+        # Non ts_dist case
         data = data.reshape(N, -1)
         dist = _compute_score("inertia", data, [c1, c2])
         _aux_check_float(dist, or_None=False)
@@ -115,19 +115,19 @@ def test_compute_all_scores():
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
 
-        # Using DTW but not window
-        DTW = True
+        # Using ts_dist but not window
+        ts_dist = True
         model = TimeSeriesKMeans
         clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=DTW, time_window=None, transformer=None,
+                ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
 
         scores_t_k = compute_all_scores(
             Inertia(), data, clusterings_t_k,
-            transformer=None, scaler=StandardScaler(), DTW=DTW,
+            transformer=None, scaler=StandardScaler(), ts_dist=ts_dist,
             time_window=None,
         )
 
@@ -139,12 +139,12 @@ def test_compute_all_scores():
             # all clusterings were computed
             assert k in scores_t_k
 
-        # Not using DTW nor window but force the output to be list
-        DTW = False
+        # Not using ts_dist nor window but force the output to be list
+        ts_dist = False
         model = KMeans
         clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=DTW, time_window=None, transformer=None,
+                ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={},
                 return_list=True,
@@ -152,7 +152,7 @@ def test_compute_all_scores():
 
         scores_t_k = compute_all_scores(
             GapStatistic(), data, clusterings_t_k,
-            transformer=None, scaler=None, DTW=DTW,
+            transformer=None, scaler=None, ts_dist=ts_dist,
             time_window=None
         )
 

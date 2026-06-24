@@ -12,12 +12,12 @@ def test_f_pdist():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
-        # DTW case
+        # ts_dist case
         dist = f_pdist(data, dist_kwargs={"window": 0.5})
         assert type(dist) == np.ndarray
         assert np.all(dist>=0)
 
-        # Non DTW case
+        # Non ts_dist case
         data = data.reshape(N, -1)
         dist = f_pdist(data)
         assert type(dist) == np.ndarray
@@ -32,14 +32,14 @@ def test_f_cdist():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
-        # DTW case
+        # ts_dist case
         dist = f_cdist(data[N//2:], data[:N//2], dist_kwargs={"window": 0.5})
         assert type(dist) == np.ndarray
         assert np.all(dist>=0)
         exp_shape = (N-N//2, N//2)
         assert dist.shape == exp_shape
 
-        # Non DTW case
+        # Non ts_dist case
         data = data.reshape(N, -1)
         dist = f_cdist(data[N//2:], data[:N//2])
         assert np.all(dist>=0)

@@ -71,7 +71,7 @@ def pipeline(
             model_class,
             model_kw=model_kw,
             n_clusters_range = k_range,
-            DTW = False,
+            elastic_dist = False,
             scaler=scaler,
         )
 
@@ -90,7 +90,7 @@ def pipeline(
         cvi_aggregator,
         X,
         clusterings,
-        DTW=False,
+        elastic_dist=False,
         scaler=StandardScaler(),
     )
 
@@ -146,7 +146,7 @@ model_class = AgglomerativeClustering
 model_kw = {"linkage" : "single"}
 
 fig_title = "AgglomerativeClustering-Single and CVI aggregator with all CVIs"
-fig_name = "Barton_data_AgglomerativeClustering_Single-all_cvis"
+fig_name = "aggreg-Barton_data_AgglomerativeClustering_Single-all_cvis"
 
 pipeline(cvi_aggregator, X, y, model_class, model_kw, fig_title, fig_name)
 

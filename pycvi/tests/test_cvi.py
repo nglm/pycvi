@@ -104,12 +104,12 @@ def test_Scores():
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
 
-        # Using DTW but not window
+        # Using ts_dist but not window
         model = TimeSeriesKMeans
-        DTW = True
+        ts_dist = True
         clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=DTW, time_window=None, transformer=None,
+                ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -119,7 +119,7 @@ def test_Scores():
                 s = score(cvi_type=cvi_type)
                 scores_t_k = compute_all_scores(
                     s, data, clusterings_t_k,
-                    transformer=None, scaler=StandardScaler(), DTW=DTW,
+                    transformer=None, scaler=StandardScaler(), ts_dist=ts_dist,
                     time_window=None
                 )
 
@@ -136,12 +136,12 @@ def test_Scores():
                 # int
                 _aux_test_selected(s, scores_t_k)
 
-        # Not using DTW nor window but forcing output to be list
-        DTW = False
+        # Not using ts_dist nor window but forcing output to be list
+        ts_dist = False
         model = KMeans
         clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=DTW, time_window=None, transformer=None,
+                ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -151,7 +151,7 @@ def test_Scores():
                 s = score(cvi_type=cvi_type)
                 scores_t_k = compute_all_scores(
                     s, data, clusterings_t_k,
-                    transformer=None, scaler=None, DTW=DTW,
+                    transformer=None, scaler=None, ts_dist=ts_dist,
                     time_window=None, return_list=True,
                 )
 
@@ -174,14 +174,14 @@ def test_Scores():
                 _aux_test_selected(s, scores_t_k[0])
 
     # ---------- Test on clustering benchmark dataset ------------------
-    DTW = False
+    ts_dist = False
     model = AgglomerativeClustering
     data, meta = _load_data_from_github(PATH + "xclara.arff")
     n_clusters_range = [i for i in range(15)]
 
     clusterings_t_k = generate_all_clusterings(
             data, model, n_clusters_range=n_clusters_range,
-            DTW=DTW, time_window=None, transformer=None,
+            ts_dist=ts_dist, time_window=None, transformer=None,
             scaler=StandardScaler(),
             model_kw={}, fit_predict_kw={}, model_class_kw={}
         )
@@ -191,7 +191,7 @@ def test_Scores():
 
             scores_t_k = compute_all_scores(
                 s, data, clusterings_t_k,
-                transformer=None, scaler=StandardScaler(), DTW=DTW,
+                transformer=None, scaler=StandardScaler(), ts_dist=ts_dist,
                 time_window=None
             )
 
@@ -299,12 +299,12 @@ def test_cviaggregator():
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
 
-        # ========== Using DTW but not window ==========
+        # ========== Using ts_dist but not window ==========
         model = TimeSeriesKMeans
-        DTW = True
+        ts_dist = True
         clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=DTW, time_window=None, transformer=None,
+                ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -315,7 +315,7 @@ def test_cviaggregator():
 
             scores_i_t_k = compute_all_scores(
                 aggregator, data, clusterings_t_k,
-                transformer=None, scaler=StandardScaler(), DTW=DTW,
+                transformer=None, scaler=StandardScaler(), ts_dist=ts_dist,
                 time_window=None
             )
 
@@ -334,12 +334,12 @@ def test_cviaggregator():
             # int
             _aux_test_select_aggr(aggregator, scores_i_t_k)
 
-        # ====== No DTW nor window but forcing list ======
-        DTW = False
+        # ====== No ts_dist nor window but forcing list ======
+        ts_dist = False
         model = KMeans
         clusterings_t_k = generate_all_clusterings(
                 data, model,
-                DTW=DTW, time_window=None, transformer=None,
+                ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
             )
@@ -348,7 +348,7 @@ def test_cviaggregator():
 
             scores_i_t_k = compute_all_scores(
                 aggregator, data, clusterings_t_k,
-                transformer=None, scaler=StandardScaler(), DTW=DTW,
+                transformer=None, scaler=StandardScaler(), ts_dist=ts_dist,
                 time_window=None, return_list=True
             )
 
@@ -369,15 +369,15 @@ def test_cviaggregator():
             _aux_test_select_aggr(aggregator, scores_i_t_k)
 
     # ---------- Test on clustering benchmark dataset ------------------
-    # ====== No DTW nor window nor forcing list ======
-    DTW = False
+    # ====== No ts_dist nor window nor forcing list ======
+    ts_dist = False
     model = AgglomerativeClustering
     data, meta = _load_data_from_github(PATH + "xclara.arff")
     n_clusters_range = [i for i in range(15)]
 
     clusterings_t_k = generate_all_clusterings(
             data, model, n_clusters_range=n_clusters_range,
-            DTW=DTW, time_window=None, transformer=None,
+            ts_dist=ts_dist, time_window=None, transformer=None,
             scaler=StandardScaler(),
             model_kw={}, fit_predict_kw={}, model_class_kw={}
         )
@@ -386,7 +386,7 @@ def test_cviaggregator():
 
         scores_i_t_k = compute_all_scores(
             aggregator, data, clusterings_t_k,
-            transformer=None, scaler=StandardScaler(), DTW=DTW,
+            transformer=None, scaler=StandardScaler(), ts_dist=ts_dist,
             time_window=None
         )
 
