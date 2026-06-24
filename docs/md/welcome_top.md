@@ -29,6 +29,7 @@ To compute DTW, MSM, DBA, MBA, etc. PyCVI relies on the [aeon](https://www.aeon-
 - Enables users to define custom CVIs.
 - Multiple CVIs can easily be combined to select the best clustering based on a majority vote.
 - Variation of Information implemented (distance between clusterings).
+- Facilitates the use of time-series distances directly in some of the models implemented in [scikit-learn](https://scikit-learn.org/stable/index.html) such as [AgglomerativeClustering](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html).
 
 ## Install
 

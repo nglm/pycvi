@@ -276,9 +276,57 @@ def f_cdist(
         )
         raise ShapeError(msg)
 
-        # Option 2: Pairwise distances between the midpoint of the barycenter
-        # and the corresponding time step for each member in the cluster
-        # TODO
-        # Note cdist_soft_dtw_normalized should return positive values but
-        # somehow doesn't!
     return dist
+
+def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, w_t=None):
+    """
+    Allow to use time-series metrics with (some) sklearn models.
+
+    Some `sklearn` models have a ``"metric"`` parameter that accepts a
+    callable, see for example `sklearn.cluster.AgglomerativeClustering
+    <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html>`_.
+    We can then use a metric specifically designed for time-series such
+    as those defined in `aeon`, provided that we call the distance
+    function on a reshaped version of the data. Indeed, `sklearn` only
+    allows data of shape ``(N, d)`` (or ``(N, d*T)``) while time-series
+    distances in `aeon` require data of shape ``(N, T, d)``.
+
+    Thus, this present function reshapes the data accordingling on the
+    fly such that one can use time series distances with (some) sklearn
+    models.
+
+    To be able to do the reshaping, it is important to correctly provide
+    the original ``N`` and ``d`` values, as if the following happened:
+
+    1. The data ``X`` was originally of shape ``(N, T, d)`` (Starting
+       point)
+    2. ``X`` was reshaped to ``(N, T*d)`` to match ``sklearn``
+       requirements (typically using ``X = np.reshape(X, (N, -1))``) (To
+       be done by the user before using the sklearn (or sklearn-like)
+       model)
+    3. Inside the call of the sklearn-like model, ``X`` is reshaped back
+       to ``(N, T, d)`` to match ``aeon`` requirements (part that is
+       done by this function)
+
+    See :func:`pycvi.config.default_ts_distance_kwargs` for more
+    information about default distance kwargs used in PyCVI and see See
+    :func:`pycvi.dist.f_pdist` for more information about distances with
+    time series data in PyCVI.
+
+    For a full example of this function, see TODO
+
+    """
+    dims = X.shape
+    N = len(X)
+    if T is None:
+        T = dims[-1]
+    # Go from (N, T*d) to (N, T, d)
+    # assuming we had either (N, T*1) or (N, T, d) to begin with
+    shape = (X, T, d)
+
+
+    def _aux(X, dist_kwargs={}):
+        X_dis = np.reshape(X, shape)
+        return f_pdist(X_dis, dist_kwargs=dist_kwargs)
+
+    return _aux

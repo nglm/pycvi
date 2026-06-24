@@ -1,4 +1,4 @@
-pycvi.dist
+﻿pycvi.dist
 ==========
 
 .. automodule:: pycvi.dist
@@ -11,4 +11,5 @@ pycvi.dist
       f_cdist
       f_pdist
       reduce
+      time_series_metric_with_sklearn
    
