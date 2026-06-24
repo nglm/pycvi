@@ -33,6 +33,49 @@ datapoints_biv = np.ones((4, 5, 2))
 datapoints_biv[:, :, 0] = datapoints
 datapoints_biv[:, :, 1] = datapoints_bis
 
+# Tiny clustered time-series datasets for testing.
+# Cluster A (first 3 samples): increasing profiles.
+# Cluster B (last 3 samples): decreasing profiles.
+ts_datapoints = np.array([
+    (0.10, 0.55, 1.00, 1.45, 1.90, 2.25),
+    (0.15, 0.60, 1.05, 1.50, 1.95, 2.30),
+    (0.05, 0.50, 0.95, 1.40, 1.85, 2.20),
+    (2.30, 1.90, 1.45, 1.00, 0.60, 0.20),
+    (2.20, 1.80, 1.35, 0.90, 0.50, 0.10),
+    (2.40, 2.00, 1.55, 1.10, 0.70, 0.30),
+])
+
+ts_datapoints_with_dup = np.array([
+    (0.10, 0.55, 1.00, 1.00, 1.90, 2.25),
+    (0.15, 0.60, 1.05, 1.05, 1.95, 2.30),
+    (0.05, 0.50, 0.95, 0.95, 1.85, 2.20),
+    (2.30, 1.90, 1.45, 1.45, 0.60, 0.20),
+    (2.20, 1.80, 1.35, 1.35, 0.50, 0.10),
+    (2.40, 2.00, 1.55, 1.55, 0.70, 0.30),
+])
+
+ts_datapoints_equal_dist = np.array([
+    (0.10, 0.55, 1.00, 1.45, 1.90, 2.25),
+    (0.20, 0.65, 1.10, 1.55, 2.00, 2.35),
+    (0.00, 0.45, 0.90, 1.35, 1.80, 2.15),
+    (2.25, 1.85, 1.40, 0.95, 0.55, 0.15),
+    (2.15, 1.75, 1.30, 0.85, 0.45, 0.05),
+    (2.35, 1.95, 1.50, 1.05, 0.65, 0.25),
+])
+
+ts_datapoints_bis = np.array([
+    (1.90, 1.55, 1.20, 0.90, 0.65, 0.45),
+    (2.00, 1.65, 1.30, 1.00, 0.75, 0.55),
+    (1.80, 1.45, 1.10, 0.80, 0.55, 0.35),
+    (0.40, 0.65, 0.95, 1.25, 1.60, 1.95),
+    (0.30, 0.55, 0.85, 1.15, 1.50, 1.85),
+    (0.50, 0.75, 1.05, 1.35, 1.70, 2.05),
+])
+
+ts_datapoints_biv = np.ones((6, 6, 2))
+ts_datapoints_biv[:, :, 0] = ts_datapoints
+ts_datapoints_biv[:, :, 1] = ts_datapoints_bis
+
 def mini(
     multivariate: bool = False,
     as_time_series: bool = True,
@@ -92,6 +135,54 @@ def mini(
     if not as_time_series:
         data = np.reshape(N, 1, -1)
     return np.copy(data), np.copy(time)
+
+
+def mini_ts(
+    multivariate: bool = False,
+    time_scale: bool = True,
+    duplicates: bool = False,
+    equal_dist: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Return a tiny time-series dataset for testing purposes.
+
+    The returned dataset contains two obvious clusters in time-series
+    space: increasing profiles and decreasing profiles.
+
+    Parameters
+    ----------
+    multivariate : bool, optional
+        If True, return multivariate data.
+    time_scale : bool, optional
+        If True, return a time axis scaled from raw indices.
+    duplicates : bool, optional
+        If True, include duplicate values at some time steps.
+    equal_dist : bool, optional
+        If True, include datapoints at equal distance from two others.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        Tuple containing generated time-series data and corresponding
+        time axis.
+    """
+    (N, T) = ts_datapoints.shape
+    time = np.arange(T)
+
+    if time_scale:
+        time *= 6
+
+    if multivariate:
+        data = np.copy(ts_datapoints_biv)
+    else:
+        if duplicates:
+            data = np.copy(ts_datapoints_with_dup)
+        elif equal_dist:
+            data = np.copy(ts_datapoints_equal_dist)
+        else:
+            data = np.copy(ts_datapoints)
+        data = np.expand_dims(data, -1)
+
+    return data, np.copy(time)
 
 
 def normal(
