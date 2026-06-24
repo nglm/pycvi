@@ -40,5 +40,5 @@ typing-extensions==4.15.0
     # via aeon
 tzdata==2026.2
     # via pandas
-wrapt==2.2.1
+wrapt==2.2.2
     # via deprecated

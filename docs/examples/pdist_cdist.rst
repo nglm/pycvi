@@ -1,7 +1,7 @@
 Computing distances: cdist and pdist
 --------------------------------------
 
-In this example, we use the PyCVI counterparts of `pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_ and `cdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_ from SciPy, namely :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist`, to compute distance matrices with time-series data the same way these functions are used with non-time-series data. Their behavior is the same as SciPy's functions, but for time-series data, DTW is used as a distance function (`aeon <https://www.aeon-toolkit.org/en/stable/>`_'s implementation is used).
+In this example, we use the PyCVI counterparts of `pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_ and `cdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_ from SciPy, namely :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist`, to compute distance matrices with time-series data the same way these functions are used with non-time-series data. Their behavior is the same as SciPy's functions, but for time-series data, distance functions specifically designed for time-series are actually used and implemented in `aeon <https://www.aeon-toolkit.org/en/stable/>`_'.
 
 Note that in the case of :func:`pycvi.dist.f_pdist`, a condensed distance matrix is returned (as in scipy).
 

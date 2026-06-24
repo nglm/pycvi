@@ -12,13 +12,13 @@ In this example, we use time-series data and non-time-series data. In addition w
    :start-after: sys.stdout = fout
    :end-before: fout.close()
 
-.. image:: ../../examples/full_example/Barton_data_KMeans.png
+.. image:: ../../examples/full_example/full-Barton_data_KMeans.png
 
-.. image:: ../../examples/full_example/Barton_data_AgglomerativeClustering_Single.png
+.. image:: ../../examples/full_example/full-Barton_data_AgglomerativeClustering_Single.png
 
-.. image:: ../../examples/full_example/UCR_data_no_DTW_KMeans.png
+.. image:: ../../examples/full_example/full-UCR_data_no_MSM_KMeans.png
 
-.. image:: ../../examples/full_example/UCR_data_DTW_TimeSeriesKMeans.png
+.. image:: ../../examples/full_example/full-UCR_data_MSM_TimeSeriesKMeans.png
 
 .. literalinclude:: ../../examples/full_example/output-full_example.txt
    :language: text

@@ -12,21 +12,21 @@ Here we assume that we are in real conditions, which means that we don't have ac
 .. literalinclude:: ../../examples/select_k/select_k.py
    :lines: 7-224
 
-.. image:: ../../examples/select_k/Barton_data_KMeans-histogram.png
+.. image:: ../../examples/select_k/select-Barton_data_KMeans-histogram.png
 
-.. image:: ../../examples/select_k/Barton_data_KMeans.png
+.. image:: ../../examples/select_k/select-Barton_data_KMeans.png
 
-.. image:: ../../examples/select_k/Barton_data_AgglomerativeClustering_Single-histogram.png
+.. image:: ../../examples/select_k/select-Barton_data_AgglomerativeClustering_Single-histogram.png
 
-.. image:: ../../examples/select_k/Barton_data_AgglomerativeClustering_Single.png
+.. image:: ../../examples/select_k/select-Barton_data_AgglomerativeClustering_Single.png
 
-.. image:: ../../examples/select_k/UCR_data_no_DTW_KMeans-histogram.png
+.. image:: ../../examples/select_k/select-UCR_data_no_MSM_KMeans-histogram.png
 
-.. image:: ../../examples/select_k/UCR_data_no_DTW_KMeans.png
+.. image:: ../../examples/select_k/select-UCR_data_no_MSM_KMeans.png
 
-.. image:: ../../examples/select_k/UCR_data_DTW_TimeSeriesKMeans-histogram.png
+.. image:: ../../examples/select_k/select-UCR_data_MSM_TimeSeriesKMeans-histogram.png
 
-.. image:: ../../examples/select_k/UCR_data_DTW_TimeSeriesKMeans.png
+.. image:: ../../examples/select_k/select-UCR_data_MSM_TimeSeriesKMeans.png
 
 .. literalinclude:: ../../examples/select_k/output-select_k.txt
    :language: text
