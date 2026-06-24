@@ -11,9 +11,9 @@ In addition, all CVIs rely on the definition of a distance between datapoints an
 
 For non-time-series data, the distance used is usually the Euclidean distance and the cluster center is defined as the usual average. Libraries such as [scipy](https://docs.scipy.org/doc/scipy/index.html), [numpy](https://numpy.org/doc/stable/), [scikit-learn](https://scikit-learn.org/stable/index.html), etc. offer a large selection of distance measures that are compatible with all their functions.
 
-For time-series data however, the common distance used is Dynamic Time Warping (DTW) [^DTW] and the barycenter of a group of time series is then not defined as the usual mean, but as the DTW Barycentric Average (DBA)[^DBA]. Unfortunately, DTW and DBA are not compatible with the libraries mentioned above, which among other reasons, made additional machine learning libraries specialized in time series data such as [aeon](https://www.aeon-toolkit.org/en/latest/index.html), [sktime](https://www.sktime.net/en/stable/index.html) and [tslearn](https://tslearn.readthedocs.io/en/stable/) necessary.
+For time-series data however, common distances used are Dynamic Time Warping (DTW) [^DTW] or Move-Split-Merge (MSM) [^MSM] and the barycenter of a group of time series is then not defined as the usual mean, but as the DTW Barycentric Average (DBA)[^DBA] or MBA (MSM DTW barycentric average) [^MBA]. Unfortunately, DTW, MSM, DBA and MBA are not compatible with the libraries mentioned above, which among other reasons, made additional machine learning libraries specialized in time series data such as [aeon](https://www.aeon-toolkit.org/en/latest/index.html), [sktime](https://www.sktime.net/en/stable/index.html) and [tslearn](https://tslearn.readthedocs.io/en/stable/) necessary.
 
-PyCVI then implements 12 state-of-the-art internal CVIs and extends them to make them compatible with DTW and DBA when using time-series data. To compute DTW and DBA, PyCVI relies on the [aeon](https://www.aeon-toolkit.org/en/latest/index.html) library.
+PyCVI then implements 12 state-of-the-art internal CVIs and extends them to make them compatible with time-series data and their distance and average functions. To compute DTW, MSM, DBA, MBA, etc. PyCVI relies on the [aeon](https://www.aeon-toolkit.org/en/latest/index.html) library.
 
 ## Documentation
 
@@ -23,12 +23,13 @@ The full documentation is available at [pycvi.readthedocs.io](https://pycvi.read
 
 - 12 internal CVIs implemented: Hartigan[^Hart], Calinski-Harabasz[^CH], GapStatistic[^Gap], Silhouette[^Sil], ScoreFunction[^SF], Maulik-Bandyopadhyay[^MB], SD[^SD], SDbw[^SDbw], Dunn[^D], Xie-Beni[^XB], XB*[^XB*] and Davies-Bouldin[^DB].
 - Compute CVI values and select the best clustering based on the results.
-- Compatible with time-series, Dynamic Time Warping (DTW) and Dynamic Time Warping Barycentric Average (DBA).
+- Compatible with time-series and their distance and average functions such as Dynamic Time Warping (DTW)[^DTW], Move-Split-Merge (MSM)[^MSM], Dynamic Time Warping Barycentric Average (DBA)[^DBA], MBA (MSM DTW barycentric average)[^MBA], etc.
 - Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for easy integration into any clustering pipeline in Python.
 - Can compute the clusterings beforehand if provided with a sklearn-like clustering class.
 - Enables users to define custom CVIs.
 - Multiple CVIs can easily be combined to select the best clustering based on a majority vote.
 - Variation of Information[^VI] implemented (distance between clusterings).
+- Facilitates the use of time-series distances directly in some of the models implemented in [scikit-learn](https://scikit-learn.org/stable/index.html) such as [AgglomerativeClustering](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html).
 
 ## Install
 
@@ -131,6 +132,8 @@ Galmiche, N., (2024). PyCVI: A Python package for internal Cluster Validity Indi
 
 [^DTW]: Donald J. Berndt and James Clifford. Using dynamic time warping to find patterns in time series. In Proceedings of the 3rd International Conference on Knowledge Discovery and Data Mining, AAAIWS’94, page 359–370. AAAI Press, 1994
 [^DBA]:  F. Petitjean, A. Ketterlin, and P. Gan carski, “A global averaging method for dynamic time warping, with applications to clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar. 2011.
+[^MSM] Stefan, Alexandra et al. “The Move-Split-Merge Metric for Time Series.” IEEE Transactions on Knowledge and Data Engineering 25 (2013): 1425-1438.
+[^MBA] Christopher Holder, David Guijo-Rubio, and Anthony Bagnall. Barycentre averaging for the move-split-merge time series distance measure. 15th International Joint Conference on Knowledge Discovery, Knowledge Engineering and Knowledge Management (2023)
 [^Hart]: D. J. Strauss and J. A. Hartigan, “Clustering algorithms,”
 *Biometrics*, vol. 31, p. 793, sep 1975.
 [^CH]: T. Calinski and J. Harabasz, “A dendrite method for cluster analysis,” *Communications in Statistics - Theory and Methods*, vol. 3, no. 1, pp. 1–27, 1974.
