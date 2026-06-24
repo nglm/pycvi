@@ -316,6 +316,22 @@ def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
     For an example of this function, see
     :doc:`/examples/ts_metric_with_sklearn`
 
+    Parameters
+    ----------
+    X : np.ndarray, shape ``(N, T*d)``
+        The data to be clustered, reshaped to match sklearn requirements.
+    dist_kwargs : dict, optional
+        Additional kwargs for the distance function.
+    d : int, optional
+        The number of variables in the time series, by default 1.
+    T : int, optional
+        The number of time steps in the time series, by default None.
+
+    Returns
+    -------
+    callable
+        A callable that can be used as a metric in sklearn models.
+
     """
     dims = X.shape
     N = len(X)
