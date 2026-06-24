@@ -323,11 +323,13 @@ def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
         T = dims[-1]
     # Go from (N, T*d) to (N, T, d)
     # assuming we had either (N, T*1) or (N, T, d) to begin with
-    shape = (X, T, d)
+    shape = (N, T, d)
 
-
-    def _aux(X, dist_kwargs={}):
+    def _aux(X):
         X_dis = np.reshape(X, shape)
-        return f_pdist(X_dis, dist_kwargs=dist_kwargs)
+        squared_dist = f_pdist(X_dis, dist_kwargs=dist_kwargs)
+
+        # sklearn expects a square matrix, but f_pdist returns a condensed matrix, so we need to convert it back to square form
+        return squareform(squared_dist)
 
     return _aux
