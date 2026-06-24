@@ -71,7 +71,7 @@ def pipeline(
             model_class,
             model_kw=model_kw,
             n_clusters_range = k_range,
-            elastic_dist = False,
+            ts_dist = False,
             scaler=scaler,
         )
 
@@ -90,7 +90,7 @@ def pipeline(
         cvi_aggregator,
         X,
         clusterings,
-        elastic_dist=False,
+        ts_dist=False,
         scaler=StandardScaler(),
     )
 
