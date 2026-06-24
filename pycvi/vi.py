@@ -47,10 +47,15 @@ def P_clusters(
     """
     List of probability of the outcome being in cluster i.
 
-    :param clustering: A given clustering
-    :type clustering: List[List[int]]
-    :return: List of probability of the outcome being in cluster i
-    :rtype: List[float]
+    Parameters
+    ----------
+    clustering : List[List[int]]
+        A given clustering.
+
+    Returns
+    -------
+    List[float]
+        List of probabilities of the outcome being in cluster i.
     """
     nis = [len(c) for c in clustering]
     N = int(np.sum(nis))
@@ -60,7 +65,7 @@ def entropy(
     clustering: List[List[int]]
 ) -> float:
     """
-    Entropy of the given clustering
+    Entropy of the given clustering.
 
     Conventions: see "Elements of Information Theory" by Cover and
     Thomas, section 2.3 [1]_.
@@ -70,10 +75,15 @@ def entropy(
     - :math:`0 \\times \\log(0/q) = 0`.
     - :math:`p \\times \\log(p/0) = +\\infty`.
 
-    :param clustering: A given clustering
-    :type clustering: List[List[int]]
-    :return: Entropy of the given clustering
-    :rtype: float
+    Parameters
+    ----------
+    clustering : List[List[int]]
+        A given clustering.
+
+    Returns
+    -------
+    float
+        Entropy of the given clustering.
     """
     P_ks = P_clusters(clustering)
     return - float(np.sum(
@@ -87,12 +97,17 @@ def contingency_matrix(
     """
     Contingency matrix between two clusterings.
 
-    :param clustering1: First clustering
-    :type clustering1: List[List[int]]
-    :param clustering2: Second clustering
-    :type clustering2: List[List[int]]
-    :return: Contingency matrix between the two clusterings.
-    :rtype: np.ndarray
+    Parameters
+    ----------
+    clustering1 : List[List[int]]
+        First clustering.
+    clustering2 : List[List[int]]
+        Second clustering.
+
+    Returns
+    -------
+    np.ndarray
+        Contingency matrix between the two clusterings.
     """
     N = sum([len(c) for c in clustering1])
     m = np.array([
@@ -116,12 +131,17 @@ def mutual_information(
     - :math:`0 \\times \\log(0/q) = 0`.
     - :math:`p \\times \\log(p/0) = +\\infty`.
 
-    :param clustering1: First clustering
-    :type clustering1: List[List[int]]
-    :param clustering2: Second clustering
-    :type clustering2: List[List[int]]
-    :return: Mutual information between two clusterings.
-    :rtype: float
+    Parameters
+    ----------
+    clustering1 : List[List[int]]
+        First clustering.
+    clustering2 : List[List[int]]
+        Second clustering.
+
+    Returns
+    -------
+    float
+        Mutual information between two clusterings.
     """
     m = contingency_matrix(clustering1, clustering2)
     P_ks1 = P_clusters(clustering1)
@@ -146,12 +166,17 @@ def variation_information(
     .. [VI] M. Meil ̆a, Comparing Clusterings by the Variation of Information,
        p. 173–187. Springer Berlin Heidelberg, 2003.
 
-    :param clustering1: First clustering
-    :type clustering1: List[List[int]]
-    :param clustering2: Second clustering
-    :type clustering2: List[List[int]]
-    :return: Variation of information between two clusterings.
-    :rtype: float
+    Parameters
+    ----------
+    clustering1 : List[List[int]]
+        First clustering.
+    clustering2 : List[List[int]]
+        Second clustering.
+
+    Returns
+    -------
+    float
+        Variation of information between two clusterings.
     """
     H1 = entropy(clustering1)
     H2 = entropy(clustering2)
@@ -165,14 +190,24 @@ def _align_clusterings(
     """
     Align `clustering2` to `clustering1`.
 
-    To be aligned the clusterings must have the same number of clusters
+    To be aligned the clusterings must have the same number of clusters.
 
-    :param clustering1: First clustering, used as reference
-    :type clustering1: List[List[int]]
-    :param clustering2: Second clustering, to be aligned
-    :type clustering2: List[List[int]]
-    :return: Same clusters but "aligned" to `clustering1`
-    :rtype: Tuple[List[List[int]], List[List[int]]]
+    Parameters
+    ----------
+    clustering1 : List[List[int]]
+        First clustering, used as reference.
+    clustering2 : List[List[int]]
+        Second clustering, to be aligned.
+
+    Returns
+    -------
+    Tuple[List[List[int]], List[List[int]]]
+        Same clusters but aligned to `clustering1`.
+
+    Raises
+    ------
+    InvalidKError
+        If `clustering1` and `clustering2` do not have the same length.
     """
     if len(clustering1) != len(clustering2):
         msg = (

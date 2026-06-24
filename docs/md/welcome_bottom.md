@@ -1,7 +1,7 @@
 ## Contribute
 
 - Issue Tracker: [github.com/nglm/pycvi/issues](https://github.com/nglm/pycvi/issues).
-- Source Code: [github.com/nglm/pycvi](github.com/nglm/pycvi).
+- Source Code: [github.com/nglm/pycvi](https://github.com/nglm/pycvi).
 
 ## Support
 

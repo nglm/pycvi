@@ -40,10 +40,10 @@ def load_data(
     ----------
     fname : str
         Filename of the dataset, by default "target".
-    path : str, optional
-        Path to the file, by default "./Barton/".
-    bool : bool, optional
-        Verbosity.
+    data_source : str, optional
+        Dataset source, either "barton" or "ucr", by default "barton".
+    verbose : bool, optional
+        If True, print dataset source, name, shape, and labels.
 
     Returns
     -------

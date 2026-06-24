@@ -41,25 +41,26 @@ def mini(
     equal_dist: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Returns a mini dataset for testing purpose
+    Return a mini dataset for testing purposes.
 
-    :param multivariate: Use multivariate data, defaults to False
-    :type multivariate: bool, optional
-    :param as_time_series: Treat each time step separately if True,
-        otherwise, consider time steps as different variable, defaults
-        to True
-    :type as_time_series: bool, optional
-    :param time_scale: get a time axis different from the indices,
-    defaults to True
-    :type time_scale: bool, optional
-    :param duplicates: Allow for duplicates for some time steps,
-    defaults to False
-    :type duplicates: bool, optional
-    :param equal_dist: Allow for datapoint being at equal distance from
-        2 other datapoints, defaults to False
-    :type equal_dist: bool, optional
-    :return: _description_
-    :rtype: Tuple[np.ndarray, np.ndarray]
+    Parameters
+    ----------
+    multivariate : bool, optional
+        If True, return multivariate data.
+    as_time_series : bool, optional
+        If True, treat each time step as temporal structure; otherwise,
+        treat time steps as separate variables.
+    time_scale : bool, optional
+        If True, return a time axis scaled from raw indices.
+    duplicates : bool, optional
+        If True, include duplicate values at some time steps.
+    equal_dist : bool, optional
+        If True, include datapoints at equal distance from two others.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        Tuple containing generated data and corresponding time axis.
     """
     (N, T) = datapoints.shape
     time = np.arange(T)

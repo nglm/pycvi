@@ -9,13 +9,30 @@ def better_score(
     or_equal: bool = False
 ) -> bool:
     """
-    Determines whether `score1` is indeed better than `score2`.
+    Determine whether `score1` is better than `score2`.
 
-    If both scores are None, return a ScoreError.
+    If both scores are None, a `ScoreError` is raised.
 
-    It is assumed that if one (and only one) score is `None` it means
-    that it hasn't been reached yet, which means that it is probably
-    the best.
+    Parameters
+    ----------
+    score1 : float
+        First score to compare.
+    score2 : float
+        Second score to compare.
+    maximize : bool
+        Whether higher scores are better.
+    or_equal : bool, optional
+        Whether to return True when scores are equal.
+
+    Returns
+    -------
+    bool
+        True if `score1` is better than `score2`, else False.
+
+    Raises
+    ------
+    ScoreError
+        If both scores are None or comparison cannot be determined.
     """
     if score1 is None and score2 is None:
         msg = "Better score not determined, both scores are None."
@@ -42,7 +59,21 @@ def argbest(
     ignore_None: bool = False,
 ) -> int:
     """
-    Returns index of best score
+    Return index of best score.
+
+    Parameters
+    ----------
+    scores : List[float]
+        List of scores.
+    maximize : bool
+        Whether higher scores are better.
+    ignore_None : bool, optional
+        If False, `None` is treated as best score.
+
+    Returns
+    -------
+    int
+        Index of best score in `scores`.
     """
     # In some cases we want "None" to be the best score
     if not ignore_None:
@@ -65,7 +96,21 @@ def best_score(
     ignore_None: bool = False,
 ) -> float:
     """
-    Returns best score
+    Return best score.
+
+    Parameters
+    ----------
+    scores : List[float]
+        List of scores.
+    maximize : bool
+        Whether higher scores are better.
+    ignore_None : bool, optional
+        If False, `None` is treated as best score.
+
+    Returns
+    -------
+    float
+        Best score in `scores`.
     """
     return scores[argbest(scores, maximize, ignore_None)]
 
@@ -74,7 +119,19 @@ def argworst(
     maximize: bool,
 ) -> int:
     """
-    Returns index of worst score
+    Return index of worst score.
+
+    Parameters
+    ----------
+    scores : List[float]
+        List of scores.
+    maximize : bool
+        Whether higher scores are better.
+
+    Returns
+    -------
+    int
+        Index of worst score in `scores`.
     """
     scores_with_nans = [s if s is not None else np.nan for s in scores]
     if maximize:
@@ -87,6 +144,18 @@ def worst_score(
     maximize: bool,
 ) -> float:
     """
-    Returns worst score
+    Return worst score.
+
+    Parameters
+    ----------
+    scores : List[float]
+        List of scores.
+    maximize : bool
+        Whether higher scores are better.
+
+    Returns
+    -------
+    float
+        Worst score in `scores`.
     """
     return scores[argworst(scores, maximize)]

@@ -19,7 +19,7 @@ For an example showing the importance of using DBA instead of the arithmetic mea
 
 .. image:: ../../examples/cluster_center/Petitjean_DBA.png
 
-Following our example above, here are the the cluster centers if we had not used DBA, but the arithmetic mean:
+Following our example above, here are the cluster centers if we had not used DBA, but the arithmetic mean:
 
 .. image:: ../../examples/cluster_center/cluster_centers_TS_without_DBA.png
 

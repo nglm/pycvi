@@ -55,7 +55,7 @@ def f_inertia(
     """
     Inertia of a group of elements.
 
-    The inertia is defined as the sum of (squared) distances between the datapoints in the the cluster and its centroid.
+    The inertia is defined as the sum of (squared) distances between the datapoints in the cluster and its centroid.
 
     Parameters
     ----------
@@ -115,22 +115,31 @@ def _compute_subscores(
     reduction: str = None,
 ) -> Union[float, List[float]]:
     """
-    Compute the main score of a clustering and its associated subscores
+    Compute the main score of a clustering and its associated subscores.
 
-    :param score_type: type of score
-    :type score_type: str
-    :param X: Dataset
-    :type X: np.ndarray, shape: (N, d)
-    :param clusters: List of cluster, defaults to None
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for pdist, cdist, etc.
-    :type dist_kwargs: dict
-    :param score_kwargs: kwargs specific to the score
-    :type score_kwargs: dict
-    :param reduction: Type of reduction when computing scores if any
-    :type reduction: str
-    :return: Score of the given clustering
-    :rtype: Union[float, List[float]]
+    Parameters
+    ----------
+    score_type : str
+        Type of score.
+    X : np.ndarray, shape (N, d)
+        Dataset.
+    clusters : List[List[int]]
+        Clustering represented as a list of clusters.
+    main_score : str
+        Main score suffix used by the score type.
+    f_score : callable
+        Function used to compute cluster-level scores.
+    dist_kwargs : dict, optional
+        Keyword arguments for distance computations.
+    score_kwargs : dict, optional
+        Keyword arguments specific to the score function.
+    reduction : str, optional
+        Reduction applied to cluster-level values.
+
+    Returns
+    -------
+    Union[float, List[float]]
+        Score of the given clustering.
     """
     N = len(X)
     prefixes = ["", "sum_", "mean_", "weighted_"]
@@ -179,21 +188,30 @@ def _compute_score(
     score_kwargs: dict = {},
 ) -> float :
     """
-    Compute the score of a given clustering
+    Compute the score of a given clustering.
 
-    :param score_type: type of score
-    :type score_type: Union[str, callable]
-    :param X: Dataset, defaults to None
-    :type X: np.ndarray, shape: (N, d*w) or (N, w_t, d) optional
-    :param clusters: List of cluster, defaults to None
-    :type clusters: List[List[int]]
-    :param dist_kwargs: kwargs for pdist, cdist, etc.
-    :type dist_kwargs: dict
-    :param score_kwargs: kwargs for the CVI.
-    :type score_kwargs: dict
-    :raises ValueError: If invalid score_type was given
-    :return: Score of the given clustering
-    :rtype: float
+    Parameters
+    ----------
+    score_type : Union[str, callable]
+        Type of score or callable score function.
+    X : np.ndarray, shape (N, d*w) or (N, w_t, d), optional
+        Dataset.
+    clusters : List[List[int]], optional
+        Clustering represented as a list of clusters.
+    dist_kwargs : dict, optional
+        Keyword arguments for distance computations.
+    score_kwargs : dict, optional
+        Keyword arguments specific to the CVI.
+
+    Returns
+    -------
+    float
+        Score of the given clustering.
+
+    Raises
+    ------
+    InvalidScoreError
+        If an invalid score type is provided.
     """
 
     # TODO: add weights for scores that requires global bounds

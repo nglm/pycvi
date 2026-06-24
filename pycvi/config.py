@@ -66,10 +66,24 @@ def _get_model_parameters(
     model_class_kw: dict = {},
 ) -> Tuple[Dict, Dict, Dict]:
     """
-    Initialize clustering model parameters
+    Initialize clustering model parameters.
 
-    :return: 2 dict, for the model initialization and its fit method
-    :rtype: Tuple[Dict, Dict]
+    Parameters
+    ----------
+    model_class : type
+        Clustering model class.
+    model_kw : dict, optional
+        Model initialization keyword arguments.
+    fit_predict_kw : dict, optional
+        Keyword arguments for the model `fit_predict` call.
+    model_class_kw : dict, optional
+        Keyword arguments describing model API specifics.
+
+    Returns
+    -------
+    Tuple[Dict, Dict, Dict]
+        Tuple containing initialization kwargs, fit/predict kwargs,
+        and model class metadata kwargs.
     """
     m_kw = {}
     ft_kw = {}
