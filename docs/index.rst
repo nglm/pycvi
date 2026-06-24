@@ -63,7 +63,7 @@ High level functions are defined to compute clusterings, compare clusterings and
    pycvi.vi.variation_information
    pycvi.compute_scores.compute_all_scores
 
-More low-level functions are defined to perform common operations but that can handle the case of DTW and DBA if working on time-series data:
+More low-level functions are defined to perform common operations but that can handle the case of time-series distances such as DTW and MSM, as well as time-series average methods such as DBA and MBA:
 
 .. autosummary::
    :nosignatures:
