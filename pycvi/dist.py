@@ -278,7 +278,7 @@ def f_cdist(
 
     return dist
 
-def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, w_t=None):
+def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
     """
     Allow to use time-series metrics with (some) sklearn models.
 
