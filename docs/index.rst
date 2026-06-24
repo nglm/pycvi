@@ -34,6 +34,7 @@
    examples/full_example
    examples/cvi_aggregator
    examples/functional_or_OO
+   examples/ts_metric_with_sklearn
 
 .. include:: /examples/examples_reminders.rst
 
@@ -43,7 +44,7 @@
 Main Modules
 ----------------------------
 
-All implemented CVIs are available here:
+All implemented CVIs, as well as selection methods are available in the :mod:`pycvi.cvi` module:
 
 .. autosummary::
    :toctree:
@@ -71,12 +72,15 @@ More low-level functions are defined to perform common operations but that can h
 
    pycvi.dist.f_pdist
    pycvi.dist.f_cdist
+   pycvi.dist.time_series_metric_with_sklearn
    pycvi.compute_scores.f_inertia
    pycvi.cluster.compute_center
    pycvi.cluster.compute_centers
 
 .. Full API section
    ---------------------------------------
+
+Finally, you can browser the full API here:
 
 .. include:: api.rst
 

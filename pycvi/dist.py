@@ -309,11 +309,12 @@ def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
        done by this function)
 
     See :func:`pycvi.config.default_ts_distance_kwargs` for more
-    information about default distance kwargs used in PyCVI and see See
+    information about default distance kwargs used in PyCVI and see
     :func:`pycvi.dist.f_pdist` for more information about distances with
     time series data in PyCVI.
 
-    For a full example of this function, see TODO
+    For an example of this function, see
+    :doc:`/examples/ts_metric_with_sklearn`
 
     """
     dims = X.shape
