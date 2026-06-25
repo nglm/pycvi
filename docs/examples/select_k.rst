@@ -10,7 +10,10 @@ Here we assume that we are in real conditions, which means that we don't have ac
 .. include:: /examples/examples_reminders.rst
 
 .. literalinclude:: ../../examples/select_k/select_k.py
-   :lines: 7-224
+   :linenos:
+   :start-after: sys.stdout = fout
+   :end-before: fout.close()
+   :emphasize-lines: 65-72, 87, 91-98, 110, 164, 180, 206, 220
 
 .. image:: ../../examples/select_k/select-Barton_data_KMeans-histogram.png
 

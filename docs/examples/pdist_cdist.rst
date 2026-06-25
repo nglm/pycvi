@@ -11,6 +11,7 @@ Note that in the case of :func:`pycvi.dist.f_pdist`, a condensed distance matrix
    :linenos:
    :start-after: sys.stdout = fout
    :end-before: fout.close()
+   :emphasize-lines: 20, 28-30, 47, 55-57
 
 .. literalinclude:: ../../examples/pdist_cdist/output-pdist_cdist.txt
    :language: text

@@ -11,6 +11,7 @@ In this example, we use time-series data and non-time-series data. In addition w
    :linenos:
    :start-after: sys.stdout = fout
    :end-before: fout.close()
+   :emphasize-lines: 64-71, 82-83, 91-94, 105, 109-116, 128, 165, 181, 208, 223
 
 .. image:: ../../examples/full_example/full-Barton_data_KMeans.png
 

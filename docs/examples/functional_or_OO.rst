@@ -12,7 +12,7 @@ In addition, some CVI functions take additional optional parameters, which can b
    :linenos:
    :start-after: sys.stdout = fout
    :end-before: fout.close()
-   :emphasize-lines: 30-32,36-37
+   :emphasize-lines: 31-33,37-38
 
 .. literalinclude:: ../../examples/functional_or_OO/output-functional_or_OO.txt
    :language: text

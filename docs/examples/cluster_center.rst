@@ -8,6 +8,7 @@ In this example, we compute the cluster centers for time series data and non tim
 .. literalinclude:: ../../examples/cluster_center/cluster_center.py
    :linenos:
    :start-after: sys.path.append('./examples')
+   :emphasize-lines: 16, 31
 
 .. image:: ../../examples/cluster_center/cluster_centers.png
 

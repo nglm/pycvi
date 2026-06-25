@@ -15,6 +15,7 @@ This example showcases 2 successful clusterings and clustering selections.
    :linenos:
    :start-after: sys.stdout = fout
    :end-before: fout.close()
+   :emphasize-lines: 64-71, 83-90, 98, 116, 126-127, 133, 138-139, 146
 
 .. image:: ../../examples/cvi_aggregator/aggreg-Barton_data_KMeans-specific_cvis.png
 

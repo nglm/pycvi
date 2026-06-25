@@ -9,6 +9,7 @@ In this example, we integrate PyCVI into the usual clustering pipeline with time
    :linenos:
    :start-after: sys.stdout = fout
    :end-before: fout.close()
+   :emphasize-lines: 20, 31-41, 48
 
 .. image:: ../../examples/basic_usage_time_series/basic_usage_TS_KMeans_Dunn.png
 

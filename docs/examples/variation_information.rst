@@ -9,6 +9,7 @@ In this example, we compute the variation of information between the true cluste
    :linenos:
    :start-after: sys.stdout = fout
    :end-before: fout.close()
+   :emphasize-lines: 29-31, 37
 
 .. image:: ../../examples/variation_information/variation_information_KMeans_xclara.png
 

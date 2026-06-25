@@ -9,6 +9,7 @@ In this example, we integrate PyCVI into the usual clustering pipeline in order 
    :linenos:
    :start-after: sys.stdout = fout
    :end-before: fout.close()
+   :emphasize-lines: 18, 29-39, 46
 
 .. image:: ../../examples/basic_usage/basic_usage_KMeans_Silhouette.png
 
