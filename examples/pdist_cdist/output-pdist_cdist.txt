@@ -19,22 +19,22 @@ Distance matrix between cluster 1 and 3, shape (952, 1156)
 4 clusters in dataset Trace (Time-series)
 
 Distance matrix between datapoints in cluster 1, shape (300,)
-  Mean distance between datapoints in cluster 1: 8.9790
+  Mean distance between datapoints in cluster 1: 64.6368
 
 Distance matrix between datapoints in cluster 2, shape (210,)
-  Mean distance between datapoints in cluster 2: 0.6607
+  Mean distance between datapoints in cluster 2: 55.6207
 
 Distance matrix between datapoints in cluster 3, shape (231,)
-  Mean distance between datapoints in cluster 3: 5.4999
+  Mean distance between datapoints in cluster 3: 65.8920
 
 Distance matrix between datapoints in cluster 4, shape (465,)
-  Mean distance between datapoints in cluster 4: 8.5036
+  Mean distance between datapoints in cluster 4: 71.8390
 
 Distance matrix between cluster 1 and 2, shape (25, 21)
-  Mean distance between cluster 1 and 2: 35.4798
+  Mean distance between cluster 1 and 2: 81.2241
 
 Distance matrix between cluster 1 and 3, shape (25, 22)
-  Mean distance between cluster 1 and 3: 507.1584
+  Mean distance between cluster 1 and 3: 206.1871
 
 Distance matrix between cluster 1 and 4, shape (25, 31)
-  Mean distance between cluster 1 and 4: 532.0727
+  Mean distance between cluster 1 and 4: 203.9528

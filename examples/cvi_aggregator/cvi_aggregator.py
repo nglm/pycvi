@@ -134,7 +134,7 @@ model_class = KMeans
 model_kw = {}
 
 fig_title = "KMeans and CVI aggregator with specific CVIs"
-fig_name = "Barton_data_KMeans-specific_cvis"
+fig_name = "aggreg-Barton_data_KMeans-specific_cvis"
 pipeline(cvi_aggregator, X, y, model_class, model_kw, fig_title, fig_name)
 
 # -------------- Using all CVIs ----------------------------
