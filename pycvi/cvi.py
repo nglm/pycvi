@@ -211,8 +211,8 @@ class CVI():
 
         Parameters
         ----------
-    X : np.ndarray
-        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
+        X : np.ndarray
+            Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
         clustering : List[List[int]]
             List of clusters.
         cvi_kwargs : dict, optional
@@ -276,7 +276,7 @@ class CVI():
 
         Parameters
         ----------
-        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        X_clus : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)``,
         optional
             Dataset to cluster (already processed), by default None
         clusterings_t : Dict[int, List], optional
@@ -951,7 +951,7 @@ class Hartigan(CVI):
 
         Parameters
         ----------
-        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        X_clus : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)``,
         optional
             Dataset to cluster (already processed), by default None
         clusterings_t : Dict[int, List], optional
@@ -1049,11 +1049,11 @@ class CalinskiHarabasz(CVI):
         Calinski-Harabasz has 3 additional parameters:
 
         - `k` (int): the current number of clusters.
-        - `X1` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`): the
-          dataset to cluster (already processed). This is
-          needed for the case :math:`k=0`, and in that case `X_clus`
-          is sampled from a uniform distribution with similar
-          parameters as the original distribution
+        - `X1` (np.ndarray, shape: ``(N, d*w_t)`` or ``(N, w_t, d)``):
+          the dataset to cluster (already processed). This is needed for
+          the case :math:`k=0`, and in that case `X_clus` is sampled
+          from a uniform distribution with similar parameters as the
+          original distribution
         - `zero_type` (str): determines how to parametrize the uniform
           distribution to sample from in the case :math:`k=0`. Possible
           options:
@@ -1065,7 +1065,7 @@ class CalinskiHarabasz(CVI):
 
         Parameters
         ----------
-        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        X_clus : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)``,
         optional
             Dataset to cluster (already processed), by default None
         clusterings_t : Dict[int, List], optional
@@ -1209,7 +1209,7 @@ class GapStatistic(CVI):
 
         Parameters
         ----------
-        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        X_clus : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)``,
         optional
             Dataset to cluster (already processed), by default None
         clusterings_t : Dict[int, List], optional
@@ -1387,7 +1387,7 @@ class ScoreFunction(CVI):
 
         Parameters
         ----------
-        X_clus : np.ndarray, shape `(N, d*w_t)` or `(N, w_t, d)`,
+        X_clus : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)``,
         optional
             Dataset to cluster (already processed), by default None
         clusterings_t : Dict[int, List], optional
