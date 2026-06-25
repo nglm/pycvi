@@ -1,6 +1,6 @@
 import numpy as np
 
-from .._mini import get_clusterings, mini, mini_ts, normal
+from .._mini import get_clusterings, mini, mini_2, normal
 
 
 def test_mini():
@@ -17,13 +17,13 @@ def test_mini():
 	assert time_m.shape == (5,)
 
 
-def test_mini_ts():
-	data_u, time_u = mini_ts(multivariate=False, time_scale=True)
+def test_mini_2():
+	data_u, time_u = mini_2(multivariate=False, time_scale=True)
 	assert data_u.shape == (6, 6, 1)
 	assert time_u.shape == (6,)
 	assert np.array_equal(time_u, np.array([0, 6, 12, 18, 24, 30]))
 
-	data_m, time_m = mini_ts(multivariate=True, time_scale=False)
+	data_m, time_m = mini_2(multivariate=True, time_scale=False)
 	assert data_m.shape == (6, 6, 2)
 	assert np.array_equal(time_m, np.array([0, 1, 2, 3, 4, 5]))
 
