@@ -67,6 +67,7 @@ High level functions are defined to compute clusterings, compare clusterings and
 More low-level functions are defined to perform common operations but that can handle the case of time-series distances such as DTW and MSM, as well as time-series average methods such as DBA and MBA:
 
 .. autosummary::
+   :toctree:
    :nosignatures:
    :template: function.rst
 
