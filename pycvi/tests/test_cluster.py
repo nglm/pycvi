@@ -9,7 +9,7 @@ from typing import List
 from ..datasets._mini import mini
 from ..cluster import (
     sliding_window, prepare_data, _generate_clustering, generate_all_clusterings,
-    generate_uniform
+    generate_uniform, compute_center, compute_centers
 )
 
 def test_generate_uniform():
@@ -379,3 +379,80 @@ def test_generate_all_clusterings():
         assert (type(clusterings_t_k[0][0]) == list)
         assert (type(clusterings_t_k[0][0][0]) == list)
         assert (type(clusterings_t_k[0][0][0][0]) == int)
+
+
+def test_compute_center():
+
+    for multivariate in [True, False]:
+
+        data, _ = mini(multivariate=multivariate)
+        N = len(data)
+
+        clusters = [list(range(N // 2)), list(range(N // 2, N))]
+        # Take a specific cluster to compute its center
+        cluster_ind = clusters[0]
+
+        # ---------------  Time series case -----------------
+
+        (N, T, d) = data.shape
+
+        # Testing keepdim
+        center = compute_center(data[cluster_ind], keepdims=False)
+        assert np.shape(center) == (T, d)
+
+        center = compute_center(data[cluster_ind], keepdims=True)
+        assert np.shape(center) == (1, T, d)
+
+        # ---------------  Static case -----------------
+        data = data.reshape(N, T*d)
+
+        center = compute_center(data[cluster_ind], keepdims=False)
+        assert np.shape(center) == (T*d,)
+        center = compute_center(data[cluster_ind], keepdims=True)
+        assert np.shape(center) == (1, T*d)
+
+
+def test_compute_centers():
+
+    for multivariate in [True, False]:
+
+        data, _ = mini(multivariate=multivariate)
+        N = len(data)
+        clusters = [list(range(N // 2)), list(range(N // 2, N))]
+
+        # ---------------  Time series case -----------------
+
+        (N, T, d) = data.shape
+
+        # Testing keepdim: False
+        avg_kwargs = {
+            "distance" : "dtw",
+            "window" : 0.3,
+            "init_barycenter" : "medoids",
+            "method" : "petitjean",
+        }
+        centers = compute_centers(
+            data, clusters=clusters, keepdims=False, avg_kwargs=avg_kwargs
+        )
+        assert isinstance(centers, list)
+        assert len(centers) == len(clusters)
+        for center in centers:
+            assert isinstance(center, np.ndarray)
+            assert np.shape(center) == (T, d)
+
+        # Testing keepdim: True
+        avg_kwargs = {
+            "distance" : "msm",
+            "window" : 0.3,
+            "init_barycenter" : "mean",
+            "method" : "subgradient",
+        }
+        centers = compute_centers(
+            data, clusters=clusters, keepdims=True, avg_kwargs=avg_kwargs
+        )
+        assert isinstance(centers, list)
+        assert len(centers) == len(clusters)
+        for center in centers:
+            assert isinstance(center, np.ndarray)
+            assert np.shape(center) == (1, T, d)
+

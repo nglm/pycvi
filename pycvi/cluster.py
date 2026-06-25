@@ -25,7 +25,7 @@ from .exceptions import ShapeError, EmptyClusterError
 def compute_center(
     cluster: np.ndarray,
     keepdims: bool = False,
-    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> np.ndarray:
     """
     Compute the center of a cluster.
@@ -44,7 +44,7 @@ def compute_center(
     For time-series data the cluster center is by default defined as the
     MBA (MSM DTW barycentric average [DBA]_) as defined by Holder et al. [MBA]_.
     In this case, additional parameters can be passed in
-    ``dist_kwargs``, as described in
+    ``avg_kwargs``, as described in
     `aeon.clustering.averaging.elastic_barycenter_average
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
     By default, uses
@@ -77,9 +77,10 @@ def compute_center(
     keepdims : bool, optional
         Whether to keep the dimension ``N`` of the input cluster, by
         default False.
-    dist_kwargs : dict, optional
-        Additional parameters for the distance function used to
-        compute the cluster center, by default {}.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -115,11 +116,11 @@ def compute_center(
             center = cluster[0]
         else:
 
-            dist_kwargs_final = default_ts_average_kwargs(dist_kwargs)
+            avg_kwargs_final = default_ts_average_kwargs(avg_kwargs)
 
             center = elastic_barycenter_average(
                 np.swapaxes(cluster, 1, 2),
-                **dist_kwargs_final,
+                **avg_kwargs_final,
                 )
 
             center = np.swapaxes(center, 0, 1)
@@ -140,7 +141,7 @@ def compute_centers(
     X: np.ndarray,
     clusters: List[List[int]] = [],
     keepdims: bool = False,
-    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> List[np.ndarray]:
     """
     Compute the centers of all clusters.
@@ -159,7 +160,7 @@ def compute_centers(
     For time-series data the cluster center is by default defined as the
     DBA (DTW barycentric average) as defined by Petitjean et al [DBA]_.
     In this case, additional parameters can be passed in
-    ``dist_kwargs``, as described in
+    ``avg_kwargs``, as described in
     `aeon.clustering.averaging.elastic_barycenter_average
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
     By default, uses
@@ -188,9 +189,10 @@ def compute_centers(
     keepdims : bool, optional
         Whether to keep the dimension ``N`` of the input cluster, by
         default False.
-    dist_kwargs : dict, optional
-        Additional parameters for the distance function used to
-        compute the cluster center, by default {}.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -207,7 +209,7 @@ def compute_centers(
         clusters = [list(range(X.shape[0]))]
 
     centers = [
-        compute_center(X[c], keepdims=keepdims, dist_kwargs=dist_kwargs)
+        compute_center(X[c], keepdims=keepdims, avg_kwargs=avg_kwargs)
         for c in clusters
     ]
     return centers

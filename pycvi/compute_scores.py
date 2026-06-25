@@ -37,10 +37,9 @@ def f_intra(
     ``ts_dist=True``.
         A cluster of size ``N``.
     dist_kwargs : dict, optional
-        kwargs for
-        `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
-        , by default {}.
-
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
     Returns
     -------
     float
@@ -51,6 +50,7 @@ def f_intra(
 def f_inertia(
     cluster: np.ndarray,
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """
     Inertia of a group of elements.
@@ -63,16 +63,20 @@ def f_inertia(
     ``ts_dist=True``.
         A cluster of size ``N``.
     dist_kwargs : dict, optional
-        kwargs for
-        `scipy.spatial.distance.cdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html>`_
-        , by default {}.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
     float
         The inertia of the cluster.
     """
-    centroid = compute_center(cluster, keepdims=True, dist_kwargs=dist_kwargs)
+    centroid = compute_center(cluster, keepdims=True, avg_kwargs=avg_kwargs)
     dist = f_cdist(cluster, centroid, dist_kwargs=dist_kwargs)
     return float(np.sum(dist))
 
@@ -89,9 +93,9 @@ def f_diameter(
     ``ts_dist=True``.
         A cluster of size ``N``.
     dist_kwargs : dict, optional
-        kwargs for
-        `scipy.spatial.distance.pdist <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
-        , by default {}.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
 
     Returns
     -------
@@ -185,6 +189,7 @@ def _compute_score(
     X: np.ndarray = None,
     clusters: List[List[int]] = None,
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
     score_kwargs: dict = {},
 ) -> float :
     """
@@ -223,20 +228,22 @@ def _compute_score(
         # --------------------------------------------------------------
         # Inertia-based scores
         if (score_type.endswith("inertia")):
+            # inertia also takes avg_kwargs, so we merge dict
+            score_kwargs = avg_kwargs | score_kwargs
             score = _compute_subscores(
                 score_type, X, clusters, "inertia", f_inertia,
-                dist_kwargs, score_kwargs
+                dist_kwargs=dist_kwargs, score_kwargs=score_kwargs
             )
         # within distance-based scores
         elif (score_type.endswith("intra")):
             score = _compute_subscores(
                 score_type, X, clusters, "intra", f_intra,
-                dist_kwargs, score_kwargs
+                dist_kwargs=dist_kwargs, score_kwargs=score_kwargs
             )
         elif score_type.endswith("diameter"):
             score = _compute_subscores(
                 score_type, X, clusters, "diameter", f_diameter,
-                dist_kwargs, score_kwargs
+                dist_kwargs=dist_kwargs, score_kwargs=score_kwargs
             )
         # --------------------------------------------------------------
         else:

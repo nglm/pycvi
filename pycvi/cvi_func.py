@@ -79,7 +79,9 @@ def _compute_Wk(
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
 
     Returns
     -------
@@ -101,26 +103,33 @@ def _dist_centroids_to_global(
     X: np.ndarray,
     clusters: List[List[int]],
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> List[float]:
     """Compute distances between cluster centroids and the global centroid.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
     list[float]
         Distances from each cluster centroid to the global centroid.
     """
-    global_center = compute_center(X, keepdims=True, dist_kwargs=dist_kwargs)
+    global_center = compute_center(X, keepdims=True, avg_kwargs=avg_kwargs)
     centers = compute_centers(
-        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+        X, clusters, keepdims=True, avg_kwargs=avg_kwargs
     )
     dist = [
         # Distance between the centroids and the global centroid
@@ -138,6 +147,7 @@ def _dist_between_centroids(
     clusters: List[List[int]],
     all: bool = False,
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> Union[List[float], List[List[float]]]:
     """Compute pairwise distances between cluster centroids.
 
@@ -147,14 +157,20 @@ def _dist_between_centroids(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     all : bool, optional
         Whether to return all pairwise distances (including both
         directions) instead of the upper triangle only.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -168,7 +184,7 @@ def _dist_between_centroids(
             dist = [0.]
     else:
         centers = compute_centers(
-            X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+            X, clusters, keepdims=True, avg_kwargs=avg_kwargs
         )
         if all:
             dist = [
@@ -206,6 +222,7 @@ def _dist_to_centroids(
     clusters: List[List[int]],
     squared: bool = False,
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> List[np.ndarray]:
     """
     Compute (potentially squared) distances from points to their centroid.
@@ -213,13 +230,19 @@ def _dist_to_centroids(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     squared : bool, optional
         Whether to return squared distances.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -228,7 +251,7 @@ def _dist_to_centroids(
     """
 
     centers = compute_centers(
-        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+        X, clusters, keepdims=True, avg_kwargs=avg_kwargs
     )
     dist = [
         f_cdist(X[cluster], center, dist_kwargs=dist_kwargs)
@@ -244,7 +267,8 @@ def _sum_dist_to_centroids(
     X : np.ndarray,
     clusters: List[List[int]],
     squared: bool = False,
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> List[float]:
     """
     Sum (potentially squared) distances to centroids per cluster.
@@ -252,13 +276,19 @@ def _sum_dist_to_centroids(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     squared : bool, optional
         Whether to use squared distances.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -268,7 +298,8 @@ def _sum_dist_to_centroids(
 
     res = [
         np.sum(dist) for dist in _dist_to_centroids(
-            X, clusters, squared=squared, dist_kwargs=dist_kwargs
+            X, clusters, squared=squared, dist_kwargs=dist_kwargs,
+            avg_kwargs=avg_kwargs,
         )
     ]
 
@@ -278,7 +309,8 @@ def _sum_sum_dist_to_centroids(
     X : np.ndarray,
     clusters: List[List[int]],
     squared: bool = False,
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """
     Sum of summed (potentially squared) distances to centroids.
@@ -286,13 +318,19 @@ def _sum_sum_dist_to_centroids(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     squared : bool, optional
         Whether to use squared distances.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -301,7 +339,8 @@ def _sum_sum_dist_to_centroids(
     """
 
     res = float(np.sum( _sum_dist_to_centroids(
-        X, clusters, squared=squared, dist_kwargs=dist_kwargs
+        X, clusters, squared=squared, dist_kwargs=dist_kwargs,
+            avg_kwargs=avg_kwargs,
     )))
 
     return res
@@ -321,7 +360,7 @@ def gap_statistic(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
@@ -335,7 +374,9 @@ def gap_statistic(
     return_s : bool, optional
         Whether to return the standard deviation term `s`.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
 
     Returns
     -------
@@ -390,6 +431,7 @@ def score_function(
     clusters: List[List[int]],
     k: int =None,
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the score function index for a clustering.
 
@@ -399,13 +441,19 @@ def score_function(
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
         Ignored. Present for compatibility.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -419,7 +467,9 @@ def score_function(
 
     # List[float]: squared distances between centroids and global centroid
     sq_dist_centroids_to_global = np.square(
-        _dist_centroids_to_global(X, clusters, dist_kwargs=dist_kwargs)
+        _dist_centroids_to_global(
+            X, clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
+        )
     )
 
     bdc = 1/(N*k) * np.sum( np.multiply(nis, sq_dist_centroids_to_global) )
@@ -427,7 +477,8 @@ def score_function(
 
     # List[float]: sum of squared distances to centroids
     sum_sq_dist_to_centroids = _sum_dist_to_centroids(
-        X, clusters, squared=True, dist_kwargs=dist_kwargs
+        X, clusters, squared=True, dist_kwargs=dist_kwargs,
+        avg_kwargs=avg_kwargs,
     )
 
     wdc = np.sum([
@@ -446,13 +497,14 @@ def hartigan(
     X1: np.ndarray = None,
     rng = np.random.default_rng(611),
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the Hartigan index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for the current clustering.
     k : int, optional
@@ -465,7 +517,12 @@ def hartigan(
     rng : numpy.random.Generator, optional
         Random generator used for uniform sampling when needed.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function (not used here, only
+        present for compatibility with other CVI)
 
     Returns
     -------
@@ -513,17 +570,23 @@ def silhouette(
     X : np.ndarray,
     clusters: List[List[int]],
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the silhouette score for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function (not used here, only
+        present for compatibility with other CVI)
 
     Returns
     -------
@@ -582,13 +645,14 @@ def CH(
     zero_type: str = "variance",
     rng = np.random.default_rng(611),
     dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the Calinski–Harabasz (CH) index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
@@ -600,7 +664,13 @@ def CH(
     rng : numpy.random.Generator, optional
         Random generator used for uniform sampling when needed.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -637,7 +707,7 @@ def CH(
         sep = np.sum(np.square(
             f_cdist(
                 X0,
-                compute_center(X1, keepdims=True, dist_kwargs=dist_kwargs), dist_kwargs=dist_kwargs
+                compute_center(X1, keepdims=True, avg_kwargs=avg_kwargs), dist_kwargs=dist_kwargs
             )
         ))
 
@@ -647,7 +717,8 @@ def CH(
         # 0)
         # Note that the list has actually only one element
         comp = _sum_sum_dist_to_centroids(
-            X1, clusters, squared=True, dist_kwargs=dist_kwargs
+            X1, clusters, squared=True, dist_kwargs=dist_kwargs,
+            avg_kwargs=avg_kwargs,
         )
 
         if comp == 0:
@@ -662,7 +733,9 @@ def CH(
 
         # List[float]: squared distances between centroids and global centroid
         sq_dist_centroids_to_global = np.square(
-            _dist_centroids_to_global(X, clusters, dist_kwargs=dist_kwargs)
+            _dist_centroids_to_global(
+                X, clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
+            )
         )
 
         sep = np.sum(
@@ -670,7 +743,8 @@ def CH(
         )
 
         comp = _sum_sum_dist_to_centroids(
-            X, clusters, squared=True, dist_kwargs=dist_kwargs
+            X, clusters, squared=True, dist_kwargs=dist_kwargs,
+            avg_kwargs=avg_kwargs,
         )
 
         if comp == 0:
@@ -686,14 +760,15 @@ def MB(
     clusters: List[List[int]],
     k: int = None,
     p: int = 2,
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the Maulik–Bandyopadhyay index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
@@ -701,7 +776,13 @@ def MB(
     p : int, optional
         Exponent used in the index for the distance metric.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -714,16 +795,17 @@ def MB(
     else:
 
         E1 = _sum_sum_dist_to_centroids(
-            X, [np.arange(N)], dist_kwargs=dist_kwargs
+            X, [np.arange(N)], dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
         )
         Ek = _sum_sum_dist_to_centroids(
-            X, clusters, dist_kwargs=dist_kwargs
+            X, clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
         )
 
         Dk = np.amax(
             _dist_between_centroids(
-                X, clusters, dist_kwargs=dist_kwargs)
+                X, clusters, dist_kwargs=dist_kwargs,avg_kwargs=avg_kwargs,
             )
+        )
 
         if Ek == 0:
             I = np.inf
@@ -736,23 +818,30 @@ def MB(
 
 def _var(
     X : np.ndarray,
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> np.ndarray:
     """Compute the variance vector used in the SD index.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
     np.ndarray
         Variance vector of shape (d,) (or (d*w_t,) for flattened series).
     """
-    center = compute_center(X, keepdims=True, dist_kwargs=dist_kwargs)
+    center = compute_center(X, keepdims=True, avg_kwargs=avg_kwargs)
     if len(X.shape) == 2:
         Var = [
             # shape is then (N, 1*w_t) or (N, w_t, 1)
@@ -778,18 +867,25 @@ def _var(
 def _dis(
     X : np.ndarray,
     clusters: List[List[int]],
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the dispersion term used in the SD index.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -797,10 +893,10 @@ def _dis(
         Dispersion ("Dis") term.
     """
     centers = compute_centers(
-        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+        X, clusters, keepdims=True, avg_kwargs=avg_kwargs
     )
     d_btw_centroids = _dist_between_centroids(
-        X, clusters=clusters, dist_kwargs=dist_kwargs
+        X, clusters=clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
     )
 
     # For each center, compute the sum of distances to all other centers
@@ -822,18 +918,25 @@ def _dis(
 def _scat(
     X : np.ndarray,
     clusters: List[List[int]],
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the scatter term used in SD and SDbw indices.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -845,10 +948,14 @@ def _scat(
     # Note that the use of np.linalg.norm is possible here, regardless
     # of whether ts_dist and/or time series are used because _var always
     # return a vector of shape (d,)
-    total_var = np.linalg.norm(_var(X, dist_kwargs=dist_kwargs))
+    total_var = np.linalg.norm(
+        _var(X, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs)
+    )
 
     scat = float(1/k * np.sum([
-        np.linalg.norm(_var(X[c], dist_kwargs=dist_kwargs))/total_var
+        np.linalg.norm(
+            _var(X[c], dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs)
+        )/total_var
         for c in clusters
     ]))
     return scat
@@ -857,27 +964,36 @@ def SD_index(
     X : np.ndarray,
     clusters: List[List[int]],
     alpha: float = None,
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the SD index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     alpha : float, optional
         Constant in the SD index formula (defaults to $Dis(k_{max})$).
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
     float
         SD index.
     """
-    scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
+    scat = _scat(
+        X, clusters=clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs
+    )
 
     # If alpha is None, assume that k_max = N
     if alpha is None:
@@ -894,7 +1010,9 @@ def SD_index(
                 [1 / a_aux if a_aux != 0 else np.inf for a_aux in alpha_aux]
             )
         )
-    dis = _dis(X, clusters=clusters, dist_kwargs=dist_kwargs)
+    dis = _dis(
+        X, clusters=clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs
+    )
 
     res = float(alpha * scat + dis)
     return res
@@ -902,18 +1020,25 @@ def SD_index(
 def SDbw_index(
     X : np.ndarray,
     clusters: List[List[int]],
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the SDbw index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -922,11 +1047,13 @@ def SDbw_index(
     """
     k = len(clusters)
 
-    scat = _scat(X, clusters=clusters, dist_kwargs=dist_kwargs)
+    scat = _scat(
+        X, clusters=clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs
+    )
 
     # Get centroids
     centers = compute_centers(
-        X, clusters, keepdims=True, dist_kwargs=dist_kwargs
+        X, clusters, keepdims=True, avg_kwargs=avg_kwargs
     )
 
     # Get each (i-j) pair in a flat list and get each pair only once
@@ -951,7 +1078,9 @@ def SDbw_index(
     ]
 
     # k (nix1)-arrays of distances to centroids for each cluster
-    d_to_centroids = _dist_to_centroids(X, clusters, dist_kwargs=dist_kwargs)
+    d_to_centroids = _dist_to_centroids(
+        X, clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
+    )
 
     # Referred as "the average standard deviation of clusters" in the
     # article
@@ -999,18 +1128,24 @@ def SDbw_index(
 def dunn(
     X : np.ndarray,
     clusters: List[List[int]],
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the Dunn index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function (not used here, only
+        present for compatibility with other CVI)
 
     Returns
     -------
@@ -1060,18 +1195,25 @@ def dunn(
 def xie_beni(
     X : np.ndarray,
     clusters: List[List[int]],
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the Xie–Beni index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -1089,13 +1231,14 @@ def xie_beni(
         # sq_dist_between_centroids is then a list floats as well
         sq_dist_between_centroids = [
             d**2 for d in _dist_between_centroids(
-                X, clusters, dist_kwargs=dist_kwargs,
+                X, clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
             )
         ]
 
         # float: sum of sum of squared distances to centroids
         sq_dist_to_centroids = _sum_sum_dist_to_centroids(
-            X, clusters, squared=True, dist_kwargs=dist_kwargs
+            X, clusters, squared=True, dist_kwargs=dist_kwargs,
+            avg_kwargs=avg_kwargs,
         )
 
         denominator = np.amin(sq_dist_between_centroids)
@@ -1113,18 +1256,25 @@ def xie_beni(
 def xie_beni_star(
     X : np.ndarray,
     clusters: List[List[int]],
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the Xie–Beni* (XB*) index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -1141,7 +1291,7 @@ def xie_beni_star(
         # List[float]: list of distances to centroids
         dist_between_centroids = [
             d ** 2 for d in _dist_between_centroids(
-                X, clusters, dist_kwargs=dist_kwargs,
+                X, clusters, dist_kwargs=dist_kwargs, avg_kwargs=avg_kwargs,
             )
         ]
 
@@ -1149,7 +1299,8 @@ def xie_beni_star(
         numerator = np.amax([
             # _dist_to_centroids gives a list of (N_C, 1) arrays
             np.mean(d) for d in _dist_to_centroids(
-                X, clusters, squared=True, dist_kwargs=dist_kwargs
+                X, clusters, squared=True, dist_kwargs=dist_kwargs,
+                avg_kwargs=avg_kwargs,
             )
         ])
 
@@ -1167,20 +1318,27 @@ def davies_bouldin(
     X : np.ndarray,
     clusters: List[List[int]],
     p: int = 2,
-    dist_kwargs = {},
+    dist_kwargs: dict = {},
+    avg_kwargs: dict = {},
 ) -> float:
     """Compute the Davies–Bouldin (DB) index for a clustering.
 
     Parameters
     ----------
     X : np.ndarray
-        Dataset of shape (N, d*w_t) or (N, w_t, d).
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     clusters : list[list[int]]
         Indices for each cluster.
     p : int, optional
         Minkowski order when using Euclidean data.
     dist_kwargs : dict, optional
-        Keyword arguments for the distance function.
+        Keyword arguments for the distance function. See
+        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        more information.
+    avg_kwargs : dict, optional
+        Keyword arguments for the average function. See
+        :func:`pycvi.cluster.compute_center` and
+        func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -1196,7 +1354,7 @@ def davies_bouldin(
         dist_kwargs_Sis.setdefault("p", p)
 
     dist_to_centroids = _dist_to_centroids(
-        X, clusters, dist_kwargs=dist_kwargs_Sis
+        X, clusters, dist_kwargs=dist_kwargs_Sis, avg_kwargs=avg_kwargs,
     )
 
     nis = [len(c) for c in clusters]
@@ -1212,7 +1370,8 @@ def davies_bouldin(
         dist_kwargs_btw_centroids.setdefault("p", p)
 
     dist_between_centroids = _dist_between_centroids(
-        X, clusters, all=True, dist_kwargs=dist_kwargs_btw_centroids
+        X, clusters, all=True, dist_kwargs=dist_kwargs_btw_centroids,
+        avg_kwargs=avg_kwargs,
     )
 
     # Compute R_ijs even when i=j
