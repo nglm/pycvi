@@ -225,10 +225,10 @@ class CVI():
             datapoints.
 
             - See :func:`pycvi.dist.f_pdist` and
-              func:`pycvi.dist.f_cdist` for more information on
+              :func:`pycvi.dist.f_cdist` for more information on
               available parameters and distances options.
-            - See func:`pycvi.cluster.compute_center` and
-              func:`pycvi.cluster.compute_centers` for more information
+            - See :func:`pycvi.cluster.compute_center` and
+              :func:`pycvi.cluster.compute_centers` for more information
               on available parameters and averaging options.
 
         Returns
@@ -295,10 +295,10 @@ class CVI():
             datapoints.
 
             - See :func:`pycvi.dist.f_pdist` and
-              func:`pycvi.dist.f_cdist` for more information on
+              :func:`pycvi.dist.f_cdist` for more information on
               available parameters and distances options.
-            - See func:`pycvi.cluster.compute_center` and
-              func:`pycvi.cluster.compute_centers` for more information
+            - See :func:`pycvi.cluster.compute_center` and
+              :func:`pycvi.cluster.compute_centers` for more information
               on available parameters and averaging options.
 
         Returns
@@ -970,10 +970,10 @@ class Hartigan(CVI):
             datapoints.
 
             - See :func:`pycvi.dist.f_pdist` and
-              func:`pycvi.dist.f_cdist` for more information on
+              :func:`pycvi.dist.f_cdist` for more information on
               available parameters and distances options.
-            - See func:`pycvi.cluster.compute_center` and
-              func:`pycvi.cluster.compute_centers` for more information
+            - See :func:`pycvi.cluster.compute_center` and
+              :func:`pycvi.cluster.compute_centers` for more information
               on available parameters and averaging options.
 
         Returns
@@ -1084,10 +1084,10 @@ class CalinskiHarabasz(CVI):
             datapoints.
 
             - See :func:`pycvi.dist.f_pdist` and
-              func:`pycvi.dist.f_cdist` for more information on
+              :func:`pycvi.dist.f_cdist` for more information on
               available parameters and distances options.
-            - See func:`pycvi.cluster.compute_center` and
-              func:`pycvi.cluster.compute_centers` for more information
+            - See :func:`pycvi.cluster.compute_center` and
+              :func:`pycvi.cluster.compute_centers` for more information
               on available parameters and averaging options.
 
         Returns
@@ -1406,10 +1406,10 @@ class ScoreFunction(CVI):
             datapoints.
 
             - See :func:`pycvi.dist.f_pdist` and
-              func:`pycvi.dist.f_cdist` for more information on
+              :func:`pycvi.dist.f_cdist` for more information on
               available parameters and distances options.
-            - See func:`pycvi.cluster.compute_center` and
-              func:`pycvi.cluster.compute_centers` for more information
+            - See :func:`pycvi.cluster.compute_center` and
+              :func:`pycvi.cluster.compute_centers` for more information
               on available parameters and averaging options.
 
         Returns
@@ -1483,10 +1483,10 @@ class MaulikBandyopadhyay(CVI):
             datapoints.
 
             - See :func:`pycvi.dist.f_pdist` and
-              func:`pycvi.dist.f_cdist` for more information on
+              :func:`pycvi.dist.f_cdist` for more information on
               available parameters and distances options.
-            - See func:`pycvi.cluster.compute_center` and
-              func:`pycvi.cluster.compute_centers` for more information
+            - See :func:`pycvi.cluster.compute_center` and
+              :func:`pycvi.cluster.compute_centers` for more information
               on available parameters and averaging options.
 
         Returns
@@ -1563,10 +1563,10 @@ class SD(CVI):
             datapoints.
 
             - See :func:`pycvi.dist.f_pdist` and
-              func:`pycvi.dist.f_cdist` for more information on
+              :func:`pycvi.dist.f_cdist` for more information on
               available parameters and distances options.
-            - See func:`pycvi.cluster.compute_center` and
-              func:`pycvi.cluster.compute_centers` for more information
+            - See :func:`pycvi.cluster.compute_center` and
+              :func:`pycvi.cluster.compute_centers` for more information
               on available parameters and averaging options.
 
         Returns

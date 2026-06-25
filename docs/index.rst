@@ -23,7 +23,7 @@
 
 .. toctree::
    :maxdepth: 4
-   :caption: Examples:
+   :caption: Examples
 
    examples/basic_usage
    examples/basic_usage_time_series

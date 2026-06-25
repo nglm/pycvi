@@ -80,7 +80,7 @@ def _compute_Wk(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
 
     Returns
@@ -115,7 +115,7 @@ def _dist_centroids_to_global(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -165,7 +165,7 @@ def _dist_between_centroids(
         directions) instead of the upper triangle only.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -237,7 +237,7 @@ def _dist_to_centroids(
         Whether to return squared distances.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -283,7 +283,7 @@ def _sum_dist_to_centroids(
         Whether to use squared distances.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -325,7 +325,7 @@ def _sum_sum_dist_to_centroids(
         Whether to use squared distances.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -375,7 +375,7 @@ def gap_statistic(
         Whether to return the standard deviation term `s`.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
 
     Returns
@@ -448,7 +448,7 @@ def score_function(
         Ignored. Present for compatibility.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -518,7 +518,7 @@ def hartigan(
         Random generator used for uniform sampling when needed.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function (not used here, only
@@ -582,7 +582,7 @@ def silhouette(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function (not used here, only
@@ -665,7 +665,7 @@ def CH(
         Random generator used for uniform sampling when needed.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -777,7 +777,7 @@ def MB(
         Exponent used in the index for the distance metric.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -829,7 +829,7 @@ def _var(
         Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -880,7 +880,7 @@ def _dis(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -931,7 +931,7 @@ def _scat(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -979,7 +979,7 @@ def SD_index(
         Constant in the SD index formula (defaults to $Dis(k_{max})$).
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -1033,7 +1033,7 @@ def SDbw_index(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -1141,7 +1141,7 @@ def dunn(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function (not used here, only
@@ -1208,7 +1208,7 @@ def xie_beni(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -1269,7 +1269,7 @@ def xie_beni_star(
         Indices for each cluster.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -1333,7 +1333,7 @@ def davies_bouldin(
         Minkowski order when using Euclidean data.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See

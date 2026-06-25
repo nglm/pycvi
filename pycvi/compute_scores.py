@@ -38,7 +38,7 @@ def f_intra(
         A cluster of size ``N``.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     Returns
     -------
@@ -64,7 +64,7 @@ def f_inertia(
         A cluster of size ``N``.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
@@ -94,7 +94,7 @@ def f_diameter(
         A cluster of size ``N``.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
-        :func:`pycvi.dist.f_pdist` and func:`pycvi.dist.f_cdist` for
+        :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
         more information.
 
     Returns
