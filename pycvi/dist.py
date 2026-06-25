@@ -91,6 +91,13 @@ def f_pdist(
     `aeon.distances.get_pairwise_distance_function
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.get_pairwise_distance_function.html#aeon.distances.get_pairwise_distance_function>`_.
 
+    For example, ``dist_kwargs`` can include parameters such as
+    ``window`` or ``itakura_max_slope`` if DTW (see
+    `aeon.distances.dtw_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_)
+    or MSM distances are used (see `aeon.distances.msm_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.msm_pairwise_distance.html#msm-pairwise-distance>`_).
+
     By default, PyCVI uses the following ``dist_kwargs`` value:
     ``{"method" : "msm"}``, which means that the actual distance used is
     MSM, implemented in `aeon` in the
@@ -206,6 +213,13 @@ def f_cdist(
     can also use a short name as described in
     `aeon.distances.get_pairwise_distance_function
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.get_pairwise_distance_function.html#aeon.distances.get_pairwise_distance_function>`_.
+
+    For example, ``dist_kwargs`` can include parameters such as
+    ``window`` or ``itakura_max_slope`` if DTW (see
+    `aeon.distances.dtw_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_)
+    or MSM distances are used (see `aeon.distances.msm_pairwise_distance
+    <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.msm_pairwise_distance.html#msm-pairwise-distance>`_).
 
     By default, PyCVI uses the following ``dist_kwargs`` value:
     ``{"method" : "msm"}``, which means that the actual distance used is

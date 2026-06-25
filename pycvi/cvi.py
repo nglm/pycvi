@@ -211,29 +211,25 @@ class CVI():
 
         Parameters
         ----------
-        X : np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`
-            Dataset.
+    X : np.ndarray
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
         clustering : List[List[int]]
             List of clusters.
         cvi_kwargs : dict, optional
             Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
 
             In particular, all CVI functions accept a ``dist_kwargs``
-            parameter that can be used to specify the parameters of the
-            distance function used to compute pairwise distances between
+            and a ``avg_kwargs`` parameter that can be used to specify
+            the parameters of the distance and averaging functions
+            respectively. used to compute pairwise distances between
             datapoints.
 
-            - If the dataset ``X`` is time-series data and if
-              ``ts_dist=True``, then the ``dist_kwargs`` can include
-              parameters such as ``window`` or ``itakura_max_slope`` if
-              for example DTW (see `aeon.distances.dtw_pairwise_distance
-              <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.dtw_pairwise_distance.html#dtw-pairwise-distance>`_)
-              or MSM are used (see `aeon.distances.msm_pairwise_distance
-              <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.distances.msm_pairwise_distance.html#msm-pairwise-distance>`_),
-            - Otherwise, the distance function used is based on
-              `scipy.spatial.distance.pdist
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html>`_
-              and accepts the same parameters as this function.
+            - See :func:`pycvi.dist.f_pdist` and
+              func:`pycvi.dist.f_cdist` for more information on
+              available parameters and distances options.
+            - See func:`pycvi.cluster.compute_center` and
+              func:`pycvi.cluster.compute_centers` for more information
+              on available parameters and averaging options.
 
         Returns
         -------
@@ -290,8 +286,20 @@ class CVI():
         n_clusters : int, optional
             Current number of clusters considered, by default None
         cvi_kwargs : dict, optional
-            Pre-defined kwargs, typically the metric to use when
-            computing the CVI values, by default {}
+            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+
+            In particular, all CVI functions accept a ``dist_kwargs``
+            and a ``avg_kwargs`` parameter that can be used to specify
+            the parameters of the distance and averaging functions
+            respectively. used to compute pairwise distances between
+            datapoints.
+
+            - See :func:`pycvi.dist.f_pdist` and
+              func:`pycvi.dist.f_cdist` for more information on
+              available parameters and distances options.
+            - See func:`pycvi.cluster.compute_center` and
+              func:`pycvi.cluster.compute_centers` for more information
+              on available parameters and averaging options.
 
         Returns
         -------
@@ -953,8 +961,20 @@ class Hartigan(CVI):
         n_clusters : int, optional
             Current number of clusters considered, by default None
         cvi_kwargs : dict, optional
-            Pre-defined kwargs, typically the metric to use when
-            computing the CVI values, by default {}
+            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+
+            In particular, all CVI functions accept a ``dist_kwargs``
+            and a ``avg_kwargs`` parameter that can be used to specify
+            the parameters of the distance and averaging functions
+            respectively. used to compute pairwise distances between
+            datapoints.
+
+            - See :func:`pycvi.dist.f_pdist` and
+              func:`pycvi.dist.f_cdist` for more information on
+              available parameters and distances options.
+            - See func:`pycvi.cluster.compute_center` and
+              func:`pycvi.cluster.compute_centers` for more information
+              on available parameters and averaging options.
 
         Returns
         -------
@@ -1055,8 +1075,20 @@ class CalinskiHarabasz(CVI):
         n_clusters : int, optional
             Current number of clusters considered, by default None
         cvi_kwargs : dict, optional
-            Pre-defined kwargs, typically the metric to use when
-            computing the CVI values, by default {}
+            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+
+            In particular, all CVI functions accept a ``dist_kwargs``
+            and a ``avg_kwargs`` parameter that can be used to specify
+            the parameters of the distance and averaging functions
+            respectively. used to compute pairwise distances between
+            datapoints.
+
+            - See :func:`pycvi.dist.f_pdist` and
+              func:`pycvi.dist.f_cdist` for more information on
+              available parameters and distances options.
+            - See func:`pycvi.cluster.compute_center` and
+              func:`pycvi.cluster.compute_centers` for more information
+              on available parameters and averaging options.
 
         Returns
         -------
@@ -1223,8 +1255,8 @@ class GapStatistic(CVI):
 
         Parameters
         ----------
-        X : np.ndarray, shape: `(N, d*w_t)` or `(N, w_t, d)`
-            Dataset.
+    X : np.ndarray
+        Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
         clustering : List[List[int]]
             List of clusters.
         cvi_kwargs : dict, optional
@@ -1365,8 +1397,20 @@ class ScoreFunction(CVI):
         n_clusters : int, optional
             Current number of clusters considered, by default None
         cvi_kwargs : dict, optional
-            Pre-defined kwargs, typically the metric to use when
-            computing the CVI values, by default {}
+            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+
+            In particular, all CVI functions accept a ``dist_kwargs``
+            and a ``avg_kwargs`` parameter that can be used to specify
+            the parameters of the distance and averaging functions
+            respectively. used to compute pairwise distances between
+            datapoints.
+
+            - See :func:`pycvi.dist.f_pdist` and
+              func:`pycvi.dist.f_cdist` for more information on
+              available parameters and distances options.
+            - See func:`pycvi.cluster.compute_center` and
+              func:`pycvi.cluster.compute_centers` for more information
+              on available parameters and averaging options.
 
         Returns
         -------
@@ -1430,7 +1474,20 @@ class MaulikBandyopadhyay(CVI):
         n_clusters : int, optional
             Current number of clusters considered, by default None.
         cvi_kwargs : dict, optional
-            Pre-defined kwargs, by default {}.
+            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+
+            In particular, all CVI functions accept a ``dist_kwargs``
+            and a ``avg_kwargs`` parameter that can be used to specify
+            the parameters of the distance and averaging functions
+            respectively. used to compute pairwise distances between
+            datapoints.
+
+            - See :func:`pycvi.dist.f_pdist` and
+              func:`pycvi.dist.f_cdist` for more information on
+              available parameters and distances options.
+            - See func:`pycvi.cluster.compute_center` and
+              func:`pycvi.cluster.compute_centers` for more information
+              on available parameters and averaging options.
 
         Returns
         -------
@@ -1497,7 +1554,20 @@ class SD(CVI):
         n_clusters : int, optional
             Current number of clusters considered, by default None.
         cvi_kwargs : dict, optional
-            Pre-defined kwargs, by default {}.
+            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+
+            In particular, all CVI functions accept a ``dist_kwargs``
+            and a ``avg_kwargs`` parameter that can be used to specify
+            the parameters of the distance and averaging functions
+            respectively. used to compute pairwise distances between
+            datapoints.
+
+            - See :func:`pycvi.dist.f_pdist` and
+              func:`pycvi.dist.f_cdist` for more information on
+              available parameters and distances options.
+            - See func:`pycvi.cluster.compute_center` and
+              func:`pycvi.cluster.compute_centers` for more information
+              on available parameters and averaging options.
 
         Returns
         -------
