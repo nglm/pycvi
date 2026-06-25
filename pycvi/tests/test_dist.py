@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.cluster import AgglomerativeClustering
 
-from ..datasets._mini import mini, mini_ts
+from ..datasets._mini import mini, mini_2
 from ..dist import f_cdist, f_pdist, time_series_metric_with_sklearn
 from .._utils import _load_data_from_github
 
@@ -55,7 +55,7 @@ def test_f_cdist():
 
 def test_time_series_metric_with_sklearn():
     for multivariate in [True, False]:
-        data, time = mini_ts(multivariate=multivariate)
+        data, time = mini_2(multivariate=multivariate)
         (N, T, d) = data.shape
 
         # Reshape data to match sklearn requirements
