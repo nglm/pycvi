@@ -15,7 +15,7 @@ For non-time-series data, the distance used is usually the Euclidean distance an
 
 For time-series data however, common distances used are Dynamic Time Warping (DTW) or Move-Split-Merge (MSM) and the barycenter of a group of time series is then not defined as the usual mean, but as the DTW Barycentric Average (DBA) or MBA (MSM DTW barycentric average). Unfortunately, DTW, MSM, DBA and MBA are not compatible with the libraries mentioned above, which among other reasons, made additional machine learning libraries specialized in time series data such as [aeon](https://www.aeon-toolkit.org/en/latest/index.html), [sktime](https://www.sktime.net/en/stable/index.html) and [tslearn](https://tslearn.readthedocs.io/en/stable/) necessary.
 
-PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal CVIs and by making them compatible with DTW and DBA (and obviously non-time-series data). PyCVI is entirely compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), in order to be easily integrated into any clustering pipeline in Python.
+PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal CVIs and by making them compatible with DTW and DBA (and obviously non-time-series data). PyCVI is entirely compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [kmedoids](https://python-kmedoids.readthedocs.io/en/latest/#), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), in order to be easily integrated into any clustering pipeline in Python.
 
 To compute DTW, MSM, DBA, MBA, etc. PyCVI relies on the [aeon](https://www.aeon-toolkit.org/en/latest/index.html) library.
 
@@ -24,7 +24,7 @@ To compute DTW, MSM, DBA, MBA, etc. PyCVI relies on the [aeon](https://www.aeon-
 - 12 internal CVIs implemented: Hartigan, Calinski-Harabasz, GapStatistic, Silhouette, ScoreFunction, Maulik-Bandyopadhyay, SD, SDbw, Dunn, Xie-Beni, XB* and Davies-Bouldin.
 - Compute CVI values and select the best clustering based on the results.
 - Compatible with time-series and their distance and average functions such as Dynamic Time Warping (DTW), Move-Split-Merge (MSM), Dynamic Time Warping Barycentric Average (DBA), MBA (MSM DTW barycentric average), etc.
-- Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for easy integration into any clustering pipeline in Python.
+- Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [kmedoids](https://python-kmedoids.readthedocs.io/en/latest/#), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for easy integration into any clustering pipeline in Python.
 - Can compute the clusterings beforehand if provided with a sklearn-like clustering class.
 - Enables users to define custom CVIs.
 - Multiple CVIs can easily be combined to select the best clustering based on a majority vote.

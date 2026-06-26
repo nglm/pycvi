@@ -24,7 +24,7 @@ The full documentation is available at [pycvi.readthedocs.io](https://pycvi.read
 - 12 internal CVIs implemented: Hartigan[^Hart], Calinski-Harabasz[^CH], GapStatistic[^Gap], Silhouette[^Sil], ScoreFunction[^SF], Maulik-Bandyopadhyay[^MB], SD[^SD], SDbw[^SDbw], Dunn[^D], Xie-Beni[^XB], XB*[^XB*] and Davies-Bouldin[^DB].
 - Compute CVI values and select the best clustering based on the results.
 - Compatible with time-series and their distance and average functions such as Dynamic Time Warping (DTW)[^DTW], Move-Split-Merge (MSM)[^MSM], Dynamic Time Warping Barycentric Average (DBA)[^DBA], MBA (MSM DTW barycentric average)[^MBA], etc.
-- Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for easy integration into any clustering pipeline in Python.
+- Compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [kmedoids](https://python-kmedoids.readthedocs.io/en/latest/#), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), for easy integration into any clustering pipeline in Python.
 - Can compute the clusterings beforehand if provided with a sklearn-like clustering class.
 - Enables users to define custom CVIs.
 - Multiple CVIs can easily be combined to select the best clustering based on a majority vote.
