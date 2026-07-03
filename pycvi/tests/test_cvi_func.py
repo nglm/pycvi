@@ -40,6 +40,27 @@ def test__clusters_from_uniform():
                     assert type(clusters[0][0]) == int
                     assert int(np.sum([len(c) for c in clusters])) == N
 
+    for d in l_d:
+        for ts_dist in l_ts_dist:
+            X = get_X(N, d, 5, ts_dist)
+            for n_clusters in [2 ]:
+                clustersA = _clusters_from_uniform(
+                    X, n_clusters, random_state=611,
+                )
+                clustersB = _clusters_from_uniform(
+                    X, n_clusters, random_state=611,
+                )
+                assert clustersA == clustersB
+
+                rng = np.random.default_rng(611)
+                clustersC = _clusters_from_uniform(
+                    X, n_clusters, random_state=rng,
+                )
+                clustersD = _clusters_from_uniform(
+                    X, n_clusters, random_state=np.random.default_rng(611),
+                )
+                # Check reproducibility
+
 
 def test__compute_Wk():
     l_T = [1, 3]

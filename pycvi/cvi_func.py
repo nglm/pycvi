@@ -11,6 +11,7 @@ from typing import List, Sequence, Union, Any, Dict, Tuple
 from sklearn.cluster import KMeans
 from aeon.clustering import TimeSeriesKMeans
 import numpy as np
+from numpy.random import Generator, RandomState
 
 from .dist import f_pdist, f_cdist
 from .cluster import (
@@ -19,8 +20,9 @@ from .cluster import (
 from .exceptions import ShapeError
 
 def _clusters_from_uniform(
-    X,
-    n_clusters,
+    X: np.ndarray,
+    n_clusters: int,
+    random_state : Union[int, RandomState, Generator] = 221,
 ) -> List[List[int]]:
     """Cluster a uniform sample with k-means.
 
@@ -33,6 +35,18 @@ def _clusters_from_uniform(
         Dataset of shape ``(N, d*w_t)`` or ``(N, w_t, d)``.
     n_clusters : int
         Number of clusters.
+    random_state : Union[int, RandomState, Generator]
+        Determines random number generation for centroid initialization
+        in inner K-Means. ``sklearn`` and ``aeon`` accept int values
+        (and this will always give the same result) or an instance of
+        the deprecated `numpy.random.RandomState
+        <https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState>`_
+        class. PyCVI also allows the now preferred
+        `numpy.random.Generator
+        <https://numpy.org/doc/stable/reference/random/generator.html>`_
+        as a random_state, and it will then convert it to a random seed
+        to allow for reproducible results while making sure that several
+        consecutive calls will yield different results.
 
     Returns
     -------
@@ -46,11 +60,18 @@ def _clusters_from_uniform(
     """
     N = len(X)
 
+    # sklearn and aeon expect an int or a (deprecated) RandomState
+    # but PyCVI uses originally Generator
+    if isinstance(random_state, Generator):
+        random_state = random_state.integers(10000)
+
     # Time series case
     if len(X.shape) == 3:
-        model = TimeSeriesKMeans(n_clusters=n_clusters)
+        model = TimeSeriesKMeans(
+            n_clusters=n_clusters, random_state=random_state
+        )
     elif len(X.shape) == 2:
-        model = KMeans(n_clusters=n_clusters)
+        model = KMeans(n_clusters=n_clusters, random_state=random_state)
     else:
         raise ShapeError("X must have shape (N, T, d) or (N, T*d)")
 
@@ -397,7 +418,7 @@ def gap_statistic(
         # Compute the log of the within-cluster dispersion for each random dataset
         wcss_rand = []
         for X_rand in random_datasets:
-            clusters_rand = _clusters_from_uniform(X_rand, k)
+            clusters_rand = _clusters_from_uniform(X_rand, k, rng)
             wcss_rand.append(np.log(_compute_Wk(X_rand, clusters_rand, dist_kwargs)))
 
         # Compute the gap statistic for the current clustering

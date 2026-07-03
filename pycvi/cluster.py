@@ -48,8 +48,10 @@ def compute_center(
     `aeon.clustering.averaging.elastic_barycenter_average
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
     By default, uses
-    ``{ "distance": "msm", "init_barycenter": "medoids", "method": "petitjean"}``
+    ``{ "distance": "msm", "init_barycenter": "medoids", "method":
+    "petitjean", "random_state" : 221}``
     .
+
 
     For more information about the importance of using an elastic
     average instead of the euclidean mean for time series data, see our
@@ -165,7 +167,8 @@ def compute_centers(
     <https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.clustering.averaging.elastic_barycenter_average.html#elastic-barycenter-average>`_.
     By default, uses
     ``{ "distance": "msm", "init_barycenter": "medoids", "method":
-    "petitjean"}``.
+    "petitjean", "random_state" : 221}``
+    .
 
     For more information about the importance of using an elastic
     average instead of the euclidean mean for time series data, see our

@@ -119,7 +119,7 @@ def default_ts_average_kwargs(
     the user:
 
     ``{ "distance": "msm", "init_barycenter": "medoids", "method":
-    "petitjean"``
+    "petitjean", "random_state" : 221}``
 
     These kwargs are going to be used with the
     `aeon.clustering.averaging.elastic_barycenter_average
@@ -138,6 +138,7 @@ def default_ts_average_kwargs(
         "distance": "msm",
         "init_barycenter": "medoids",
         "method": "petitjean",
+        "random_state" : 221,
     }
 
 
