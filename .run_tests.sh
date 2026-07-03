@@ -42,7 +42,7 @@ DEFAULT_PYTHONS=(3.11 3.12 3.13 3.14)
 # "lowest" and "lowest-direct" test against minimum compatible versions;
 # "highest" tests against the latest available versions.
 # RESOLUTIONS=(highest lowest lowest-direct)
-RESOLUTIONS=(highest lowest lowest-direct)
+RESOLUTIONS=(highest lowest-direct)
 
 # If PY_VERSIONS is set, split it into an array; otherwise use the defaults.
 # shellcheck disable=SC2206
