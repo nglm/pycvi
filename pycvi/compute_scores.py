@@ -322,9 +322,9 @@ def compute_all_scores(
           has the same variance and mean as the original data.
         - `"bounds"`: the uniform distribution is defined such that it
           has the same bounds as the original data.
-    rng : A numpy Random Generator, optional
-        The numpy random generator to use to sample from the uniform
-        distribution, by default np.random.default_rng(611)
+    rng : Union[numpy.random.Generator, int], optional
+        The numpy random generator (or seed) to use when sampling from
+        random distributions, by default ``np.random.default_rng(611)``
     cvi_kwargs : dict, optional
         Specific kwargs to give to the CVI, by default {}
     return_list: bool, optional
@@ -352,6 +352,9 @@ def compute_all_scores(
     # --------------------------------------------------------------
     # -------- Compute score, cluster params, etc. -----------------
     # --------------------------------------------------------------
+
+    if isinstance(rng, int):
+        rng = np.random.default_rng(rng)
 
     data_copy = set_data_shape(data)
     l_data0 = generate_uniform(
