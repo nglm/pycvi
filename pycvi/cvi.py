@@ -109,6 +109,7 @@ look at the examples in this documentation, notably
 """
 
 import numpy as np
+from numpy.random import Generator, RandomState
 from typing import List, Sequence, Union, Any, Dict, Tuple
 
 from .cvi_func import (
@@ -122,6 +123,7 @@ from ._compare_scores import (
 )
 from .exceptions import InvalidKError, SelectionError
 from ._utils import _check_list_of_dict
+from .config import set_random_state
 
 class CVI():
     """
@@ -158,7 +160,7 @@ class CVI():
         example used in the Hartigan index where we don't use
         :math:`k=0` as a reference score if :math:`k=0` is more
         relevant than :math:`k=1`, by default False
-    rng : Union[numpy.random.Generator, int], optional
+    rng : Union[Generator, int, RandomState], optional
         The numpy random generator (or seed) to use when sampling from
         random distributions, by default ``np.random.default_rng(611)``
 
@@ -181,7 +183,7 @@ class CVI():
         criterion_function: callable = None,
         k_condition: callable = None,
         ignore0: bool = False,
-        rng = np.random.default_rng(611),
+        rng:  Union[Generator, int, RandomState] = np.random.default_rng(611),
     ) -> None:
         self.function = cvi_function
         self.criterion_function = criterion_function
@@ -198,9 +200,7 @@ class CVI():
         self.ignore0 = ignore0
         self.N = None
         self.d = None
-        if isinstance(rng, int):
-            rng = np.random.default_rng(rng)
-        self.rng = rng
+        self.rng = set_random_state(rng, Generator)
 
     def __call__(
         self,

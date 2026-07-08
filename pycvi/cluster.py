@@ -13,12 +13,14 @@ The main functions of this module are:
 
 """
 import numpy as np
+from numpy.random import Generator, RandomState
 from sklearn.preprocessing import StandardScaler
 from aeon.clustering.averaging import elastic_barycenter_average
 from typing import List, Sequence, Union, Any, Dict, Tuple
 import time
 from .config import (
-    set_data_shape, _get_model_parameters, default_ts_average_kwargs
+    set_data_shape, _get_model_parameters, default_ts_average_kwargs,
+    set_random_state
 )
 from .exceptions import ShapeError, EmptyClusterError
 
@@ -221,7 +223,7 @@ def generate_uniform(
     data: np.ndarray,
     zero_type: str = "bounds",
     N_zero: int = 10,
-    rng = np.random.default_rng(611),
+    rng: Union[Generator, int, RandomState] = np.random.default_rng(611),
 ) -> List[np.ndarray]:
     """
     Generate ``N_zero`` samples from a uniform distribution based on data.
@@ -245,7 +247,7 @@ def generate_uniform(
 
     N_zero : int, optional
         Number of uniform distributions sampled, by default 10
-    rng : A numpy Random Generator, optional
+    rng : Union[Generator, int, RandomState], optional
         The numpy random generator to use to sample from the uniform
         distribution, by default np.random.default_rng(611)
 
@@ -255,6 +257,8 @@ def generate_uniform(
         A list of samples from a uniform distribution, parametrized
         according to the original dataset given `data`
     """
+    rng = set_random_state(rng, Generator)
+
     # Determines how to measure the score of the 0th component
     # TODO: We should use a mean and a var that makes sense in the
     # case of Time series

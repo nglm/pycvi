@@ -17,6 +17,9 @@ from .dist import f_pdist, f_cdist
 from .cluster import (
     compute_center, compute_centers, generate_uniform, get_clustering
 )
+from .config import (
+    set_random_state,
+)
 from .exceptions import ShapeError
 
 def _clusters_from_uniform(
@@ -47,6 +50,7 @@ def _clusters_from_uniform(
         as a random_state, and it will then convert it to a random seed
         to allow for reproducible results while making sure that several
         consecutive calls will yield different results.
+        See :func:`pycvi.config.set_random_state` for more information.
 
     Returns
     -------
@@ -62,8 +66,7 @@ def _clusters_from_uniform(
 
     # sklearn and aeon expect an int or a (deprecated) RandomState
     # but PyCVI uses originally Generator
-    if isinstance(random_state, Generator):
-        random_state = random_state.integers(10000)
+    random_state = set_random_state(random_state, int)
 
     # Time series case
     if len(X.shape) == 3:
@@ -372,7 +375,7 @@ def gap_statistic(
     k: int = None,
     B: int = 10,
     zero_type: str = "variance",
-    rng = np.random.default_rng(611),
+    rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
     return_s: bool = False,
     dist_kwargs: dict = {},
 ) -> Union[float, Tuple[float, float]]:
@@ -390,7 +393,7 @@ def gap_statistic(
         Number of uniform samples drawn.
     zero_type : {"variance", "bounds"}, optional
         How to parametrize the uniform distribution when $k=0$.
-    rng : numpy.random.Generator, optional
+    rng : Union[int, RandomState, Generator], optional
         Random generator used to sample from the uniform distribution.
     return_s : bool, optional
         Whether to return the standard deviation term `s`.
@@ -516,7 +519,7 @@ def hartigan(
     k:int = None,
     clusters_next: List[List[int]] = None,
     X1: np.ndarray = None,
-    rng = np.random.default_rng(611),
+    rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
 ) -> float:
@@ -535,7 +538,7 @@ def hartigan(
     X1 : np.ndarray, optional
         Dataset used when $k=0$ (uniform sample case), representing the
         original data when assuming there is only one cluster.
-    rng : numpy.random.Generator, optional
+    rng : Union[int, RandomState, Generator], optional
         Random generator used for uniform sampling when needed.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
@@ -664,7 +667,7 @@ def CH(
     k: int = None,
     X1: np.ndarray = None,
     zero_type: str = "variance",
-    rng = np.random.default_rng(611),
+    rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
 ) -> float:
@@ -682,7 +685,7 @@ def CH(
         Dataset used when $k=0$ (uniform sample case).
     zero_type : {"variance", "bounds"}, optional
         How to parametrize the uniform distribution when $k=0$.
-    rng : numpy.random.Generator, optional
+    rng : Union[int, RandomState, Generator], optional
         Random generator used for uniform sampling when needed.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See

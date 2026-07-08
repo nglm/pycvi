@@ -11,6 +11,7 @@ Low and high level functions to compute CVI values.
 """
 
 import numpy as np
+from numpy.random import Generator, RandomState
 from scipy.spatial.distance import cdist
 from sklearn.preprocessing import StandardScaler
 from typing import List, Sequence, Union, Any, Dict, Tuple
@@ -263,7 +264,7 @@ def compute_all_scores(
     time_window: int = None,
     N_zero: int = 10,
     zero_type: str = "bounds",
-    rng = np.random.default_rng(611),
+    rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
     cvi_kwargs: dict = {},
     return_list: bool = False,
 ) -> Union[List[List[Dict[int, float]]], List[Dict[int, float]], Dict[int, float]]:
@@ -326,7 +327,9 @@ def compute_all_scores(
         The numpy random generator (or seed) to use when sampling from
         random distributions, by default ``np.random.default_rng(611)``
     cvi_kwargs : dict, optional
-        Specific kwargs to give to the CVI, by default {}
+        Specific kwargs to give to the CVI call function, by default {}.
+        This can typically include `dist_kwargs` and `avg_kwargs` but
+        also kwargs that are specific to some CVIs.
     return_list: bool, optional
         Determines whether the output should be forced to be a
         List[Dict], even when no sliding window is used by default False.
@@ -353,14 +356,16 @@ def compute_all_scores(
     # -------- Compute score, cluster params, etc. -----------------
     # --------------------------------------------------------------
 
-    if isinstance(rng, int):
-        rng = np.random.default_rng(rng)
-
+    # Now the data has shape (N, T, d) in any case
     data_copy = set_data_shape(data)
+
+    # Generate a list of samples from the uniform distribution
     l_data0 = generate_uniform(
         data_copy, zero_type=zero_type, N_zero=N_zero, rng=rng
     )
     (N, T, d) = data_copy.shape
+
+    # Fit the scaler before passing it already fitted to prepare_data
     if scaler is not None:
         scaler.fit(data_copy.reshape(N*T, d))
 
@@ -384,14 +389,17 @@ def compute_all_scores(
     ]
     n_windows = len(data_clus)
 
+    # Make sure clusterings has correct type, and check whether it was
+    # a list of dict (typically when using sliding_window) or directly a dict
     try:
         clusterings, was_list = _check_list_of_dict(clusterings)
     except ValueError as e:
         msg = f"clusterings in compute_all_scores: {e}"
         raise ValueError(msg)
+    # Return list if we have to or really wanted to
     return_list = return_list or was_list
 
-    # Special case with aggregators
+    # To harmonize future treatment, consider cvi as a list of cvis.
     if hasattr(cvi, '_is_aggregator') and cvi._is_aggregator:
         list_cvi = cvi.cvis
         list_cvi_kwargs = cvi.cvi_kwargs
@@ -423,7 +431,10 @@ def compute_all_scores(
                 # with/without sliding window
                 X_clus = data_clus[t_w]
 
-                score_kw = list_cvi[i].get_cvi_kwargs(
+                # Trick to make sure all CVIs will get their actual kwargs
+                # Because some needs more than others, so we re-adjust
+                # accordingly by calling their "get_cvi_kwargs" method.
+                f_cvi_kw = list_cvi[i].get_cvi_kwargs(
                     X_clus=X_clus,
                     clusterings_t=clusterings[t_w],
                     n_clusters=n_clusters,
@@ -441,10 +452,12 @@ def compute_all_scores(
                     for data_clus0 in l_data_clus0:
                         X_clus0 = data_clus0[t_w]
                         try:
+
+                            # Actual call to the CVI
                             l_res_score.append(list_cvi[i](
                                 X_clus0,
                                 clusters,
-                                cvi_kwargs=score_kw,
+                                cvi_kwargs=f_cvi_kw,
                             ))
                         except InvalidKError as e:
                             pass
@@ -460,7 +473,7 @@ def compute_all_scores(
                         res_score = list_cvi[i](
                             X_clus,
                             clusters,
-                            cvi_kwargs=score_kw,
+                            cvi_kwargs=f_cvi_kw,
                         )
                     # Ignore if the score was used with a wrong number
                     # of clusters

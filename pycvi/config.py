@@ -3,6 +3,7 @@
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
+from numpy.random import RandomState, Generator
 from typing import List, Sequence, Union, Any, Dict, Tuple
 from .exceptions import ShapeError
 
@@ -53,11 +54,70 @@ def set_data_shape(X: np.ndarray) -> np.ndarray:
         X_copy = np.expand_dims(X_copy, axis=1)
     elif len(shape) != 3:
         raise ShapeError(
-            "Invalid shape of datapoints provided: {shape}. "
+            f"Invalid shape of datapoints provided: {shape}. "
             + "Please provide a valid shape: "
             + "`(N,)` or `(N, d)` or `(N, T, d)`"
         )
     return X_copy
+
+def set_random_state(
+    rng: Union[Generator, int, RandomState],
+    rtype: type,
+) -> Union[Generator, int, RandomState]:
+    """
+    Set the random state to a given type.
+
+    Scikit-learn and aeon use np.random.RandomState (or int) while numpy encourages the use of np.random.Generator. In addition, P This function allows to convert
+
+    Parameters
+    ----------
+    rng : Union[np.random.Generator, int, np.random.RandomState]
+        The random state to set. Can be a `numpy.random.Generator`, an
+        integer seed, or a `numpy.random.RandomState`.
+    rtype : type
+        The type of random state to return. Can be a
+        `numpy.random.Generator`, an integer seed type, or a
+        `numpy.random.RandomState`.
+
+    Returns
+    -------
+    Union[np.random.Generator, int, np.random.RandomState]
+        The random state of the specified type.
+
+    Raises
+    ------
+    ValueError
+        If the provided `rng` is not of a valid type.
+    ValueError
+        If the provided `rtype` is not of a valid type.
+    """
+    # Base case: the given type is the correct type, then do nothing
+    if isinstance(rng, rtype):
+        return rng
+
+    # Otherwise make everything an int first
+    # Instanciate a rng if an int was given
+    if isinstance(rng, Generator):
+        # From Generator to int
+        seed = int(rng.integers(10000))
+    elif isinstance(rng, RandomState):
+        # From RandomState to int
+        seed = int(rng.randint(10000))
+    elif isinstance(rng, int):
+        seed = rng
+    else:
+        raise ValueError(f"Invalid RandomGenerator type: Got {type(rng)}, expected numpy.random.Generator, or int or np.random.RandomState.")
+
+    # Now return the correct type
+    if rtype is int:
+        return seed
+    elif rtype is Generator:
+        return np.random.default_rng(seed)
+    elif rtype is RandomState:
+        return np.random.RandomState(seed)
+    else:
+        raise ValueError(f"Invalid RandomGenerator return type: Got {rtype}, expected numpy.random.Generator, or int or np.random.RandomState.")
+
 
 def _get_model_parameters(
     model_class,
