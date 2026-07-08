@@ -9,7 +9,7 @@ babel==2.18.0
     # via sphinx
 certifi==2026.6.17
     # via requests
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via requests
 colorama==0.4.6 ; sys_platform == 'win32'
     # via
@@ -94,7 +94,7 @@ scipy==1.17.1
     # via
     #   aeon
     #   scikit-learn
-setuptools==82.0.1
+setuptools==83.0.0
     # via sphinx-togglebutton
 six==1.17.0
     # via python-dateutil
