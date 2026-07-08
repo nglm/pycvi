@@ -12,6 +12,8 @@ The main functions of this module are:
 - :func:`pycvi.cluster.get_clustering`, that converts an array of predicted label for each datapoint (sklearn type of clustering encoding) to a list of datapoints for each cluster (PyCVI type of clustering encoding)
 
 """
+from tabnanny import verbose
+
 import numpy as np
 from numpy.random import Generator, RandomState
 from sklearn.preprocessing import StandardScaler
@@ -626,6 +628,11 @@ def generate_all_clusterings(
     (:class:`pycvi.exceptions.EmptyClusterError`) then
     ```clusterings_t_k[t_w][n_clusters] = None```.
 
+    If the provided ``n_clusters_range`` goes beyond the number of
+    datapoints, then
+    ```clusterings_t_k[t_w][n_clusters] = None``` for ``n_clusters > N``
+    where ``N`` is the number of datapoints.
+
     For more information about the preprocessing steps done on the data
     before the clustering operation, see
     :func:`pycvi.cluster.prepare_data` and
@@ -753,6 +760,14 @@ def generate_all_clusterings(
             # All datapoints in the same cluster. Go to next iteration
             if n_clusters <= 1:
                 clusterings_t_k[t_w][n_clusters] = [[i for i in range(N)]]
+            # More clusters than datapoints.
+            elif n_clusters > N:
+                clusterings_t_k[t_w][n_clusters] = None
+                if verbose >= 1:
+                    msg = (
+                        f"Ignored k value {n_clusters}, because it is greater than the number of datapoints: {N}."
+                    )
+                    print(msg, flush=True)
             # General case
             else:
 
