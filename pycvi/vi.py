@@ -40,7 +40,7 @@ import numpy as np
 from typing import List, Tuple, Union
 
 from .exceptions import InvalidKError
-from .clustering import get_clustering
+from .cluster import get_clustering
 
 def P_clusters(
     clustering: List[List[int]]
