@@ -37,9 +37,10 @@ information between two clusterings.
 """
 
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from .exceptions import InvalidKError
+from .clustering import get_clustering
 
 def P_clusters(
     clustering: List[List[int]]
@@ -157,20 +158,25 @@ def mutual_information(
     return I
 
 def variation_information(
-    clustering1: List[List[int]],
-    clustering2: List[List[int]],
+    clustering1: Union[List[List[int]], np.ndarray],
+    clustering2: Union[List[List[int]], np.ndarray],
 ) -> float:
     """
     Variation of information between two clusterings. [VI]_
+
+    Clusterings can either be a list of clusters (list of lists of
+    indices) or a numpy array of labels of shape (n_samples,). In the
+    latter case, the function will convert the labels to a list of
+    clusters.
 
     .. [VI] M. Meil ̆a, Comparing Clusterings by the Variation of Information,
        p. 173–187. Springer Berlin Heidelberg, 2003.
 
     Parameters
     ----------
-    clustering1 : List[List[int]]
+    clustering1 : Union[List[List[int]], np.ndarray]
         First clustering.
-    clustering2 : List[List[int]]
+    clustering2 : Union[List[List[int]], np.ndarray]
         Second clustering.
 
     Returns
@@ -178,6 +184,12 @@ def variation_information(
     float
         Variation of information between two clusterings.
     """
+    if (isinstance(clustering1, np.ndarray) and
+        isinstance(clustering2, np.ndarray) and np.shape(clustering1) == np.shape(clustering2)
+    ):
+        clustering1 = get_clustering(clustering1)
+        clustering2 = get_clustering(clustering2)
+
     H1 = entropy(clustering1)
     H2 = entropy(clustering2)
     I = mutual_information(clustering1, clustering2)
