@@ -435,19 +435,19 @@ def sliding_window(T: int, w: int) -> dict:
       both formulas apply
 
     Consider an extracted time window of length `w_real` (with
-    :math:`w\_real \\leq w`, if the window was extracted at the
+    :math:`w_{real} \\leq w`, if the window was extracted at the
     beginning or the end of the array). The midpoint of the extracted
     window (i.e. the index in that window that corresponds to the
     datapoint around which the time window was extracted in the original
     array) is:
 
     - :math:`0` at :math:`t=0`, then :math:`t`, until :math:`t =
-      pad\_left`, i.e. :math:`t = (w-1)//2`
+      pad\\_left`, i.e. :math:`t = (w-1)//2`
     - For all datapoints between, :math:`[(w-1)//2, ..., (T-1 - w//2)]`,
       the midpoint is :math:`(w-1)//2` (so it is the same as the base
       case)
-    - :math:`w\_real-1` at :math:`t=T-1`, then :math:`w\_real - (T-t)`,
-      from :math:`t=T-1-pad\_right`, i.e. from :math:`t = (T-1 - w//2)`
+    - :math:`w_{real}-1` at :math:`t=T-1`, then :math:`w_{real} - (T-t)`,
+      from :math:`t=T-1-pad_{right}`, i.e. from :math:`t = (T-1 - w//2)`
     - Note that for :math:`t = (w-1)//2` or :math:`t = (T-1 - w//2)`,
       both formulas apply.
 
