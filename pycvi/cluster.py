@@ -12,8 +12,6 @@ The main functions of this module are:
 - :func:`pycvi.cluster.get_clustering`, that converts an array of predicted label for each datapoint (sklearn type of clustering encoding) to a list of datapoints for each cluster (PyCVI type of clustering encoding)
 
 """
-from tabnanny import verbose
-
 import numpy as np
 from numpy.random import Generator, RandomState
 from sklearn.preprocessing import StandardScaler
@@ -621,7 +619,7 @@ def generate_all_clusterings(
     window): ```clusterings_t_k[t_w][k][i]``` is a list of datapoint
     indices contained in cluster :math:`i` for the clustering that
     assumes :math:`k` clusters for the extracted time window
-    :math:`t\_w`.
+    :math:`t_w`.
 
     If some clusterings couldn't be defined because the clustering
     algorithm didn't converged

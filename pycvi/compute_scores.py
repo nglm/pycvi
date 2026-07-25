@@ -294,7 +294,7 @@ def compute_all_scores(
 
         ```clusterings_t_k[t_w][k][i]``` is a list of datapoint indices
         contained in cluster :math:`i` for the clustering that assumes
-        :math:`k` clusters for the extracted time window :math:`t\_w`.
+        :math:`k` clusters for the extracted time window :math:`t_w`.
     transformer : callable, optional
         A potential additional preprocessing step, by default None. If
         None, no transformation is applied on the data
