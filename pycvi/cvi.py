@@ -364,7 +364,7 @@ class CVI():
             # either because this CVI doesn't allow this k or because
             # the clustering model didn't converge
             scores_valid = {k: s for k,s in scores.items() if s is not None}
-            selected_k = None
+            selected_id = None
             max_diff = 0
 
             # Sort k in increasing order
@@ -399,7 +399,7 @@ class CVI():
                     # If all scores are worse than the case k=0,
                     # choose the current k as the selected k
                     # This value will be overwritten if there is a better k
-                    selected_k = k
+                    selected_id = k
                 # Otherwise,
                 # If the current score is relevant
                 # Then, update relevant k and score
@@ -413,7 +413,7 @@ class CVI():
                     # The final selected k is the k that maximises the diff
                     diff = abs(scores_valid[k] - last_relevant_score)
                     if max_diff < diff:
-                        selected_k = k
+                        selected_id = k
                         max_diff = diff
                     # If e.g. scores_valid[k] = last_relevant_score = np.inf
                     # Then diff is NaN. If so, stop already, the selected k
@@ -433,29 +433,29 @@ class CVI():
             # If max_diff=0 means that relevant scores were all the same
             # So no k can be selected
             if max_diff == 0:
-                selected_k = None
+                selected_id = None
         # For absolute CVIs
         elif cvi_type == "absolute":
             #
-            scores_valid = {k: s for k,s in scores.items() if s is not None}
+            scores_valid = {id: s for id, s in scores.items() if s is not None}
             # Special case if None if all scores were None (because of
             # the condition on k or because the model didn't converge)
             if scores_valid == {}:
-                selected_k = None
+                selected_id = None
             # Special case if all valid scores were equal, no k can be selected
             elif np.all(np.isclose(
                 list(scores_valid.values()), list(scores_valid.values())[0]
             )):
-                selected_k = None
+                selected_id = None
             else:
                 if self.maximise:
-                    selected_k = max(scores_valid, key=scores_valid.get)
+                    selected_id = max(scores_valid, key=scores_valid.get)
                 else:
-                    selected_k = min(scores_valid, key=scores_valid.get)
+                    selected_id = min(scores_valid, key=scores_valid.get)
         # For CVIs with a special selection process
         else:
-            selected_k = self.criterion_function(scores)
-        return selected_k
+            selected_id = self.criterion_function(scores)
+        return selected_id
 
     def is_relevant(
         self,
@@ -564,8 +564,8 @@ class CVI():
         # Time series case with sliding window
         return_list = return_list or was_list
         if return_list:
-            k_selected = [self.criterion(s_t) for s_t in scores_t_k]
-            if None in k_selected:
+            id_selected = [self.criterion(s_t) for s_t in scores_t_k]
+            if None in id_selected:
                 msg = (
                     f"No clustering could be selected by {self} "
                     + f"with the CVI values given: {scores_t_k}"
@@ -573,14 +573,14 @@ class CVI():
                 raise SelectionError(msg)
         # Other cases (non time-series or time-series without sliding window)
         else:
-            k_selected = self.criterion(scores_t_k[0])
-            if k_selected == None:
+            id_selected = self.criterion(scores_t_k[0])
+            if id_selected == None:
                 msg = (
                     f"No clustering could be selected by {self} "
                     + f"with the CVI values given: {scores_t_k}"
                 )
                 raise SelectionError(msg)
-        return k_selected
+        return id_selected
 
     def better_score(
         self,
@@ -1383,16 +1383,19 @@ class ScoreFunction(CVI):
         scores: Dict[Union[int, str], Optional[float]],
     ) -> Optional[Union[int, str]]:
         # General case first
-        best_k = self.criterion(scores, cvi_type="absolute")
-        # If score always increases, then choose k=1
-        if best_k == max(scores):
-            best_k = 1
-        if (
-            (1 in scores) and (2 in scores)
-            and ((scores[2] - scores[1]) * self.d <= 0.2)
-        ):
-            best_k=1
-        return best_k
+        best_id = self.criterion(scores, cvi_type="absolute")
+
+        # if k is main parameter, can use the more subtle selection rules
+        if all(isinstance(k, int) for k, s in scores.items()):
+            # If score always increases, then choose k=1
+            if best_id == max(scores):
+                best_id = 1
+            if (
+                (1 in scores) and (2 in scores)
+                and ((scores[2] - scores[1]) * self.d <= 0.2)
+            ):
+                best_id=1
+        return best_id
 
     def get_cvi_kwargs(
         self,
