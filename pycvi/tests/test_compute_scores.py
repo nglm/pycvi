@@ -114,12 +114,14 @@ def test_compute_all_scores():
     for multivariate in [True, False]:
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
+        n_clusters_range = range(N+1)
 
         # Using ts_dist but not window
         ts_dist = True
         model = TimeSeriesKMeans
         clusterings_t_k = generate_all_clusterings(
                 data, model,
+                n_clusters_range=n_clusters_range,
                 ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
@@ -144,6 +146,7 @@ def test_compute_all_scores():
         model = KMeans
         clusterings_t_k = generate_all_clusterings(
                 data, model,
+                n_clusters_range=n_clusters_range,
                 ts_dist=ts_dist, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={},

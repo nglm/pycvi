@@ -23,6 +23,7 @@ from .config import (
     set_random_state
 )
 from .exceptions import ShapeError, EmptyClusterError
+from ._utils import _check_model_ids
 
 def compute_center(
     cluster: np.ndarray,
@@ -724,8 +725,15 @@ def generate_all_clusterings(
     if scaler is not None:
         scaler.fit(data_copy.reshape(N*T, d))
 
-    if n_clusters_range is None:
-        n_clusters_range = range(N+1)
+    # If n_clusters_range is provided, use a dummy value for model_ids
+    if n_clusters_range is not None:
+        model_ids = []
+    # If n_clusters_range not provided, use a dummy value for n_clusters_range
+    else:
+        model_ids = _check_model_ids(
+            model_class, model_kw, fit_predict_kw
+        )
+        n_clusters_range = []
 
     # Should the output be a List[Dict] or a Dict?
     if time_window is not None:
@@ -758,21 +766,26 @@ def generate_all_clusterings(
         # X_clus of shape (N, w_t*d) or (N, w_t, d)
         X_clus = data_clus[t_w]
 
-        # Get clustering model parameters required by the
-        # clustering model
-        model_kw, fit_predict_kw, model_class_kw = _get_model_parameters(
-            model_class,
-            model_kw = model_kw,
-            fit_predict_kw = fit_predict_kw,
-            model_class_kw = model_class_kw,
-        )
-        # Update fit_predict_kw with the data
-        if len(X_clus.shape) == 3:
-            fit_predict_kw[model_class_kw["X_arg_name"]] = np.swapaxes(X_clus, 1, 2)
-        else:
-            fit_predict_kw[model_class_kw["X_arg_name"]] = X_clus
 
+        # -------------------------------------------------------------
+        #              Case where k is the main parameter
+        # -------------------------------------------------------------
         for n_clusters in n_clusters_range:
+
+            # Get clustering model parameters required by the
+            # clustering model
+            model_kw, fit_predict_kw, model_class_kw = _get_model_parameters(
+                model_class,
+                model_kw = model_kw,
+                fit_predict_kw = fit_predict_kw,
+                model_class_kw = model_class_kw,
+            )
+            # Update fit_predict_kw with the data
+            if len(X_clus.shape) == 3:
+                fit_predict_kw[model_class_kw["X_arg_name"]] = np.swapaxes(X_clus, 1, 2)
+            else:
+                fit_predict_kw[model_class_kw["X_arg_name"]] = X_clus
+
 
             # All datapoints in the same cluster. Go to next iteration
             if n_clusters <= 1:
@@ -813,6 +826,41 @@ def generate_all_clusterings(
                     print(msg, flush=True)
 
                 clusterings_t_k[t_w][n_clusters] = clusters
+
+        # -------------------------------------------------------------
+        #           Case where k is not the main parameter
+        # -------------------------------------------------------------
+        for model_id in model_ids:
+
+            # Update fit_predict_kw with the data
+            if len(X_clus.shape) == 3:
+                fit_predict_kw[model_id]["X"] = np.swapaxes(X_clus, 1, 2)
+            else:
+                fit_predict_kw[model_id]["X"] = X_clus
+
+            # ---------- Fit & predict using clustering model-------
+            t_start = time.time()
+
+            try :
+                clusters = _generate_clustering(
+                    model_class[model_id],
+                    model_kw = model_kw[model_id],
+                    fit_predict_kw = fit_predict_kw[model_id],
+                )
+            except EmptyClusterError as e:
+                if verbose >= 1:
+                    print(str(e))
+                clusters = None
+            t_end = time.time()
+            if verbose >= 2:
+                dt = t_end - t_start
+                msg = (
+                    f"Clustering with {model_id} generated in:"+ f" {dt:.2f}s."
+                )
+                print(msg, flush=True)
+
+            clusterings_t_k[t_w][model_id] = clusters
+
     # If no sliding window was used, return a Dict, else a List[Dict]
     if return_list:
         return clusterings_t_k

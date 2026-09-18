@@ -274,12 +274,14 @@ def test_generate_all_clusterings():
         data, time = mini(multivariate=multivariate)
         (N, T, d) = data.shape
         l_w = [1, T//2, T]
+        n_clusters_range = range(N+1)
 
         # Using ts_dist and window
         # data_clus is a list of T (N, w_t, d) arrays
         for w in l_w:
             clusterings_t_k = generate_all_clusterings(
                 data, model_TS,
+                n_clusters_range=n_clusters_range,
                 ts_dist=True, time_window=w, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
@@ -306,6 +308,7 @@ def test_generate_all_clusterings():
         # data_clus is a list of 1 (N, T, d) array
         clusterings_t_k = generate_all_clusterings(
                 data, model_TS,
+                n_clusters_range=n_clusters_range,
                 ts_dist=True, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
@@ -331,6 +334,7 @@ def test_generate_all_clusterings():
         for w in l_w:
             clusterings_t_k = generate_all_clusterings(
                 data, model,
+                n_clusters_range=n_clusters_range,
                 ts_dist=False, time_window=w, transformer=None,
                 scaler=StandardScaler(),
                 model_kw={}, fit_predict_kw={}, model_class_kw={}
@@ -357,6 +361,7 @@ def test_generate_all_clusterings():
         # data_clus is a list of 1 (N, T*d) array
         clusterings_t_k = generate_all_clusterings(
                 data, model,
+                n_clusters_range=n_clusters_range,
                 ts_dist=False, time_window=None, transformer=None,
                 scaler=None,
                 model_kw={}, fit_predict_kw={}, model_class_kw={},

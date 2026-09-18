@@ -107,3 +107,48 @@ def _check_list_of_dict(
         )
         raise ValueError(msg)
     return l_of_dict, was_list
+
+
+def _check_model_ids(
+    model_class : dict,
+    model_kw : dict,
+    fit_predict_kw : dict,
+) -> List[str]:
+    """
+    Check that the keys of the three input dictionaries are the same.
+
+    Parameters
+    ----------
+    model_class : dict
+        The model class.
+    model_kw : dict
+        The model keyword arguments.
+    fit_predict_kw : dict
+        The fit and predict keyword arguments.
+
+    Returns
+    -------
+    List[str]
+        The list of keys.
+
+    Raises
+    ------
+    ValueError
+        If the keys of the three input dictionaries are not the same.
+    """
+    keys1 = model_kw.keys()
+    keys2 = fit_predict_kw.keys()
+    keys3 = model_class.keys()
+
+    if (
+        set(keys1) == set(keys2) and set(keys2) == set(keys3)
+        and len(keys1) == len(keys2) and len(keys2) == len(keys3)
+    ):
+        keys = list(keys1)
+    else:
+        msg = (
+            "model_kw, fit_predict_kw and model_class must have the same keys. "
+            + f"Got {keys1}, {keys2} and {keys3} instead."
+        )
+        raise ValueError(msg)
+    return keys
