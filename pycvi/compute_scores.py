@@ -440,10 +440,16 @@ def compute_all_scores(
     # "clusters" in cvi functions
     for i in range(len(list_cvi)):
         for t_w in range(n_windows):
-            for n_clusters in clusterings[t_w].keys():
+            for key in clusterings[t_w].keys():
 
                 # Find cluster membership of each datapoint
-                clusters = clusterings[t_w][n_clusters]
+                clusters = clusterings[t_w][key]
+
+                # Find the number of clusters (with special case k=0)
+                if key == 0:
+                    n_clusters = 0
+                else:
+                    n_clusters = len(clusters)
 
                 # Take the data used for clustering while taking into
                 # account the difference between time step indices
@@ -499,7 +505,7 @@ def compute_all_scores(
                     except InvalidKError as e:
                         res_score = None
 
-                scores_i_t_n[i][t_w][n_clusters] = res_score
+                scores_i_t_n[i][t_w][key] = res_score
 
     # -------------------------- Fix output type ------------------------------
 
