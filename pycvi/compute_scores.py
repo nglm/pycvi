@@ -12,9 +12,8 @@ Low and high level functions to compute CVI values.
 
 import numpy as np
 from numpy.random import Generator, RandomState
-from scipy.spatial.distance import cdist
 from sklearn.preprocessing import StandardScaler
-from typing import List, Sequence, Union, Any, Dict, Tuple
+from typing import Callable, List, Union, Any, Dict, Optional
 
 from.dist import f_cdist, f_pdist, reduce
 from .config import set_data_shape
@@ -107,18 +106,18 @@ def f_diameter(
         return 0.
     else:
         pdist = f_pdist(cluster, dist_kwargs=dist_kwargs)
-        return np.amax(pdist)
+        return float(np.amax(pdist))
 
 def _compute_subscores(
     score_type: str,
     X : np.ndarray,
     clusters: List[List[int]],
     main_score: str,
-    f_score,
+    f_score: Callable,
     dist_kwargs : dict = {},
     score_kwargs : dict = {},
-    reduction: str = None,
-) -> Union[float, List[float]]:
+    reduction: Union[str, Callable, None] = None,
+) -> Union[float, List[float], np.ndarray]:
     """
     Compute the main score of a clustering and its associated subscores.
 
@@ -138,12 +137,12 @@ def _compute_subscores(
         Keyword arguments for distance computations.
     score_kwargs : dict, optional
         Keyword arguments specific to the score function.
-    reduction : str, optional
+    reduction : str or callable, optional
         Reduction applied to cluster-level values.
 
     Returns
     -------
-    Union[float, List[float]]
+    Union[float, List[float], np.ndarray]
         Score of the given clustering.
     """
     N = len(X)
@@ -186,19 +185,19 @@ def _compute_subscores(
     return score
 
 def _compute_score(
-    score_type: Union[str, callable],
+    score_type: Union[str, Callable],
     X: np.ndarray = None,
     clusters: List[List[int]] = None,
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
     score_kwargs: dict = {},
-) -> float :
+) -> Any:
     """
     Compute the score of a given clustering.
 
     Parameters
     ----------
-    score_type : Union[str, callable]
+    score_type : Union[str, Callable]
         Type of score or callable score function.
     X : np.ndarray, shape (N, d*w) or (N, w_t, d), optional
         Dataset.
@@ -211,8 +210,10 @@ def _compute_score(
 
     Returns
     -------
-    float
-        Score of the given clustering.
+    Any
+        Score of the given clustering, usually a float. ``list_*`` score
+        types return a list of per-cluster scores; callable score
+        functions may return another type.
 
     Raises
     ------
@@ -257,8 +258,11 @@ def _compute_score(
 def compute_all_scores(
     cvi,
     data: np.ndarray,
-    clusterings: List[Dict[int, List[List[int]]]],
-    transformer: callable = None,
+    clusterings: Union[
+        Dict[Union[int, str], Optional[List[List[int]]]],
+        List[Dict[Union[int, str], Optional[List[List[int]]]]]
+    ],
+    transformer: Callable = None,
     scaler = StandardScaler(),
     ts_dist: bool = True,
     time_window: int = None,
@@ -267,15 +271,19 @@ def compute_all_scores(
     rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
     cvi_kwargs: dict = {},
     return_list: bool = False,
-) -> Union[List[List[Dict[int, float]]], List[Dict[int, float]], Dict[int, float]]:
+) -> Union[
+    List[List[Dict[Union[int, str], Optional[float]]]],
+    List[Dict[Union[int, str], Optional[float]]],
+    Dict[Union[int, str], Optional[float]]
+]:
     """
     Computes all CVI values for the given clusterings.
 
-    If some scores couldn't be computed because of the condition on
-    :math:`k` (:class:`pycvi.exceptions.InvalidKError`) or because the
-    clustering algorithm used previously didn't converged
+    If some scores could not be computed, for example because of the
+    condition on :math:`k` (:class:`pycvi.exceptions.InvalidKError`) or
+    because the clustering algorithm used previously did not converge
     (:class:`pycvi.exceptions.EmptyClusterError`) then
-    ```scores[t_w][n_clusters] = None```.
+    ``scores[t_w][k] = None``.
 
     Parameters
     ----------
@@ -288,16 +296,21 @@ def compute_all_scores(
         - ``(N,)`` -> ``(N, 1, 1)``
         - ``(N, d)`` -> ``(N, 1, d)``
         - ``(N, T, d)`` -> ``(N, T, d)``
-    clusterings : List[Dict[int, List[List[int]]]]
-        All clusterings for the given range on the number of clusters
-        and for the potential sliding windows if applicable.
+    clusterings : Dict[any, Optional[List[List[int]]]] or list[dict]
+        All clusterings for the given range of numbers of clusters.
+        A list of dictionaries can be provided for potential sliding
+        windows; a dictionary is used when no sliding window is needed.
 
-        ```clusterings_t_k[t_w][k][i]``` is a list of datapoint indices
+        ``clusterings_t_k[t_w][k][i]`` is a list of datapoint indices
         contained in cluster :math:`i` for the clustering that assumes
         :math:`k` clusters for the extracted time window :math:`t_w`.
+        Alternatively, the key ``k`` can actually represent anything to
+        distinguish different clusterings of the same dataset, typically
+        if the clustering method(s) used don't use :math:`k` as the main
+        parameter.
     transformer : callable, optional
         A potential additional preprocessing step, by default None. If
-        None, no transformation is applied on the data
+        None, no transformation is applied to the data.
     scaler : A sklearn-like scaler model, optional
         A data scaler, by default
         `StandardScaler() <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_
@@ -306,7 +319,7 @@ def compute_all_scores(
         samples of a given feature are aggregated before fitting the
         scaler. If None, no scaling is applied on the data.
     ts_dist : bool, optional
-        Determines if ts_dist should be used as the distance measure
+        Determines whether ``ts_dist`` should be used as the distance measure
         (concerns only time series data), by default True.
     time_window : int, optional
         Length of the sliding window (concerns only time-series data),
@@ -331,25 +344,31 @@ def compute_all_scores(
         This can typically include `dist_kwargs` and `avg_kwargs` but
         also kwargs that are specific to some CVIs.
     return_list: bool, optional
-        Determines whether the output should be forced to be a
-        List[Dict], even when no sliding window is used by default False.
+        Determines whether the output should be forced to be a list,
+        even when no sliding window is used, by default False.
 
     Returns
     -------
-    Union[List[List[Dict[int, float]]], List[Dict[int, float]],
-    Dict[int, float]]
+    Union[List[List[Dict[Union[int, str], Optional[float]]]],
+    List[Dict[Union[int, str], Optional[float]]],
+    Dict[Union[int, str], Optional[float]]]
         The computed CVI values for each of the clustering given as
         input.
 
         The type is:
 
-        - `Dict[int, float]]`: only if a CVI class was used (not a
-          CVIAggregator and if no time window was used)
-        - `List[List[Dict[int, float]]]`: only if both a CVIAggregator
-          was used and a time window
-        - `List[Dict[int, float]]`: otherwise, that is to say, if a
-          CVIAggregator was used without time window, or if a CVI was
-          used with a time window.
+        - ``Dict[Union[int, str], Optional[float]]``: only if a CVI
+          class was used (not a CVIAggregator and if no time window was
+          used)
+        - ``List[List[Dict[Union[int, str], Optional[float]]]]``: only if both a
+          CVIAggregator was used and a time window
+        - ``List[Dict[Union[int, str], Optional[float]]]``: otherwise, that is to
+          say, if a CVIAggregator was used without time window, or if a
+          CVI was used with a time window.
+
+          The keys of the dictionaries are of type ``int`` if :math:`k`
+          was the main clustering parameter, and of type ``str``
+          otherwise.
     """
 
     # --------------------------------------------------------------

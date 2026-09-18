@@ -110,7 +110,7 @@ look at the examples in this documentation, notably
 
 import numpy as np
 from numpy.random import Generator, RandomState
-from typing import List, Sequence, Union, Any, Dict, Tuple
+from typing import Callable, List, Sequence, Union, Any, Dict, Tuple, Optional
 
 from .cvi_func import (
     gap_statistic, silhouette, score_function, CH, hartigan, MB, SD_index,
@@ -176,12 +176,12 @@ class CVI():
 
     def __init__(
         self,
-        cvi_function: callable = None,
+        cvi_function: Callable = None,
         maximise: bool = True,
         improve: bool = True,
         cvi_type: str = "monotonous",
-        criterion_function: callable = None,
-        k_condition: callable = None,
+        criterion_function: Callable = None,
+        k_condition: Callable = None,
         ignore0: bool = False,
         rng:  Union[Generator, int, RandomState] = np.random.default_rng(611),
     ) -> None:
@@ -207,7 +207,7 @@ class CVI():
         X: np.ndarray,
         clustering: List[List[int]],
         cvi_kwargs: dict = {},
-    ) -> float:
+    ) -> Any:
         """
         Computes the CVI value of the clustering.
 
@@ -235,8 +235,11 @@ class CVI():
 
         Returns
         -------
-        float
-            The CVI value for this clustering.
+        Any
+            The CVI value for this clustering. Most CVIs return a float;
+            a CVI function may return another type, such as the
+            ``(gap, s)`` tuple returned by the Gap statistic when
+            requested.
 
         Raises
         ------
@@ -312,9 +315,9 @@ class CVI():
 
     def criterion(
         self,
-        scores: Dict[int, float],
+        scores: Dict[Union[int, str], Optional[float]],
         cvi_type: str = None,
-    ) -> Union[int, None]:
+    ) -> Union[int, str, None]:
         """
         The default selection method for regular cases.
 
@@ -324,14 +327,16 @@ class CVI():
         Does not take into account rules that are specific to a CVI,
         such as the Gap statistic, Hartigan, etc.
 
-        Returns `None` if no clustering could be selected (probably
-        because the CVI values were all None or NaN or that all valid
-        and relevant scores were all equal).
+        Returns `None` if no clustering could be selected because all
+        scores were invalid or because all valid and relevant scores were
+        equal.
 
         Parameters
         ----------
-        scores : Dict[int, float]
-            The CVI values obtained for the provided :math:`k` range.
+        scores : Dict[Union[int, str], Optional[float]]
+            The CVI values obtained for the provided :math:`k` range or
+            the provided clustering experiments identifiers, if
+            :math:`k` was not the main parameters.
         cvi_type : str, optional
             The type of CVI to use in the selection scheme. Note that
             for most cases it is redundant with the attribute
@@ -341,10 +346,13 @@ class CVI():
 
         Returns
         -------
-        Union[int, None]
-            The :math:`k` value corresponding to the selected
-            clustering. Returns `None` if no clustering could be
-            selected.
+        Union[int, str, None]
+            The :math:`k` value corresponding to the selected clustering
+            if :math:`k` was the main parameter of the clustering
+            method. if :math:`k` wasn't the main parameter, then it is
+            the unique key referring to the selected clustering among
+            keys present in ``scores``. Returns `None` if no clustering
+            could be selected.
         """
         # Because some custom criterion_function relies on the general
         # case "monotonous"/"absolute"
@@ -499,38 +507,42 @@ class CVI():
 
     def select(
         self,
-        scores_t_k: Union[List[Dict[int, float]], Dict[int, float]],
+        scores_t_k: Union[List[Dict[Union[int, str], float]], Dict[Union[int, str], float]],
         return_list: bool = False,
-    ) -> Union[List[int], int]:
+    ) -> Union[List[Union[int, str]], Union[int, str]]:
         """
         Select the best clusterings according to the CVI values given.
 
-        Select the best :math:`k` for each :math:`t` according to the
-        CVI values given. If the data is not time series or if the time
-        series are clustered considering all time steps at once, then
-        the returned list has only one element.
+        Select the best clustering and return its identifier (based on
+        :math:`k` values if :math:`k` is the main clustering parameters)
+        for each :math:`t` according to the CVI values given. If the
+        data is not time series or if the time series are clustered
+        considering all time steps at once, then the returned list has
+        only one element.
 
-        If no k could be selected given the `scores_t_k` values, then
-        returns a SelectionError (check the values of `scores_t_k` for
-        more information on why the error was raised).
+        If no clustering could be selected given the `scores_t_k`
+        values, raises a :class:`pycvi.exceptions.SelectionError`.
 
         Parameters
         ----------
-        scores_t_k : Union[List[Dict[int, float]], Dict[int, float]]
-            The CVI values for the provided :math:`k` range and for the
-            potential number :math:`t` of iterations to consider in
-            time.
+        scores_t_k : Union[List[Dict[Union[int, str], float]], Dict[Union[int, str], float]]
+            The CVI values obtained for the provided :math:`k` range (or
+            the provided clustering experiments identifiers, if
+            :math:`k` was not the main parameters) and for the potential
+            :math:`t` iterations to consider in time.
         return_list: bool, optional
             Determines whether the output should be forced to be a
-            List[Dict], even when no sliding window is used, by default
+            list, even when no sliding window is used, by default
             False.
 
         Returns
         -------
-        Union[List[int], int]
-            The list of :math:`k` values corresponding to the best
-            clustering for each potential number :math:`t` of iterations
-            to consider in time. Some elements can be `None` if no
+        Union[List[Union[int, str]], Union[int, str]]
+            The clustering identifier(s) (:math:`k` values if
+            :math:`k` was the main clustering parameter, and a string
+            identifier otherwise) corresponding to the best clustering
+            for each potential number :math:`t` of iterations to
+            consider in time. Some elements can be `None` if no
             clustering could be selected at a given iteration :math:`t`.
 
         Raises
@@ -601,7 +613,7 @@ class CVI():
 
     def argbest(
         self,
-        scores: List[float],
+        scores: List[Optional[float]],
         ignore_None: bool = False,
     ) -> int:
         """
@@ -625,9 +637,9 @@ class CVI():
 
     def best_score(
         self,
-        scores: List[float],
+        scores: List[Optional[float]],
         ignore_None: bool = False,
-    ) -> float:
+    ) -> Optional[float]:
         """
         Returns the best score.
 
@@ -649,7 +661,7 @@ class CVI():
 
     def argworst(
         self,
-        scores: List[float],
+        scores: List[Optional[float]],
     ) -> int:
         """
         Returns the index of the worst score.
@@ -668,8 +680,8 @@ class CVI():
 
     def worst_score(
         self,
-        scores: List[float],
-    ) -> float:
+        scores: List[Optional[float]],
+    ) -> Optional[float]:
         """
         Returns the worst score.
 
@@ -727,9 +739,8 @@ class CVIAggregator():
         self.cvis = cvis
         self.cvi_kwargs = cvi_kwargs
         self.n_cvis = len(self.cvis)
-        # Dict[int, int] or List[Dict[int, int]] containing a summary of
-        # the votes.
-        # it's a List[Dict[int, int]] if time window or return_list was used
+        # Dict[Union[int, str], int] or a list of such dictionaries.
+        # The list form is used with a time window or return_list.
         self.votes = None
         # List[int] or List[List[int]]: Selected k for each individual CVI
         # it's a List[List[int]] if time window or return_list was used
@@ -739,24 +750,25 @@ class CVIAggregator():
 
     def select(
         self,
-        scores_i_t_k: Union[List[List[Dict[int, float]]], List[Dict[int, float]]],
+        scores_i_t_k: Union[List[List[Dict[Union[int, str], Optional[float]]]], List[Dict[Union[int, str], Optional[float]]]],
         return_list: bool = False,
-    ) -> Union[List[int], int]:
+    ) -> Union[List[Union[int, str]], Union[int, str]]:
         """
         Select the best clusterings according to the CVI values given.
 
-        Select the best :math:`k` for each :math:`t` according to the
-        majority vote of the selected clustering according to each CVI.
-        Each CVI select k based on their corresponding CVI values and
-        selection rule. In case of a tie for the best clustering, the
-        clustering with fewer clusters is selected. If the data is not
-        time series or if the time series are clustered considering all
-        time steps at once, then the returned list has only one element.
+        Select the best clustering and return its identifier (based on
+        :math:`k` values if :math:`k` is the main clustering parameters)
+        for each :math:`t` according to the majority vote of the
+        selected clustering according to each CVI. Each CVI select k
+        based on their corresponding CVI values and selection rule. In
+        case of a tie for the best clustering, the clustering with fewer
+        clusters is selected. If the data is not time series or if the
+        time series are clustered considering all time steps at once,
+        then the returned list has only one element.
 
         If no k could be selected given the `scores_i_t_k` values
-        because no CVI could select one clustering, then returns a
-        SelectionError (check the values of `scores_i_t_k` for more
-        information on why the error was raised).
+        because no CVI could select one clustering, raises a
+        :class:`pycvi.exceptions.SelectionError`.
 
         After calling this functions, all votes will be available in the
         `CVIAggregator.votes` property and each individual selected k
@@ -765,21 +777,25 @@ class CVIAggregator():
 
         Parameters
         ----------
-        scores_i_t_k : Union[List[List[Dict[int, float]]], List[Dict[int, float]]]
-            The CVI values for the provided :math:`k` range and for the
-            potential number :math:`t` of iterations to consider in
-            time and for each CVI aggregated.
+        scores_i_t_k : Union[List[List[Dict[Union[int, str], Optional[float]]]], List[Dict[Union[int, str], Optional[float]]]]
+            The CVI values obtained for the provided :math:`k` range (or
+            the provided clustering experiments identifiers, if
+            :math:`k` was not the main parameters) and for the potential
+            :math:`t` iterations to consider in time and for each CVI
+            :math:`i` aggregated.
         return_list: bool, optional
             Determines whether the output should be forced to be a
-            List[Dict], even when no sliding window is used, by default
+            list, even when no sliding window is used, by default
             False.
 
         Returns
         -------
-        Union[List[int], int]
-            The list of :math:`k` values corresponding to the best
-            clustering for each potential number :math:`t` of iterations
-            to consider in time. Some elements can be `None` if no
+        Union[List[Union[int, str]], Union[int, str]]
+            The clustering identifier(s) (:math:`k` values if
+            :math:`k` was the main clustering parameters, and a string
+            identifier otherwise) corresponding to the best clustering
+            for each potential number :math:`t` of iterations to
+            consider in time. Some elements can be `None` if no
             clustering could be selected at a given iteration :math:`t`.
 
         Raises
@@ -825,7 +841,7 @@ class CVIAggregator():
             msg = (
                 f"No clustering could be selected by {self} "
                 + f"with the CVIs {self.cvis} and CVI values "
-                + f"given: {self.scores_i_t_k}"
+                + f"given: {scores_i_t_k}"
             )
             raise SelectionError(msg)
         # Otherwise find majority vote (take the lowest one in case of a tie)
@@ -903,8 +919,8 @@ class Hartigan(CVI):
 
     def _f_criterion(
         self,
-        scores: Dict[int, float],
-    ) -> int:
+        scores: Dict[int, Optional[float]],
+    ) -> Optional[int]:
         valid_k = {
             k: s for k,s in scores.items()
             if ((s is not None) and (s<=10))
@@ -942,14 +958,13 @@ class Hartigan(CVI):
         Hartigan has 3 additional parameters:
 
         - `k` (int): the current number of clusters.
-        - `clusters_next` (np.ndarray, shape: `(N, d*w_t)` or `(N, w_t,
-          d))`: the clustering for the next :math:`k` value
-          considered.
+        - `clusters_next` (list[list[int]]): the cluster memberships for
+          the next :math:`k` value considered.
         - `X1` (np.ndarray, shape: (N, d*w_t) or (N, w_t, d)): the
-          dataset to cluster (already processed). This is needed for
-          the case :math:`k=0`, and in that case `X_clus` is sampled
-          from a uniform distribution with similar parameters as the
-          original distribution.
+          dataset to cluster (already processed). This is needed for the
+          case :math:`k=0`, and in that case `X_clus` is sampled from a
+          uniform distribution with similar parameters as the original
+          distribution.
 
         Parameters
         ----------
@@ -963,7 +978,9 @@ class Hartigan(CVI):
         n_clusters : int, optional
             Current number of clusters considered, by default None
         cvi_kwargs : dict, optional
-            Kwargs specific for the CVI, by default {}. Please see the documentation of each CVI for more information, notably the functional API of each CVI in :mod:`pycvi.cvi_func` module.
+            Kwargs specific for the CVI, by default {}. Please see the
+            documentation of each CVI for more information, notably the
+            functional API of each CVI in :mod:`pycvi.cvi_func` module.
 
             In particular, all CVI functions accept a ``dist_kwargs``
             and a ``avg_kwargs`` parameter that can be used to specify
@@ -1163,8 +1180,8 @@ class GapStatistic(CVI):
 
     def _f_criterion(
         self,
-        scores: Dict[int, float],
-    ) -> int:
+        scores: Dict[int, Optional[float]],
+    ) -> Optional[int]:
         """
         Select the smallest k such that "Gap(k) >= Gap(k+1) - s(k+1)"
         """
@@ -1220,7 +1237,7 @@ class GapStatistic(CVI):
             in some CVI such as the Hartigan index. By default None.
         n_clusters : int, optional
             Current number of clusters considered, by default None
-        cvi_kwargs dict, optional
+        cvi_kwargs : dict, optional
             Pre-defined kwargs, typically the metric to use when
             computing the CVI values, by default {}
 
@@ -1267,7 +1284,9 @@ class GapStatistic(CVI):
         Returns
         -------
         float
-            The CVI value for this clustering.
+            The Gap statistic value. When called internally with
+            ``return_s=True``, the base implementation also provides the
+            corresponding standard-deviation term.
 
         Raises
         ------
@@ -1361,8 +1380,8 @@ class ScoreFunction(CVI):
 
     def _f_criterion(
         self,
-        scores: Dict[int, float],
-    ) -> int:
+        scores: Dict[Union[int, str], Optional[float]],
+    ) -> Optional[Union[int, str]]:
         # General case first
         best_k = self.criterion(scores, cvi_type="absolute")
         # If score always increases, then choose k=1

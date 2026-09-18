@@ -16,7 +16,7 @@ import numpy as np
 from numpy.random import Generator, RandomState
 from sklearn.preprocessing import StandardScaler
 from aeon.clustering.averaging import elastic_barycenter_average
-from typing import List, Sequence, Union, Any, Dict, Tuple
+from typing import Callable, List, Sequence, Union, Dict, Optional
 import time
 from .config import (
     set_data_shape, _get_model_parameters, default_ts_average_kwargs,
@@ -44,7 +44,7 @@ def compute_center(
     --------------------------------
 
     For time-series data the cluster center is by default defined as the
-    MBA (MSM DTW barycentric average [DBA]_) as defined by Holder et al. [MBA]_.
+    MBA (MSM DTW barycentric average) as defined by Holder et al. [MBA]_.
     In this case, additional parameters can be passed in
     ``avg_kwargs``, as described in
     `aeon.clustering.averaging.elastic_barycenter_average
@@ -161,8 +161,10 @@ def compute_centers(
     In the case of time series data
     --------------------------------
 
-    For time-series data the cluster center is by default defined as the
-    DBA (DTW barycentric average) as defined by Petitjean et al [DBA]_.
+    For time-series data the cluster center is by default defined as an
+    elastic barycenter average. With the default MSM distance, this is
+    the MBA (MSM DTW barycentric average) described by Holder et al.
+    [MBA]_.
     In this case, additional parameters can be passed in
     ``avg_kwargs``, as described in
     `aeon.clustering.averaging.elastic_barycenter_average
@@ -202,7 +204,8 @@ def compute_centers(
     Returns
     -------
     List[np.ndarray]
-        A list of cluster centers. For each center:
+        A list of cluster centers. If ``clusters`` is empty, the whole
+        dataset is treated as one cluster. For each center:
 
         - If ``keepdims=True`` then the shape is ``(1, d*w_t)`` or ``(1,
           w_t, d)`` if ``ts_dist=True``.
@@ -228,13 +231,12 @@ def generate_uniform(
     """
     Generate ``N_zero`` samples from a uniform distribution based on data.
 
-    ``data`` and each element of the returned ``l_data0`` have the same
-    shape, either ``(N, T, d)`` or ``(N, T*d)`` if ``ts_dist=True``.
+    ``data`` and each element of the returned list have the same shape.
 
     Parameters
     ----------
     data : np.ndarray
-        The original dataset
+        The original dataset, with shape ``(N, T, d)`` or ``(N, T*d)``.
     zero_type : str, optional
         Determines how to parametrize the uniform
         distribution to sample from in the case :math:`k=0`, by default
@@ -255,7 +257,7 @@ def generate_uniform(
     -------
     List[np.ndarray]
         A list of samples from a uniform distribution, parametrized
-        according to the original dataset given `data`
+        according to the original dataset ``data``.
     """
     rng = set_random_state(rng, Generator)
 
@@ -294,11 +296,11 @@ def prepare_data(
     X: np.ndarray,
     ts_dist: bool = False,
     window: dict = None,
-    transformer: callable = None,
+    transformer: Callable = None,
     scaler = StandardScaler(),
-) -> Union[List[np.ndarray], np.ndarray]:
+) -> List[np.ndarray]:
     """
-    Data to be used for computing clusters and CVIs
+    Prepare data for computing clusters and CVIs.
 
     Scaler has to be fit beforehand on the original data (even for the
     case :math:`k=0`).
@@ -309,9 +311,9 @@ def prepare_data(
       ``ts_dist=True``
     - a list of :math:`T` ``(N, w_t*d)`` arrays if sliding window was
       used but ``ts_dist=False``
-    - a list of :math:`1` ``(N, T, d)`` array  if ``ts_dist=True`` but
+    - a list of one ``(N, T, d)`` array if ``ts_dist=True`` but
       sliding window was not used
-    - a list of :math:`1` ``(N, T*d)`` array if ``ts_dist=False`` and
+    - a list of one ``(N, T*d)`` array if ``ts_dist=False`` and
       sliding window was not used
 
     This function is notably called in
@@ -333,7 +335,7 @@ def prepare_data(
         :func:`pycvi.cluster.sliding_window`.
     transformer : callable, optional
         A potential additional preprocessing step, by default ``None``. If
-        ``None``, no transformation is applied on the data
+        ``None``, no transformation is applied to the data.
     scaler : A sklearn-like scaler model, optional
         A data scaler, by default `StandardScaler()
         <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_.
@@ -344,8 +346,10 @@ def prepare_data(
 
     Returns
     -------
-    Union[List[np.ndarray], np.ndarray]
-        The processed data, ready to being clustered.
+    List[np.ndarray]
+        The processed data, ready to be clustered. The list contains one
+        array when no sliding window is used and one array per window
+        otherwise.
     """
 
     (N, T, d) = X.shape
@@ -407,8 +411,8 @@ def sliding_window(T: int, w: int) -> dict:
 
     Which means that the padding is as follows:
 
-    - beginning: `(w-1)//2
-    - end: `w//2`
+    - beginning: ``(w-1)//2``
+    - end: ``w//2``
 
     And that the original indices are as follows:
 
@@ -524,7 +528,7 @@ def get_clustering(y: np.ndarray) -> List[List[int]]:
     Get a list of clusters with indices based on labels.
 
     The labels can either be the true labels when loading the data, or
-    the output of a sklearn-like ```fit_predict``` or ```predict```
+    the output of a sklearn-like ``fit_predict`` or ``predict``
     method.
 
     Parameters
@@ -535,8 +539,8 @@ def get_clustering(y: np.ndarray) -> List[List[int]]:
     Returns
     -------
     List[List[int]]
-        ```clusters```: a list of datapoint indices for each cluster.
-        ```clusters[i]```: contains the indices of the datapoints that
+        ``clusters``: a list of datapoint indices for each cluster.
+        ``clusters[i]``: contains the indices of the datapoints that
         belong to the ith cluster.
 
     Raises
@@ -600,35 +604,38 @@ def generate_all_clusterings(
     n_clusters_range: Sequence = None,
     ts_dist: bool = True,
     time_window: int = None,
-    transformer: callable = None,
+    transformer: Callable = None,
     scaler = StandardScaler(),
     model_kw: dict = {},
     fit_predict_kw: dict = {},
     model_class_kw: dict = {},
     return_list: bool = False,
     verbose: int = 0,
-) -> Union[List[Dict[int, List[List[int]]]], Dict[int, List[List[int]]]]:
+) -> Union[
+    List[Dict[Union[int, str], Optional[List[List[int]]]]],
+    Dict[Union[int, str], Optional[List[List[int]]]]
+]:
     """
     Generate all clusterings for the given data and clustering model.
 
-    If time_window is None: ```clusterings_t_k[k][i]``` is a list of datapoint
+    If ``time_window`` is None: ``clusterings_t_k[k][i]`` is a list of datapoint
     indices contained in cluster :math:`i` for the clustering that
     assumes :math:`k` clusters.
 
     If time_window is not None (concerns only time series with sliding
-    window): ```clusterings_t_k[t_w][k][i]``` is a list of datapoint
+    window): ``clusterings_t_k[t_w][k][i]`` is a list of datapoint
     indices contained in cluster :math:`i` for the clustering that
     assumes :math:`k` clusters for the extracted time window
     :math:`t_w`.
 
-    If some clusterings couldn't be defined because the clustering
-    algorithm didn't converged
+    If some clusterings could not be defined because the clustering
+    algorithm did not converge
     (:class:`pycvi.exceptions.EmptyClusterError`) then
-    ```clusterings_t_k[t_w][n_clusters] = None```.
+    ``clusterings_t_k[t_w][n_clusters] = None``.
 
     If the provided ``n_clusters_range`` goes beyond the number of
     datapoints, then
-    ```clusterings_t_k[t_w][n_clusters] = None``` for ``n_clusters > N``
+    ``clusterings_t_k[t_w][n_clusters] = None`` for ``n_clusters > N``
     where ``N`` is the number of datapoints.
 
     For more information about the preprocessing steps done on the data
@@ -657,12 +664,11 @@ def generate_all_clusterings(
     time_window : int, optional
         Length of the sliding window (concerns only time-series data),
         by default None. If None, no sliding window is used, and the
-        time series is considered as a whole. If None, the output is of
-        type Dict[int, List[List[int]]], if not None, the output is of
-        List[Dict[int, List[List[int]]]].
+        time series is considered as a whole. The output is a dictionary
+        unless a sliding window is used or ``return_list=True``.
     transformer : callable, optional
         A potential additional preprocessing step, by default None. If
-        None, no transformation is applied on the data
+        None, no transformation is applied to the data.
     scaler : A sklearn-like scaler model, optional
         A data scaler, by default `StandardScaler()
         <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_
@@ -683,8 +689,8 @@ def generate_all_clusterings(
         "n_clusters", "X_arg_name" : "X" }` to follow sklearn
         conventions.
     return_list: bool, optional
-        Determines whether the output should be forced to be a
-        List[Dict], even when no sliding window is used by default False.
+        Determines whether the output should be forced to be a list,
+        even when no sliding window is used, by default False.
     verbose : int, optional
         Controls the verbosity of the function, by default 0, which
         means that the function will be quiet. Max level of verbosity:
@@ -692,9 +698,22 @@ def generate_all_clusterings(
 
     Returns
     -------
-    Union[List[Dict[int, List[List[int]]]], Dict[int, List[List[int]]]]
+    Union[List[Dict[Union[int, str], Optional[List[List[int]]]]],
+    Dict[Union[int, str], Optional[List[List[int]]]]]
         All clusterings for the given range on the number of clusters
         and for the potential sliding windows if applicable.
+
+        The type is:
+
+        - ``Dict[Union[int, str], Optional[List[List[int]]]]``: if no
+          sliding window was used and ``return_list=False``.
+        - ``List[Dict[Union[int, str], Optional[List[List[int]]]]]``: if
+          a sliding window was used or if ``return_list=True``. The list
+          contains one dictionary per sliding window.
+
+        The keys of the dictionaries are of type ``int`` if :math:`k`
+        was the main clustering parameter, and of type ``str``
+        otherwise.
     """
     # --------------------------------------------------------------
     # --------------------- Preliminary ----------------------------
@@ -775,7 +794,6 @@ def generate_all_clusterings(
                 # ---------- Fit & predict using clustering model-------
                 t_start = time.time()
 
-                # print('Code executed in %.2f s' %(t_end - t_start))
                 try :
                     clusters = _generate_clustering(
                         model_class,
