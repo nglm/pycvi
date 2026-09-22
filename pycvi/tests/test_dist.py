@@ -1,9 +1,10 @@
 import numpy as np
 import pytest
-from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering, HDBSCAN, OPTICS
 
 from ..datasets._mini import mini, mini_2
-from ..dist import f_cdist, f_pdist, time_series_metric_with_sklearn
+from ..dist import (
+    f_cdist, f_pdist, time_series_metric_with_sklearn)
 from .._utils import _load_data_from_github
 
 URL_ROOT = 'https://raw.githubusercontent.com/nglm/clustering-benchmark/master/src/main/resources/datasets/'
@@ -54,6 +55,7 @@ def test_f_cdist():
     assert np.all(dist>=0)
 
 def test_time_series_metric_with_sklearn():
+    """Test the pdist version"""
     for multivariate in [True, False]:
         data, time = mini_2(multivariate=multivariate)
         (N, T, d) = data.shape
@@ -67,7 +69,7 @@ def test_time_series_metric_with_sklearn():
         # Train and predict a AgglomerativeClustering model with a Time-series metric
         model = AgglomerativeClustering(
             n_clusters=k,
-            metric=time_series_metric_with_sklearn(X, d=d, T=T),
+            metric=time_series_metric_with_sklearn(d=d, T=T),
             linkage="single",
         )
 
@@ -84,7 +86,7 @@ def test_time_series_metric_with_sklearn():
         model = AgglomerativeClustering(
             n_clusters=k,
             metric=time_series_metric_with_sklearn(
-                X, d=d, T=T, dist_kwargs=dist_kwargs
+                d=d, T=T, dist_kwargs=dist_kwargs
             ),
             linkage="single",
         )
@@ -94,4 +96,40 @@ def test_time_series_metric_with_sklearn():
         assert type(labels_pred) == np.ndarray
         assert labels_pred.shape == (N, )
 
+
+
+def test_time_series_cdist_with_sklearn():
+    for multivariate in [True, False]:
+        data, time = mini_2(multivariate=multivariate)
+        (N, T, d) = data.shape
+
+        # Reshape data to match sklearn requirements
+        X = data.reshape(N, T*d)
+
+        dist_kwargs = {"method": "msm", "window": 0.5}
+
+        model = HDBSCAN(
+            metric=time_series_metric_with_sklearn(
+                d=d, T=T, dist_kwargs=dist_kwargs,
+            ),
+            metric_params = dist_kwargs,
+            leaf_size=30,
+        )
+
+        labels_pred = model.fit_predict(X)
+
+        assert type(labels_pred) == np.ndarray
+        assert labels_pred.shape == (N, )
+
+
+        model = OPTICS(
+            metric=time_series_metric_with_sklearn(
+                d=d, T=T, dist_kwargs=dist_kwargs,
+            ),
+        )
+
+        labels_pred = model.fit_predict(X)
+
+        assert type(labels_pred) == np.ndarray
+        assert labels_pred.shape == (N, )
 

@@ -292,7 +292,11 @@ def f_cdist(
 
     return dist
 
-def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
+def time_series_metric_with_sklearn(
+        d: int = 1,
+        T: int = 1,
+        dist_kwargs : dict = {},
+    ):
     """
     Allow to use time-series metrics with (some) sklearn models.
 
@@ -305,12 +309,12 @@ def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
     allows data of shape ``(N, d)`` (or ``(N, d*T)``) while time-series
     distances in `aeon` require data of shape ``(N, T, d)``.
 
-    Thus, this present function reshapes the data accordingling on the
+    Thus, this present function reshapes the data accordingly on the
     fly such that one can use time series distances with (some) sklearn
     models.
 
     To be able to do the reshaping, it is important to correctly provide
-    the original ``N`` and ``d`` values, as if the following happened:
+    the original ``d`` and ``T`` values, as if the following happened:
 
     1. The data ``X`` was originally of shape ``(N, T, d)`` (Starting
        point)
@@ -332,14 +336,14 @@ def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
 
     Parameters
     ----------
-    X : np.ndarray, shape ``(N, T*d)``
-        The data to be clustered, reshaped to match sklearn requirements.
-    dist_kwargs : dict, optional
-        Additional kwargs for the distance function.
     d : int, optional
         The number of variables in the time series, by default 1.
     T : int, optional
-        The number of time steps in the time series, by default None.
+        The number of time steps in the time series, by default 1.
+    dist_kwargs : dict, optional
+        Additional kwargs for the distance function, by default {}.
+    pdist : bool, optional
+        Whether to use pdist or cdist, by default True.
 
     Returns
     -------
@@ -347,19 +351,40 @@ def time_series_metric_with_sklearn(X, dist_kwargs={}, d=1, T=None):
         A callable that can be used as a metric in sklearn models.
 
     """
-    dims = X.shape
-    N = len(X)
-    if T is None:
-        T = dims[-1]
-    # Go from (N, T*d) to (N, T, d)
-    # assuming we had either (N, T*1) or (N, T, d) to begin with
-    shape = (N, T, d)
 
-    def _aux(X):
-        X_dis = np.reshape(X, shape)
-        squared_dist = f_pdist(X_dis, dist_kwargs=dist_kwargs)
+    def _aux_pdist(X, Y=None, **kwargs):
 
-        # sklearn expects a square matrix, but f_pdist returns a condensed matrix, so we need to convert it back to square form
-        return squareform(squared_dist)
+        # Update dist_kwargs with additional kwargs (some clustering method add
+        # kwargs inside the clustering method)
+        d_kwargs = dist_kwargs | kwargs
 
-    return _aux
+        X = np.asarray(X)
+
+        # Some sklearn estimators (e.g. AgglomerativeClustering) call this
+        # metric once with the whole (N, T*d) data matrix, while others
+        # (e.g. OPTICS, HDBSCAN, via `pairwise_distances`) call it once per
+        # pair of samples with a single flattened (T*d,) row. Handle both.
+        # This added if-code block treats the case HDBSCAN, OPTICS, etc. where
+        # X is a single sample (1D array) and Y is a single sample (1D array).
+        if X.ndim == 1:
+            X_dis = np.reshape(X, (1, T, d))
+            Y_dis = np.reshape(np.asarray(Y), (1, T, d))
+            return f_cdist(X_dis, Y_dis, dist_kwargs=d_kwargs)[0, 0]
+
+        # Go from (N, T*d) to (N, T, d)
+        # assuming we had either (N, T*1) or (N, T, d) to begin with
+        X_dis = np.reshape(X, (len(X), T, d))
+
+        if Y is not None:
+            Y_dis = np.reshape(np.asarray(Y), (len(Y), T, d))
+
+            return f_cdist(X_dis, Y_dis, dist_kwargs=d_kwargs)
+        else:
+            squared_dist = f_pdist(X_dis, dist_kwargs=d_kwargs)
+
+            # sklearn expects a square matrix, but f_pdist returns a condensed matrix, so we need to convert it back to square form
+            return squareform(squared_dist)
+
+    return _aux_pdist
+
+
