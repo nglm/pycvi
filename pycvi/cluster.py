@@ -655,7 +655,10 @@ def generate_all_clusterings(
         - `(N, T, d)` -> `(N, T, d)`
 
     model_class : A sklearn-like clustering class
-        A class implementing a clustering algorithm.
+        A class implementing a clustering algorithm (or a dictionary of
+        classes if the main clustering parameter is not the number of
+        clusters. In that case, keys must match keys in ``model_kw`` and
+        ``fit_predict_kw``).
     n_clusters_range : Sequence, optional
         Assumptions on the number of clusters to try out, by default
         None. If None, `n_clusters_range=range(N+1)`.
@@ -679,16 +682,25 @@ def generate_all_clusterings(
         data.
     model_kw : dict, optional
         Specific kwargs to give to `model_class` init method, by default
-        {}.
+        {}. Alternatively, it can a dictionary of of kwargs dictionaries
+        if the main clustering parameter is not the number of clusters.
+        In that case, keys must match keys in ``model_class`` and
+        ``fit_predict_kw``)
     fit_predict_kw : dict, optional
         Specific kwargs to give to the `fit_predict` method of the
-        `model_class` clustering model, by default {}.
+        `model_class` clustering model, by default {}. Alternatively, it
+        can a dictionary of of kwargs dictionaries if the main
+        clustering parameter is not the number of clusters. In that
+        case, keys must match keys in ``model_class`` and
+        ``model_kw``)
     model_class_kw : dict, optional
         Dictionary that contains the argument names of the number of
         clusters and the data to give to the clustering model, by
         default {}, which then updated as follows: `{"k_arg_name" :
         "n_clusters", "X_arg_name" : "X" }` to follow sklearn
-        conventions.
+        conventions. This argument is only compatible with sklearn-like
+        clustering models taking the number of cluster as the main
+        parameter.
     return_list: bool, optional
         Determines whether the output should be forced to be a list,
         even when no sliding window is used, by default False.
