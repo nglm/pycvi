@@ -2,10 +2,11 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from aeon.clustering import TimeSeriesKMeans
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, OPTICS, HDBSCAN, AffinityPropagation
 from sklearn.preprocessing import StandardScaler
 from typing import List
 
+from ..dist import time_series_metric_with_sklearn
 from ..datasets._mini import mini
 from ..cluster import (
     sliding_window, prepare_data, _generate_clustering, generate_all_clusterings,
@@ -384,6 +385,98 @@ def test_generate_all_clusterings():
         assert (type(clusterings_t_k[0][0]) == list)
         assert (type(clusterings_t_k[0][0][0]) == list)
         assert (type(clusterings_t_k[0][0][0][0]) == int)
+
+def test_generate_all_clusterings_indpt_of_k():
+    """
+    Test shape and type of output of generate_all_clusterings
+    When k is not the main parameter
+
+    """
+
+    for multivariate in [True, False]:
+        data, time = mini(multivariate=multivariate)
+        (N, T, d) = data.shape
+        # NOTE: `data` is kept as (N, T, d): `generate_all_clusterings`
+        # reshapes/windows it internally (via `set_data_shape` and
+        # `prepare_data`), so pre-flattening it here would make it
+        # misinterpret the flattened T*d features as d with T=1.
+
+        l_w = [1, T//2, T]
+
+        # Using ts_dist and window
+        # data_clus is a list of T (N, w_t, d) arrays
+        for w in l_w:
+
+            # Defining ts metric function to use with sklearn clustering
+            metric = time_series_metric_with_sklearn(d=d, T=w)
+
+            model_class = {
+                "01" : OPTICS,
+                "02" : OPTICS,
+                "03" : HDBSCAN,
+            }
+            model_kw = {
+                "01" : {"xi": 0.01, "min_samples" : 2},
+                "02" : {"metric": metric, "min_samples" : 2},
+                "03" : {
+                    "metric_params": {"method": "msm", "window": 0.5},
+                    "metric": metric, "min_samples" : 2
+                },
+            }
+
+            fit_predict_kw = {
+                "01": {},
+                "02": {},
+                "03": {}
+            }
+
+
+
+            clusterings_t_k = generate_all_clusterings(
+                data, model_class,
+                n_clusters_range=None,
+                ts_dist=False, time_window=w, transformer=None,
+                scaler=StandardScaler(),
+                model_kw=model_kw,
+                fit_predict_kw=fit_predict_kw,
+                model_class_kw={}
+            )
+
+            for key in model_class.keys():
+                # all clusterings were computed
+                assert key in clusterings_t_k[0]
+            # type List[Dict[int, List[List[int]]]]
+            assert (type(clusterings_t_k) == list)
+            assert (type(clusterings_t_k[0]) == dict)
+            assert (type(clusterings_t_k[0]["01"]) == list)
+            assert (type(clusterings_t_k[0]["01"][0]) == list)
+            assert (type(clusterings_t_k[0]["01"][0][0]) == int)
+
+        # Not using a sliding window
+        metric = time_series_metric_with_sklearn(d=d, T=T)
+        model_kw["02"]["metric"] = metric
+        model_kw["03"]["metric"] = metric
+        clusterings_t_k = generate_all_clusterings(
+            data, model_class,
+            n_clusters_range=None,
+            ts_dist=False, time_window=None, transformer=None,
+            scaler=StandardScaler(),
+            model_kw=model_kw,
+            fit_predict_kw=fit_predict_kw,
+            model_class_kw={}
+        )
+
+        # T_w = 1
+        for key in model_class.keys():
+            # all clusterings were computed
+            assert key in clusterings_t_k
+
+        # type Dict[int, List[List[int]]]
+        assert (type(clusterings_t_k) == dict)
+        assert (type(clusterings_t_k["01"]) == list)
+        assert (type(clusterings_t_k["01"][0]) == list)
+        assert (type(clusterings_t_k["01"][0][0]) == int)
+
 
 
 def test_compute_center():

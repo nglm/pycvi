@@ -360,6 +360,14 @@ def time_series_metric_with_sklearn(
 
         X = np.asarray(X)
 
+        # Infer the actual number of time steps from the row length rather
+        # than trusting `T`: sliding windows near the edges of a time series
+        # are shorter than the nominal window length (see
+        # `pycvi.cluster.sliding_window`), so rows may not all have length
+        # `T*d`.
+        row_size = X.shape[-1]
+        T_actual = row_size // d
+
         # Some sklearn estimators (e.g. AgglomerativeClustering) call this
         # metric once with the whole (N, T*d) data matrix, while others
         # (e.g. OPTICS, HDBSCAN, via `pairwise_distances`) call it once per
@@ -367,16 +375,16 @@ def time_series_metric_with_sklearn(
         # This added if-code block treats the case HDBSCAN, OPTICS, etc. where
         # X is a single sample (1D array) and Y is a single sample (1D array).
         if X.ndim == 1:
-            X_dis = np.reshape(X, (1, T, d))
-            Y_dis = np.reshape(np.asarray(Y), (1, T, d))
+            X_dis = np.reshape(X, (1, T_actual, d))
+            Y_dis = np.reshape(np.asarray(Y), (1, T_actual, d))
             return f_cdist(X_dis, Y_dis, dist_kwargs=d_kwargs)[0, 0]
 
         # Go from (N, T*d) to (N, T, d)
         # assuming we had either (N, T*1) or (N, T, d) to begin with
-        X_dis = np.reshape(X, (len(X), T, d))
+        X_dis = np.reshape(X, (len(X), T_actual, d))
 
         if Y is not None:
-            Y_dis = np.reshape(np.asarray(Y), (len(Y), T, d))
+            Y_dis = np.reshape(np.asarray(Y), (len(Y), T_actual, d))
 
             return f_cdist(X_dis, Y_dis, dist_kwargs=d_kwargs)
         else:
