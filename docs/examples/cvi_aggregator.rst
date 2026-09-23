@@ -1,13 +1,20 @@
 CVIAggregator: Combining CVIs
 -------------------------------------------
 
-Here is an example using exclusively PyCVI's :class:`pycvi.cvi.CVIAggregator` in order to guess the number of clusters in a dataset. The preprocessing steps and the clustering steps can be integrated into the PyCVI pipeline by providing sklearn-like classes of clustering models (e.g. `KMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html>`_) and data preprocessor (e.g. `StandardScaler <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_).
+Here is an example using PyCVI's :class:`pycvi.cvi.CVIAggregator` to select
+the best number of clusters, :math:`k`, from several candidate values. The
+example uses ``generate_all_clusterings`` with ``KMeans`` and
+``AgglomerativeClustering``; for both methods, :math:`k` is the main
+clustering parameter and is passed as ``n_clusters=k``. The preprocessing and
+clustering steps can be integrated into the PyCVI pipeline by providing
+scikit-learn-like model classes (e.g. `KMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html>`_) and data preprocessors (e.g. `StandardScaler <https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_).
 
-In this example, we use non-time-series data, but the syntax would be the same for time-series data.
+This example uses non-time-series data, but the syntax is the same for
+time-series data.
 
 Here we assume that we are in real conditions, which means that we don't have access to the true labels (except that we plot the true data for illustrative purposes). We then don't use the features included in the :mod:`pycvi.vi` module.
 
-This example showcases 2 successful clusterings and clustering selections.
+This example showcases 2 successful clustering and selection workflows.
 
 .. include:: /examples/examples_reminders.rst
 

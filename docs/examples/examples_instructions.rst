@@ -1,7 +1,9 @@
 Running example scripts on your computer
 ==========================================
 
-The examples given in this documentation are mainly meant to be used as an inspiration for your own scripts, and to showcase ``PyCVI`` features. But it is of course also possible to run these examples directly on your computer. To do so, please follow the extra steps detailed on this page.
+The examples in this documentation are mainly intended as inspiration for
+your own scripts and to showcase ``PyCVI`` features. You can also run them
+directly on your computer by following the extra steps detailed on this page.
 
 Extra dependencies
 --------------------
@@ -10,8 +12,10 @@ In order to run the example scripts, extra dependencies are necessary. The insta
 
 .. code-block:: bash
 
+    # for uv
+    uv add pycvi-lib --optional examples
     # For poetry
-    poetry add pycvi-lib[examples]
+    poetry add pycvi-lib -E examples
     # For pip and anaconda
     pip install pycvi-lib[examples]
 
@@ -20,17 +24,26 @@ Alternatively, you can manually install in your environment the packages that ar
 .. include:: ../md/warning_dependencies.md
    :parser: myst_parser.sphinx_
 
-Utils functions
+Utility functions
 --------------------
 
-In addition to extra dependencies, utils functions are imported in each example script from the ``pycvi_examples_utils.py`` file using a line starting with ``from pycvi_examples_utils import ...``. This file and can be found on this documentation :doc:`here </examples/pycvi_examples_utils>` or directly in the `source repository <https://github.com/nglm/pycvi/blob/master/examples/pycvi_examples_utils.py>`_.
+In addition to these dependencies, each example imports utility functions
+from ``pycvi_examples_utils.py`` with a line beginning
+``from pycvi_examples_utils import ...``. The file is available in this
+documentation :doc:`here </examples/pycvi_examples_utils>` and in the
+`source repository <https://github.com/nglm/pycvi/blob/master/examples/pycvi_examples_utils.py>`_.
 
-If you wish to run the examples, please copy the content of the ``pycvi_examples_utils.py`` file and save it on the same directory level as your example script. Alternatively, you can copy the utils functions directly into your scripts (and remove the line starting with ``from pycvi_examples_utils import``).
+To run the examples, copy the contents of ``pycvi_examples_utils.py`` into
+the same directory as your example script. Alternatively, copy the utility
+functions directly into your script and remove the import line beginning
+``from pycvi_examples_utils import``.
 
 Running your scripts
 ---------------------
 
-Once you have done the steps above, you can run your scripts (for example ``basic_usage.py``) in your python environment with ``PyCVI`` and the extra dependencies installed by running the following command:
+Once you have completed these steps, run a script (for example
+``basic_usage.py``) from a Python environment with ``PyCVI`` and the extra
+dependencies installed:
 
 .. code-block:: bash
 

@@ -1,7 +1,12 @@
 CVI - Basic usage with time-series
 ----------------------------------
 
-In this example, we integrate PyCVI into the usual clustering pipeline with time series data in order to select the best clustering while using MSM as the distance measure and MBA as the cluster center, specially designed to handle time-series data.
+In this example, we integrate PyCVI into a clustering pipeline with
+time-series data to select the best clustering. We try several values of
+:math:`k`, the number of clusters, and pass each value to
+``TimeSeriesKMeans(n_clusters=k)``. Here, :math:`k` is the main parameter of
+the clustering method. The example uses MSM as the distance measure and MBA
+as the cluster center, both designed for time-series data.
 
 .. include:: /examples/examples_reminders.rst
 

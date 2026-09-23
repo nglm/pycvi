@@ -1,9 +1,14 @@
-Utils functions for example scripts
+Utility functions for example scripts
 =====================================
 
-All the examples scripts showcased in this documentation produce some figures. The code to generate these figures have nothing to do with ``PyCVI``, so we decided to define plot functions in a separate file so that only PyCVI related features are emphasized in each example. On this page, you can find the code source of the plot functions that are necessary in order to run the examples scripts.
+All example scripts in this documentation produce figures. The plotting code
+is unrelated to ``PyCVI``, so it is defined in a separate file to keep each
+example focused on PyCVI features. This page contains the plotting functions
+needed to run the examples.
 
-This file has to be copied and saved in the same directory as your examples scripts. Alternatively, you can copy the utils functions directly into your scripts (and remove the line starting with ``from pycvi_examples_utils import``).
+Copy this file into the same directory as your example script. Alternatively,
+copy the utility functions directly into your script and remove the import
+line beginning ``from pycvi_examples_utils import``.
 
 .. include:: /examples/examples_reminders.rst
 

@@ -21,6 +21,10 @@
 .. Tutorials sections
    ---------------------------------------
 
+These examples demonstrate workflows for computing CVI values and selecting a
+clustering, including cases where :math:`k` is and is not the main parameter
+of the clustering method and including cases with static and time-series data.
+
 .. toctree::
    :maxdepth: 4
    :caption: Examples
@@ -81,7 +85,7 @@ More low-level functions are defined to perform common operations but that can h
 .. Full API section
    ---------------------------------------
 
-Finally, you can browser the full API here:
+Finally, you can browse the full API here:
 
 .. include:: api.rst
 

@@ -7,7 +7,12 @@
 
 PyCVI is a Python package specialized in internal Clustering Validity Indices (CVI). Internal CVIs are used to select the best clustering among a set of pre-computed clusterings when no external information is available such as the labels of the datapoints.
 
-Although being fundamental to clustering tasks and being an active research topic, very few internal CVIs are implemented in standard Python libraries (only 3 in [scikit-learn](https://scikit-learn.org/stable/index.html), more were available in R but few were maintained and kept in CRAN). This is despite the well-known limitations of all existing CVIs and the need to use the right one(s) according to the specific dataset at hand.
+Although internal CVIs are fundamental to clustering and remain an active
+research topic, few are implemented in standard Python libraries (only three
+in [scikit-learn](https://scikit-learn.org/stable/index.html); more were
+available in R, but few were maintained in CRAN). This reflects the
+well-known limitations of CVIs and the need to choose them according to the
+dataset at hand.
 
 In addition, all CVIs rely on the definition of a distance between datapoints and most of them on the notion of cluster center.
 
@@ -15,7 +20,14 @@ For non-time-series data, the distance used is usually the Euclidean distance an
 
 For time-series data however, common distances used are Dynamic Time Warping (DTW) or Move-Split-Merge (MSM) and the barycenter of a group of time series is then not defined as the usual mean, but as the DTW Barycentric Average (DBA) or MBA (MSM DTW barycentric average). Unfortunately, DTW, MSM, DBA and MBA are not compatible with the libraries mentioned above, which among other reasons, made additional machine learning libraries specialized in time series data such as [aeon](https://www.aeon-toolkit.org/en/latest/index.html), [sktime](https://www.sktime.net/en/stable/index.html) and [tslearn](https://tslearn.readthedocs.io/en/stable/) necessary.
 
-PyCVI then tries to fill that gap by implementing 12 state-of-the-art internal CVIs and by making them compatible with DTW and DBA (and obviously non-time-series data). PyCVI is entirely compatible with [scikit-learn](https://scikit-learn.org/stable/index.html), [scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/), [kmedoids](https://python-kmedoids.readthedocs.io/en/latest/#), [aeon](https://www.aeon-toolkit.org/en/latest/index.html) and [sktime](https://www.sktime.net/en/stable/index.html), in order to be easily integrated into any clustering pipeline in Python.
+PyCVI fills that gap by implementing 12 state-of-the-art internal CVIs and
+making them compatible with DTW, MSM, DBA, MBA, and non-time-series data. It
+is compatible with [scikit-learn](https://scikit-learn.org/stable/index.html),
+[scikit-learn-extra](https://scikit-learn-extra.readthedocs.io/en/stable/),
+[kmedoids](https://python-kmedoids.readthedocs.io/en/latest/#),
+[aeon](https://www.aeon-toolkit.org/en/latest/index.html), and
+[sktime](https://www.sktime.net/en/stable/index.html), so it can easily be integrated
+into clustering pipelines in Python.
 
 To compute DTW, MSM, DBA, MBA, etc. PyCVI relies on the [aeon](https://www.aeon-toolkit.org/en/latest/index.html) library.
 

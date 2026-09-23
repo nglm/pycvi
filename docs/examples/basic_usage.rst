@@ -1,7 +1,10 @@
 CVI - Basic usage
 ------------------
 
-In this example, we integrate PyCVI into the usual clustering pipeline in order to select the best clustering.
+In this example, we integrate PyCVI into a usual clustering pipeline to
+select the best clustering. We try several values of :math:`k`, the number
+of clusters, and pass each value to ``KMeans(n_clusters=k)``. Here, :math:`k`
+is the main parameter of the clustering method.
 
 .. include:: /examples/examples_reminders.rst
 
