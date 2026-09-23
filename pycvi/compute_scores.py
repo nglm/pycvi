@@ -369,6 +369,13 @@ def compute_all_scores(
           The keys of the dictionaries are of type ``int`` if :math:`k`
           was the main clustering parameter, and of type ``str``
           otherwise.
+
+    Raises
+    ------
+    ValueError
+        If the clusterings are not compatible with the CVI type, for
+        example if a monotonous CVI is used with a clustering method
+        that doesn't use :math:`k` as the main parameter.
     """
 
     # --------------------------------------------------------------
@@ -441,6 +448,21 @@ def compute_all_scores(
     for i in range(len(list_cvi)):
         for t_w in range(n_windows):
             for key in clusterings[t_w].keys():
+
+                # Make sure the clusterings are compatible with the CVI type
+                if (
+                    not isinstance(key, int)
+                    and list_cvi[i].cvi_type == "monotonous"
+                ):
+                    raise ValueError(
+                        f"Monotonous CVIs are only compatible with clustering "
+                        + "methods where k is the main parameter. Computed CVIs "
+                        + "seem to be coming from clustering methods that didn't "
+                        + "use k as the main parameter because clustering "
+                        + f"identifiers are not of type int but found type: \n"
+                        + f"{type(key)}"
+                        + f"\n\nPlease use clustering methods where k is the main parameter or use a CVI of type 'absolute' for these clusterings."
+                    )
 
                 # Find cluster membership of each datapoint
                 clusters = clusterings[t_w][key]

@@ -353,6 +353,13 @@ class CVI():
             the unique key referring to the selected clustering among
             keys present in ``scores``. Returns `None` if no clustering
             could be selected.
+
+        Raises
+        ------
+        ValueError
+            If the CVI values are not compatible with the CVI type, for
+            example if a monotonous CVI is used with a clustering method
+            that doesn't use :math:`k` as the main parameter.
         """
         # Because some custom criterion_function relies on the general
         # case "monotonous"/"absolute"
@@ -364,6 +371,18 @@ class CVI():
             # either because this CVI doesn't allow this k or because
             # the clustering model didn't converge
             scores_valid = {k: s for k,s in scores.items() if s is not None}
+
+            if not all(isinstance(k, int) for k in scores_valid.keys()):
+                raise ValueError(
+                    f"Monotonous CVIs are only compatible with clustering "
+                    + "methods where k is the main parameter. Computed CVIs "
+                    + "seem to be coming from clustering methods that didn't "
+                    + "use k as the main parameter because clustering "
+                    + f"identifiers are not of type int but: \n"
+                    + f"{[type(key) for key in scores_valid.keys()]} "
+                    + f"\n\nPlease use clustering methods where k is the main parameter or use a CVI of type 'absolute' for these clusterings."
+                )
+
             selected_id = None
             max_diff = 0
 
