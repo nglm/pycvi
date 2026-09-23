@@ -4,12 +4,12 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from numpy.random import RandomState, Generator
-from typing import List, Sequence, Union, Any, Dict, Tuple
+from typing import List, Sequence, Union, Any, Dict, Tuple, Optional
 from .exceptions import ShapeError
 
 def set_data_shape(X: np.ndarray) -> np.ndarray:
     """
-    Returns a copy of the data but with the right shape (N, T, d)
+    Return a copy of the data with standardized shape ``(N, T, d)``.
 
     Acceptable input shapes and their corresponding output shapes:
 
@@ -20,23 +20,22 @@ def set_data_shape(X: np.ndarray) -> np.ndarray:
     Parameters
     ----------
     X : np.ndarray
-        Original data
+        Original data.
 
     Returns
     -------
     np.ndarray
-        The same data but re-shaped to match the requirements of the
-        PyCVI package
+        A copy of ``X`` reshaped to match the requirements of PyCVI.
 
     Raises
     ------
     ShapeError
         Raised if only one sample was given.
     ShapeError
-        Raised if an invalid shape dimensions was provided
-        (1<=dimensions<=3)
+        Raised if an invalid number of dimensions was provided
+        (the number of dimensions must be between 1 and 3).
     """
-    X_copy = np.copy(X)  #Original Data
+    X_copy = np.copy(X)
 
     # Variable dimension
     shape = X_copy.shape
@@ -67,15 +66,18 @@ def set_random_state(
     """
     Set the random state to a given type.
 
-    Scikit-learn and aeon use np.random.RandomState (or int) while numpy encourages the use of np.random.Generator. In addition, P This function allows to convert
+    Scikit-learn and aeon use ``numpy.random.RandomState`` (or an integer
+    seed), while NumPy encourages the use of ``numpy.random.Generator``.
+    This function converts between these supported random-state types.
 
     Parameters
     ----------
     rng : Union[np.random.Generator, int, np.random.RandomState]
-        The random state to set. Can be a `numpy.random.Generator`, an
+        The random state to convert. It can be a
+        `numpy.random.Generator`, an
         integer seed, or a `numpy.random.RandomState`.
     rtype : type
-        The type of random state to return. Can be a
+        The type of random state to return. It can be a
         `numpy.random.Generator`, an integer seed type, or a
         `numpy.random.RandomState`.
 
@@ -87,9 +89,9 @@ def set_random_state(
     Raises
     ------
     ValueError
-        If the provided `rng` is not of a valid type.
+        If ``rng`` is not a valid random-state value.
     ValueError
-        If the provided `rtype` is not of a valid type.
+        If ``rtype`` is not one of the supported random-state types.
     """
     # Base case: the given type is the correct type, then do nothing
     if isinstance(rng, rtype):
@@ -175,7 +177,7 @@ def default_ts_average_kwargs(
     functions
 
     Add the following pairs to the user provided kwargs (whose value)
-    will be overriden if a corresponding key-value pair is provided by
+    will be overridden if a corresponding key-value pair is provided by
     the user:
 
     ``{ "distance": "msm", "init_barycenter": "medoids", "method":
@@ -213,7 +215,7 @@ def default_ts_distance_kwargs(
     Complete provided kwargs with default ones for time-series distance metrics
 
     Adds a ``{"method" : "msm"}`` pair to the user provided
-    kwargs (whose value will be overriden if a corresponding key-value
+    kwargs (whose value will be overridden if a corresponding key-value
     pair is provided by the user).
 
     If a custom callable is given (using the ``"CALLABLE"`` key) or if

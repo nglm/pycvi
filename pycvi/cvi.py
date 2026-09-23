@@ -176,12 +176,12 @@ class CVI():
 
     def __init__(
         self,
-        cvi_function: Callable = None,
+        cvi_function: Optional[Callable] = None,
         maximise: bool = True,
         improve: bool = True,
         cvi_type: str = "monotonous",
-        criterion_function: Callable = None,
-        k_condition: Callable = None,
+        criterion_function: Optional[Callable] = None,
+        k_condition: Optional[Callable] = None,
         ignore0: bool = False,
         rng:  Union[Generator, int, RandomState] = np.random.default_rng(611),
     ) -> None:
@@ -266,9 +266,9 @@ class CVI():
 
     def get_cvi_kwargs(
         self,
-        X_clus: np.ndarray = None,
-        clusterings_t: Dict[int, List] = None,
-        n_clusters: int = None,
+        X_clus: Optional[np.ndarray] = None,
+        clusterings_t: Optional[Dict[int, List]] = None,
+        n_clusters: Optional[int] = None,
         cvi_kwargs: dict = {},
     ) -> dict:
         """
@@ -316,7 +316,7 @@ class CVI():
     def criterion(
         self,
         scores: Dict[Union[int, str], Optional[float]],
-        cvi_type: str = None,
+        cvi_type: Optional[str] = None,
     ) -> Union[int, str, None]:
         """
         The default selection method for regular cases.
@@ -336,7 +336,7 @@ class CVI():
         scores : Dict[Union[int, str], Optional[float]]
             The CVI values obtained for the provided :math:`k` range or
             the provided clustering experiments identifiers, if
-            :math:`k` was not the main parameters.
+            :math:`k` was not the main parameter.
         cvi_type : str, optional
             The type of CVI to use in the selection scheme. Note that
             for most cases it is redundant with the attribute
@@ -348,11 +348,11 @@ class CVI():
         -------
         Union[int, str, None]
             The :math:`k` value corresponding to the selected clustering
-            if :math:`k` was the main parameter of the clustering
-            method. if :math:`k` wasn't the main parameter, then it is
-            the unique key referring to the selected clustering among
-            keys present in ``scores``. Returns `None` if no clustering
-            could be selected.
+            :math:`k` was the main parameter of the clustering method.
+            If :math:`k` was not the main parameter, this is the unique
+            identifier referring to the selected clustering among the keys
+            in ``scores``. Returns ``None`` if no clustering could be
+            selected.
 
         Raises
         ------
@@ -547,7 +547,7 @@ class CVI():
         scores_t_k : Union[List[Dict[Union[int, str], float]], Dict[Union[int, str], float]]
             The CVI values obtained for the provided :math:`k` range (or
             the provided clustering experiments identifiers, if
-            :math:`k` was not the main parameters) and for the potential
+            :math:`k` was not the main parameter) and for the potential
             :math:`t` iterations to consider in time.
         return_list: bool, optional
             Determines whether the output should be forced to be a
@@ -567,7 +567,7 @@ class CVI():
         Raises
         ------
         ValueError
-            If ```scores_t_k``` is empty or not of the right type (a
+            If ``scores_t_k`` is empty or not of the right type (a
             list of dictionaries in the case of time series data
             clustered by sliding windows or a dictionary).
         SelectionError
@@ -799,7 +799,7 @@ class CVIAggregator():
         scores_i_t_k : Union[List[List[Dict[Union[int, str], Optional[float]]]], List[Dict[Union[int, str], Optional[float]]]]
             The CVI values obtained for the provided :math:`k` range (or
             the provided clustering experiments identifiers, if
-            :math:`k` was not the main parameters) and for the potential
+            :math:`k` was not the main parameter) and for the potential
             :math:`t` iterations to consider in time and for each CVI
             :math:`i` aggregated.
         return_list: bool, optional

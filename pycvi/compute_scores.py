@@ -69,7 +69,7 @@ def f_inertia(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -136,7 +136,8 @@ def _compute_subscores(
     dist_kwargs : dict, optional
         Keyword arguments for distance computations.
     score_kwargs : dict, optional
-        Keyword arguments specific to the score function.
+        Keyword arguments specific to the score function. They are forwarded
+        to the cluster-level score callable.
     reduction : str or callable, optional
         Reduction applied to cluster-level values.
 
@@ -186,8 +187,8 @@ def _compute_subscores(
 
 def _compute_score(
     score_type: Union[str, Callable],
-    X: np.ndarray = None,
-    clusters: List[List[int]] = None,
+    X: Optional[np.ndarray] = None,
+    clusters: Optional[List[List[int]]] = None,
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
     score_kwargs: dict = {},
@@ -262,10 +263,10 @@ def compute_all_scores(
         Dict[Union[int, str], Optional[List[List[int]]]],
         List[Dict[Union[int, str], Optional[List[List[int]]]]]
     ],
-    transformer: Callable = None,
+    transformer: Optional[Callable] = None,
     scaler = StandardScaler(),
     ts_dist: bool = True,
-    time_window: int = None,
+    time_window: Optional[int] = None,
     N_zero: int = 10,
     zero_type: str = "bounds",
     rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
@@ -340,7 +341,8 @@ def compute_all_scores(
         The numpy random generator (or seed) to use when sampling from
         random distributions, by default ``np.random.default_rng(611)``
     cvi_kwargs : dict, optional
-        Specific kwargs to give to the CVI call function, by default {}.
+        Specific keyword arguments to give to the CVI call function, by
+        default ``{}``.
         This can typically include `dist_kwargs` and `avg_kwargs` but
         also kwargs that are specific to some CVIs.
     return_list: bool, optional
@@ -367,8 +369,11 @@ def compute_all_scores(
           CVI was used with a time window.
 
           The keys of the dictionaries are of type ``int`` if :math:`k`
-          was the main clustering parameter, and of type ``str``
-          otherwise.
+          was the main clustering parameter, and of type ``str`` otherwise.
+          When ``k`` is the main clustering parameter, integer dictionary
+          keys represent the tested numbers of clusters. When it is not the
+          main parameter, string keys identify the independently generated
+          clusterings.
 
     Raises
     ------

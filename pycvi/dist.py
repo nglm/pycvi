@@ -6,14 +6,14 @@ Low-level distance functions for (non-) time-series data.
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
 from aeon.distances import pairwise_distance
-from typing import List, Sequence, Union, Any, Dict, Tuple
+from typing import Callable, List, Sequence, Union, Any, Dict, Tuple
 from ._utils import _match_dims
 from .exceptions import ShapeError
 from .config import default_ts_distance_kwargs
 
 def reduce(
     dist: np.ndarray,
-    reduction: Union[str, callable] = None,
+    reduction: Union[str, Callable, None] = None,
 ) -> Union[float, np.ndarray]:
     """
     Applies a given operation on a distance matrix.
@@ -58,9 +58,10 @@ def f_pdist(
     """
     Pairwise distances within a group of elements.
 
-    The user can provide a custom callable together with its kwargs in
-    the ``dist_kwargs`` parameter. To provide a callable, use the key
-    ``"CALLABLE"``, otherwise the default distance function will be used,
+    The user can provide a custom callable together with its keyword
+    arguments in ``dist_kwargs``. To provide it, set the ``"CALLABLE"``
+    value to the callable itself; otherwise the default distance function is
+    used,
     which depends on the type of data (time series or static).
 
     In the case of static data
@@ -111,7 +112,8 @@ def f_pdist(
     cluster : np.ndarray, shape ``(N, d)`` or ``(N, w, d)`` if ``ts_dist=True``.
         A cluster of ``N`` datapoints.
     dist_kwargs : dict, optional
-        Additional kwargs for the distance function.
+        Additional keyword arguments for the distance function. The optional
+        ``"CALLABLE"`` entry must contain a callable, not its name.
 
     Returns
     -------
@@ -181,9 +183,10 @@ def f_cdist(
     """
     Distances between two (groups of) elements.
 
-    The user can provide a custom callable together with its kwargs in
-    the ``dist_kwargs`` parameter. To provide a callable, use the key
-    ``"CALLABLE"``, otherwise the default distance function will be used,
+    The user can provide a custom callable together with its keyword
+    arguments in ``dist_kwargs``. To provide it, set the ``"CALLABLE"``
+    value to the callable itself; otherwise the default distance function is
+    used,
     which depends on the type of data (time series or static).
 
     In the case of static data
@@ -236,7 +239,8 @@ def f_cdist(
     clusterB : np.ndarray
         A cluster of size `NB`.
     dist_kwargs : dict, optional
-        Additional kwargs for the distance function.
+        Additional keyword arguments for the distance function. The optional
+        ``"CALLABLE"`` entry must contain a callable, not its name.
 
     Returns
     -------
@@ -296,7 +300,7 @@ def time_series_metric_with_sklearn(
         d: int = 1,
         T: int = 1,
         dist_kwargs : dict = {},
-    ):
+    ) -> Callable:
     """
     Allow to use time-series metrics with (some) sklearn models.
 
@@ -341,9 +345,8 @@ def time_series_metric_with_sklearn(
     T : int, optional
         The number of time steps in the time series, by default 1.
     dist_kwargs : dict, optional
-        Additional kwargs for the distance function, by default {}.
-    pdist : bool, optional
-        Whether to use pdist or cdist, by default True.
+        Additional keyword arguments for the distance function, by default
+        ``{}``.
 
     Returns
     -------

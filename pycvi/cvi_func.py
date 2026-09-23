@@ -7,7 +7,7 @@ For more information about the functional API and the Object-Oriented API in pra
 
 """
 
-from typing import List, Sequence, Union, Any, Dict, Tuple
+from typing import List, Sequence, Union, Any, Dict, Tuple, Optional
 from sklearn.cluster import KMeans
 from aeon.clustering import TimeSeriesKMeans
 import numpy as np
@@ -144,7 +144,7 @@ def _dist_centroids_to_global(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -194,7 +194,7 @@ def _dist_between_centroids(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -266,7 +266,7 @@ def _dist_to_centroids(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -312,7 +312,7 @@ def _sum_dist_to_centroids(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -354,7 +354,7 @@ def _sum_sum_dist_to_centroids(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -372,7 +372,7 @@ def _sum_sum_dist_to_centroids(
 def gap_statistic(
     X : np.ndarray,
     clusters: List[List[int]],
-    k: int = None,
+    k: Optional[int] = None,
     B: int = 10,
     zero_type: str = "variance",
     rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
@@ -388,7 +388,8 @@ def gap_statistic(
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
-        Number of clusters.
+        Number of clusters. ``k`` is the main clustering parameter and is
+        required to cluster the reference datasets used by the statistic.
     B : int, optional
         Number of uniform samples drawn.
     zero_type : {"variance", "bounds"}, optional
@@ -453,14 +454,16 @@ def gap_statistic(
 def score_function(
     X : np.ndarray,
     clusters: List[List[int]],
-    k: int =None,
+    k: Optional[int] = None,
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
 ) -> float:
     """Compute the score function index for a clustering.
 
     The square-distance version of the score function is used. The
-    parameter `k` is accepted for API compatibility but ignored.
+    parameter ``k`` is accepted for API compatibility but ignored; the
+    number of clusters is derived from ``clusters``. Thus, ``k`` is not the
+    main clustering parameter for this index.
 
     Parameters
     ----------
@@ -469,7 +472,9 @@ def score_function(
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
-        Ignored. Present for compatibility.
+        Ignored. Present for compatibility with CVIs whose formula uses
+        ``k`` explicitly. The number of clusters is derived from
+        ``clusters``.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
         :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
@@ -477,7 +482,7 @@ def score_function(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -516,9 +521,9 @@ def score_function(
 def hartigan(
     X : np.ndarray,
     clusters: List[List[int]],
-    k:int = None,
-    clusters_next: List[List[int]] = None,
-    X1: np.ndarray = None,
+    k: Optional[int] = None,
+    clusters_next: Optional[List[List[int]]] = None,
+    X1: Optional[np.ndarray] = None,
     rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
@@ -532,7 +537,8 @@ def hartigan(
     clusters : list[list[int]]
         Indices for the current clustering.
     k : int, optional
-        Number of clusters.
+        Number of clusters. ``k`` is the main clustering parameter and is
+        used to compare the current clustering with the one for ``k+1``.
     clusters_next : list[list[int]], optional
         Clustering for $k+1$.
     X1 : np.ndarray, optional
@@ -597,6 +603,9 @@ def silhouette(
     avg_kwargs: dict = {},
 ) -> float:
     """Compute the silhouette score for a clustering.
+
+    The number of clusters is derived from ``clusters``; ``k`` is not an
+    input to this index and is not the main clustering parameter.
 
     Parameters
     ----------
@@ -664,8 +673,8 @@ def silhouette(
 def CH(
     X : np.ndarray,
     clusters: List[List[int]],
-    k: int = None,
-    X1: np.ndarray = None,
+    k: Optional[int] = None,
+    X1: Optional[np.ndarray] = None,
     zero_type: str = "variance",
     rng: Union[int, RandomState, Generator] = np.random.default_rng(611),
     dist_kwargs: dict = {},
@@ -680,7 +689,8 @@ def CH(
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
-        Number of clusters.
+        Number of clusters. ``k`` is explicitly used in its formula, but
+        the index can still be used as an absolute CVI.
     X1 : np.ndarray, optional
         Dataset used when $k=0$ (uniform sample case).
     zero_type : {"variance", "bounds"}, optional
@@ -694,7 +704,7 @@ def CH(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -782,7 +792,7 @@ def CH(
 def MB(
     X : np.ndarray,
     clusters: List[List[int]],
-    k: int = None,
+    k: Optional[int] = None,
     p: int = 2,
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
@@ -796,9 +806,11 @@ def MB(
     clusters : list[list[int]]
         Indices for each cluster.
     k : int, optional
-        Number of clusters.
+        Number of clusters. ``k`` is explicitly used in its formula, but
+        the index can still be used as an absolute CVI.
     p : int, optional
-        Exponent used in the index for the distance metric.
+        Exponent applied to the index after combining within- and
+        between-cluster distances.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
         :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
@@ -806,7 +818,7 @@ def MB(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -858,7 +870,7 @@ def _var(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -909,7 +921,7 @@ def _dis(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -960,7 +972,7 @@ def _scat(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -987,11 +999,14 @@ def _scat(
 def SD_index(
     X : np.ndarray,
     clusters: List[List[int]],
-    alpha: float = None,
+    alpha: Optional[float] = None,
     dist_kwargs: dict = {},
     avg_kwargs: dict = {},
 ) -> float:
     """Compute the SD index for a clustering.
+
+    The number of clusters is derived from ``clusters``; ``k`` is not an
+    input to this index and is not the main clustering parameter.
 
     Parameters
     ----------
@@ -1000,7 +1015,8 @@ def SD_index(
     clusters : list[list[int]]
         Indices for each cluster.
     alpha : float, optional
-        Constant in the SD index formula (defaults to $Dis(k_{max})$).
+        Constant in the SD index formula. If ``None``, it defaults to
+        :math:`Dis(k_{max})`.
     dist_kwargs : dict, optional
         Keyword arguments for the distance function. See
         :func:`pycvi.dist.f_pdist` and :func:`pycvi.dist.f_cdist` for
@@ -1008,7 +1024,7 @@ def SD_index(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -1049,6 +1065,9 @@ def SDbw_index(
 ) -> float:
     """Compute the SDbw index for a clustering.
 
+    The number of clusters is derived from ``clusters``; ``k`` is not an
+    input to this index and is not the main clustering parameter.
+
     Parameters
     ----------
     X : np.ndarray
@@ -1062,7 +1081,7 @@ def SDbw_index(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -1157,6 +1176,9 @@ def dunn(
 ) -> float:
     """Compute the Dunn index for a clustering.
 
+    The number of clusters is derived from ``clusters``; ``k`` is not an
+    input to this index and is not the main clustering parameter.
+
     Parameters
     ----------
     X : np.ndarray
@@ -1224,6 +1246,9 @@ def xie_beni(
 ) -> float:
     """Compute the Xie–Beni index for a clustering.
 
+    The number of clusters is derived from ``clusters``; ``k`` is not an
+    input to this index and is not the main clustering parameter.
+
     Parameters
     ----------
     X : np.ndarray
@@ -1237,7 +1262,7 @@ def xie_beni(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -1285,6 +1310,9 @@ def xie_beni_star(
 ) -> float:
     """Compute the Xie–Beni* (XB*) index for a clustering.
 
+    The number of clusters is derived from ``clusters``; ``k`` is not an
+    input to this index and is not the main clustering parameter.
+
     Parameters
     ----------
     X : np.ndarray
@@ -1298,7 +1326,7 @@ def xie_beni_star(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -1347,6 +1375,9 @@ def davies_bouldin(
 ) -> float:
     """Compute the Davies–Bouldin (DB) index for a clustering.
 
+    The number of clusters is derived from ``clusters``; ``k`` is not an
+    input to this index and is not the main clustering parameter.
+
     Parameters
     ----------
     X : np.ndarray
@@ -1362,7 +1393,7 @@ def davies_bouldin(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------

@@ -33,16 +33,14 @@ def compute_center(
     """
     Compute the center of a cluster.
 
-    In the case of static data
-    ---------------------------
+    **In the case of static data**
 
     For non time-series data, this is simply the average of all
     datapoints in the given cluster using the usual mean function, and
     more precisely, calling `numpy.mean
     <https://numpy.org/doc/stable/reference/generated/numpy.mean.html>`_.
 
-    In the case of time series data
-    --------------------------------
+    **In the case of time series data**
 
     For time-series data the cluster center is by default defined as the
     MBA (MSM DTW barycentric average) as defined by Holder et al. [MBA]_.
@@ -64,10 +62,6 @@ def compute_center(
     See :func:`pycvi.config.default_ts_average_kwargs` for
     more information about default averaging kwargs used in PyCVI.
 
-    .. [DBA] F. Petitjean, A. Ketterlin, and P. Gan carski, “A global
-       averaging method for dynamic time warping, with applications to
-       clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
-       2011.
     .. [MBA] Christopher Holder, David Guijo-Rubio, and Anthony Bagnall.
        Barycentre averaging for the move-split-merge time series
        distance measure. 15th International Joint Conference on
@@ -85,7 +79,7 @@ def compute_center(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -151,16 +145,14 @@ def compute_centers(
     """
     Compute the centers of all clusters.
 
-    In the case of static data
-    ---------------------------
+    **In the case of static data**
 
     For non time-series data, this is simply the average of all
     datapoints in the given cluster using the usual mean function, and
     more precisely, calling `numpy.mean
     <https://numpy.org/doc/stable/reference/generated/numpy.mean.html>`_.
 
-    In the case of time series data
-    --------------------------------
+    **In the case of time series data**
 
     For time-series data the cluster center is by default defined as an
     elastic barycenter average. With the default MSM distance, this is
@@ -183,11 +175,11 @@ def compute_centers(
     See :func:`pycvi.config.default_ts_average_kwargs` for
     more information about default averaging kwargs used in PyCVI.
 
-    .. [DBA] F. Petitjean, A. Ketterlin, and P. Gan carski, “A global
-       averaging method for dynamic time warping, with applications to
-       clustering,” *Pattern Recognition*, vol. 44, pp. 678–693, Mar.
-       2011.
-
+    .. [MBA] Christopher Holder, David Guijo-Rubio, and Anthony Bagnall.
+       Barycentre averaging for the move-split-merge time series
+       distance measure. 15th International Joint Conference on
+       Knowledge Discovery, Knowledge Engineering and Knowledge
+       Management (2023)
     Parameters
     ----------
     X : np.ndarray, shape ``(N, d*w_t)`` or ``(N, w_t, d)``
@@ -200,7 +192,7 @@ def compute_centers(
     avg_kwargs : dict, optional
         Keyword arguments for the average function. See
         :func:`pycvi.cluster.compute_center` and
-        func:`pycvi.cluster.compute_centers` for more information.
+        :func:`pycvi.cluster.compute_centers` for more information.
 
     Returns
     -------
@@ -257,7 +249,7 @@ def generate_uniform(
     Returns
     -------
     List[np.ndarray]
-        A list of samples from a uniform distribution, parametrized
+        A list of samples from uniform distributions, parameterized
         according to the original dataset ``data``.
     """
     rng = set_random_state(rng, Generator)
@@ -296,8 +288,8 @@ def generate_uniform(
 def prepare_data(
     X: np.ndarray,
     ts_dist: bool = False,
-    window: dict = None,
-    transformer: Callable = None,
+    window: Optional[dict] = None,
+    transformer: Optional[Callable] = None,
     scaler = StandardScaler(),
 ) -> List[np.ndarray]:
     """
@@ -478,7 +470,8 @@ def sliding_window(T: int, w: int) -> dict:
     Returns
     -------
     dict
-        The information related to the sliding windows of length :math:`w` extracted from time-series of length :math:`T`.
+        Information about windows of length :math:`w` extracted from a
+        time series of length :math:`T`.
     """
     # Boundaries between regular cases and extreme ones
     ind_start = (w-1)//2
@@ -563,7 +556,7 @@ def get_clustering(y: np.ndarray) -> List[List[int]]:
     return clusters
 
 def _generate_clustering(
-    model_class,
+    model_class: Callable,
     model_kw : Dict = {},
     fit_predict_kw : Dict = {},
 ) -> List[List[int]]:
@@ -601,11 +594,11 @@ def _generate_clustering(
 
 def generate_all_clusterings(
     data: np.ndarray,
-    model_class,
-    n_clusters_range: Sequence = None,
+    model_class: Union[Callable, Dict[str, Callable]],
+    n_clusters_range: Optional[Sequence] = None,
     ts_dist: bool = True,
-    time_window: int = None,
-    transformer: Callable = None,
+    time_window: Optional[int] = None,
+    transformer: Optional[Callable] = None,
     scaler = StandardScaler(),
     model_kw: dict = {},
     fit_predict_kw: dict = {},
@@ -654,8 +647,8 @@ def generate_all_clusterings(
         - `(N, d)` -> `(N, 1, d)`
         - `(N, T, d)` -> `(N, T, d)`
 
-    model_class : A sklearn-like clustering class
-        A class implementing a clustering algorithm (or a dictionary of
+    model_class : Union[Callable, Dict[str, Callable]]
+        A sklearn-like clustering class (or a dictionary of
         classes if the main clustering parameter is not the number of
         clusters. In that case, keys must match keys in ``model_kw`` and
         ``fit_predict_kw``).

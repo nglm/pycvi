@@ -3,11 +3,11 @@ import pandas as pd
 import urllib.request
 from scipy.io import arff
 import io
-from typing import List, Dict, Union, Tuple
+from typing import Any, List, Dict, Union, Tuple
 
 from .exceptions import ShapeError
 
-def _check_dims(a, ndim):
+def _check_dims(a: np.ndarray, ndim: int) -> np.ndarray:
     dims = a.shape
     if (len(dims) == ndim - 1):
         a = np.expand_dims(a, 0)
@@ -16,10 +16,10 @@ def _check_dims(a, ndim):
         raise ShapeError(msg)
     return a
 
-def _match_dims(a1, a2):
+def _match_dims(a1: np.ndarray, a2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Make a1 and a2 have the same shape, assuming that there might
-    be a dimension of size 1 missing in front of one of the arrays
+    Make ``a1`` and ``a2`` have the same number of dimensions, assuming
+    that one array may be missing a leading dimension of size 1.
     """
     dims1 = a1.shape
     dims2 = a2.shape
@@ -38,7 +38,7 @@ def _match_dims(a1, a2):
         msg = f"Cannot make dimensions {dims1} and {dims2} match."
         raise ShapeError(msg)
 
-def _load_data_from_github(url):
+def _load_data_from_github(url: str) -> Tuple[np.ndarray, Any]:
     ftpstream = urllib.request.urlopen(url)
     data, meta = arff.loadarff(io.StringIO(ftpstream.read().decode('utf-8')))
     df = pd.DataFrame(data)
@@ -73,7 +73,7 @@ def _check_list_of_dict(
     Raises
     ------
     ValueError
-        If ```l``` is empty or not of the right type (a
+        If ``l`` is empty or not of the right type (a
         list of dictionaries in the case of time series data
         clustered by sliding windows or a dictionary).
     """

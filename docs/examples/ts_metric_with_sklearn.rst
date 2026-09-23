@@ -9,6 +9,7 @@ Combining a time-series metric with a sklearn-like model is not straightforward 
 
 .. literalinclude:: ../../examples/ts_metric_with_sklearn/ts_metric_with_sklearn.py
    :linenos:
-   :emphasize-lines: 28-32
+   :emphasize-lines: 29-33, 54-58
 
 .. image:: ../../examples/ts_metric_with_sklearn/ts_metric_with_sklearn_Agglo.png
+.. image:: ../../examples/ts_metric_with_sklearn/ts_metric_with_sklearn_HDBSCAN.png

@@ -1,4 +1,4 @@
-pycvi.config
+﻿pycvi.config
 ============
 
 .. automodule:: pycvi.config
@@ -11,4 +11,5 @@ pycvi.config
       default_ts_average_kwargs
       default_ts_distance_kwargs
       set_data_shape
+      set_random_state
    
