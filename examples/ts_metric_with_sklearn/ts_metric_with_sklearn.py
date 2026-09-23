@@ -47,14 +47,14 @@ fig_name = "ts_metric_with_sklearn_Agglo.png"
 fig.suptitle(fig_title)
 fig.savefig(fig_name)
 
-# ================== CASE 2: Other clustering method ===================
+# ================ CASE 2: k is not the main parameter =================
 
 # Train and predict a HDBSCAN model with a Time-series metric
 # Add time-series kwargs and HDBSCAN kwargs
 model = HDBSCAN(
     metric=time_series_metric_with_sklearn(d=d, T=T),
     metric_params={"method": "msm", "window": 0.5},
-    leaf_size=30,
+    leaf_size=5,
 )
 
 labels_pred = model.fit_predict(X)
