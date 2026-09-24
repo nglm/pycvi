@@ -69,7 +69,7 @@ def test_time_series_metric_with_sklearn():
         # Train and predict a AgglomerativeClustering model with a Time-series metric
         model = AgglomerativeClustering(
             n_clusters=k,
-            metric=time_series_metric_with_sklearn(d=d, T=T),
+            metric=time_series_metric_with_sklearn(d=d),
             linkage="single",
         )
 
@@ -86,7 +86,7 @@ def test_time_series_metric_with_sklearn():
         model = AgglomerativeClustering(
             n_clusters=k,
             metric=time_series_metric_with_sklearn(
-                d=d, T=T, dist_kwargs=dist_kwargs
+                d=d, dist_kwargs=dist_kwargs
             ),
             linkage="single",
         )
@@ -110,7 +110,7 @@ def test_time_series_cdist_with_sklearn():
 
         model = HDBSCAN(
             metric=time_series_metric_with_sklearn(
-                d=d, T=T, dist_kwargs=dist_kwargs,
+                d=d, dist_kwargs=dist_kwargs,
             ),
             metric_params = dist_kwargs,
             leaf_size=30,
@@ -124,7 +124,7 @@ def test_time_series_cdist_with_sklearn():
 
         model = OPTICS(
             metric=time_series_metric_with_sklearn(
-                d=d, T=T, dist_kwargs=dist_kwargs,
+                d=d, dist_kwargs=dist_kwargs,
             ),
         )
 

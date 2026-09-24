@@ -28,7 +28,7 @@ k = 4
 # Train and predict a AgglomerativeClustering model with a Time-series metric
 model = AgglomerativeClustering(
     n_clusters=k,
-    metric=time_series_metric_with_sklearn(d=d, T=T),
+    metric=time_series_metric_with_sklearn(d=d),
     linkage="single",
 )
 
@@ -52,7 +52,7 @@ fig.savefig(fig_name)
 # Train and predict a HDBSCAN model with a Time-series metric
 # Add time-series kwargs and HDBSCAN kwargs
 model = HDBSCAN(
-    metric=time_series_metric_with_sklearn(d=d, T=T),
+    metric=time_series_metric_with_sklearn(d=d),
     metric_params={"method": "msm", "window": 0.5},
     leaf_size=5,
 )

@@ -298,7 +298,6 @@ def f_cdist(
 
 def time_series_metric_with_sklearn(
         d: int = 1,
-        T: int = 1,
         dist_kwargs : dict = {},
     ) -> Callable:
     """
@@ -342,8 +341,6 @@ def time_series_metric_with_sklearn(
     ----------
     d : int, optional
         The number of variables in the time series, by default 1.
-    T : int, optional
-        The number of time steps in the time series, by default 1.
     dist_kwargs : dict, optional
         Additional keyword arguments for the distance function, by default
         ``{}``.

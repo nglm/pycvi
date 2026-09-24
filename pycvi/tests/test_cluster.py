@@ -408,7 +408,7 @@ def test_generate_all_clusterings_indpt_of_k():
         for w in l_w:
 
             # Defining ts metric function to use with sklearn clustering
-            metric = time_series_metric_with_sklearn(d=d, T=w)
+            metric = time_series_metric_with_sklearn(d=d)
 
             model_class = {
                 "01" : OPTICS,
@@ -453,7 +453,7 @@ def test_generate_all_clusterings_indpt_of_k():
             assert (type(clusterings_t_k[0]["01"][0][0]) == int)
 
         # Not using a sliding window
-        metric = time_series_metric_with_sklearn(d=d, T=T)
+        metric = time_series_metric_with_sklearn(d=d)
         model_kw["02"]["metric"] = metric
         model_kw["03"]["metric"] = metric
         clusterings_t_k = generate_all_clusterings(
