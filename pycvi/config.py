@@ -171,6 +171,36 @@ def _get_model_parameters(
     mc_kw.update(deepcopy(model_class_kw))
     return m_kw, ft_kw, mc_kw
 
+def _use_ts_metric_with_sklearn(model_kw: dict) -> bool:
+    """
+    Check if the model keyword arguments indicate that a time-series
+    metric is being used with a scikit-learn clustering model.
+
+    Parameters
+    ----------
+    model_kw : dict
+        Model keyword arguments.
+
+    Returns
+    -------
+    bool
+        True if a time-series metric is being used with a scikit-learn
+        clustering model, False otherwise.
+    """
+    ts_metric_with_sklearn_is_used = False
+    for key, value in model_kw.items():
+        # Check if value is a callable and then check if it is
+        # the time_series_metric_with_sklearn function
+        if (
+            callable(value)
+            and value.__name__ == "_ts_metric_with_sklearn"
+            and value.__module__ == "pycvi.dist"
+        ):
+            ts_metric_with_sklearn_is_used = True
+            break
+
+    return ts_metric_with_sklearn_is_used
+
 def default_ts_average_kwargs(
     user_kwargs: dict = {},
 ) -> dict:

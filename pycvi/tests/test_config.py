@@ -74,6 +74,43 @@ def test_set_random_state():
 	with pytest.raises(ValueError, match="Invalid RandomGenerator return type"):
 		set_random_state(12, float)
 
+def test__use_ts_metric_with_sklearn():
+	model_kw = {
+		"max_iter": 200,
+		"n_init": 5,
+		"algorithm": "lloyd",
+	}
+	res = _use_ts_metric_with_sklearn(model_kw)
+	assert isinstance(res, bool)
+	assert res == False
+
+	model_kw = {
+		"max_iter": 200,
+		"n_init": 5,
+		"algorithm": "lloyd",
+		"some_callable" : len,
+	}
+	res = _use_ts_metric_with_sklearn(model_kw)
+	assert isinstance(res, bool)
+	assert res == False
+
+	model_kw = {
+		"metric": len,
+		"n_init": 5,
+		"algorithm": "lloyd",
+	}
+	res = _use_ts_metric_with_sklearn(model_kw)
+	assert isinstance(res, bool)
+	assert res == False
+
+	model_kw = {
+		"metric": len,
+		"n_init": 5,
+		"some_key": time_series_metric_with_sklearn(2),
+	}
+	res = _use_ts_metric_with_sklearn(model_kw)
+	assert isinstance(res, bool)
+	assert res == True
 
 def test__get_model_parameters_for_kmeans_applies_defaults_and_overrides():
 	model_kw = {
@@ -81,7 +118,7 @@ def test__get_model_parameters_for_kmeans_applies_defaults_and_overrides():
 		"n_init": 5,
 		"algorithm": "lloyd",
 	}
-	fit_predict_kw = {"sample_weight": np.array([1.0, 2.0])}
+	fit_predict_kw = {"sample_weight": [1.0, 2.0]}
 	model_class_kw = {"X_arg_name": "data"}
 
 	m_kw, ft_kw, mc_kw = _get_model_parameters(
