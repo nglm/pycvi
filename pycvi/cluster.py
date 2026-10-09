@@ -20,7 +20,7 @@ from typing import Callable, List, Sequence, Union, Dict, Optional
 import time
 from .config import (
     set_data_shape, _get_model_parameters, default_ts_average_kwargs,
-    set_random_state
+    set_random_state, _use_ts_metric_with_sklearn
 )
 from .exceptions import ShapeError, EmptyClusterError
 from ._utils import _check_model_ids
@@ -612,9 +612,9 @@ def generate_all_clusterings(
     """
     Generate all clusterings for the given data and clustering model.
 
-    If ``time_window`` is None: ``clusterings_t_k[k][i]`` is a list of datapoint
-    indices contained in cluster :math:`i` for the clustering that
-    assumes :math:`k` clusters.
+    If ``time_window`` is None: ``clusterings_t_k[k][i]`` is a list of
+    datapoint indices contained in cluster :math:`i` for the clustering
+    that assumes :math:`k` clusters.
 
     If time_window is not None (concerns only time series with sliding
     window): ``clusterings_t_k[t_w][k][i]`` is a list of datapoint
@@ -628,9 +628,8 @@ def generate_all_clusterings(
     ``clusterings_t_k[t_w][n_clusters] = None``.
 
     If the provided ``n_clusters_range`` goes beyond the number of
-    datapoints, then
-    ``clusterings_t_k[t_w][n_clusters] = None`` for ``n_clusters > N``
-    where ``N`` is the number of datapoints.
+    datapoints, then ``clusterings_t_k[t_w][n_clusters] = None`` for
+    ``n_clusters > N`` where ``N`` is the number of datapoints.
 
     For more information about the preprocessing steps done on the data
     before the clustering operation, see
@@ -783,6 +782,10 @@ def generate_all_clusterings(
         # X_clus of shape (N, w_t*d) or (N, w_t, d)
         X_clus = data_clus[t_w]
 
+        # X_clus of shape (N, w_t*d) or (N, d, T) for aeon compatibility
+        if len(X_clus.shape) == 3:
+            X_clus = np.swapaxes(X_clus, 1, 2)
+
 
         # -------------------------------------------------------------
         #              Case where k is the main parameter
@@ -798,11 +801,12 @@ def generate_all_clusterings(
                 model_class_kw = model_class_kw,
             )
             # Update fit_predict_kw with the data
-            if len(X_clus.shape) == 3:
-                fit_predict_kw[model_class_kw["X_arg_name"]] = np.swapaxes(X_clus, 1, 2)
+            # and reshape for ts_metric_with_sklearn compatibility
+            ts_metric_with_sklearn_used = _use_ts_metric_with_sklearn(model_kw)
+            if ts_metric_with_sklearn_used:
+                fit_predict_kw[model_class_kw["X_arg_name"]] = X_clus.reshape(N, -1)
             else:
                 fit_predict_kw[model_class_kw["X_arg_name"]] = X_clus
-
 
             # All datapoints in the same cluster. Go to next iteration
             if n_clusters <= 1:
@@ -850,8 +854,10 @@ def generate_all_clusterings(
         for model_id in model_ids:
 
             # Update fit_predict_kw with the data
-            if len(X_clus.shape) == 3:
-                fit_predict_kw[model_id]["X"] = np.swapaxes(X_clus, 1, 2)
+            # and reshape for ts_metric_with_sklearn compatibility
+            ts_metric_with_sklearn_used = _use_ts_metric_with_sklearn(model_kw[model_id])
+            if ts_metric_with_sklearn_used:
+                fit_predict_kw[model_id]["X"] = X_clus.reshape(N, -1)
             else:
                 fit_predict_kw[model_id]["X"] = X_clus
 

@@ -10,7 +10,9 @@ from ..config import (
 	default_ts_average_kwargs,
 	default_ts_distance_kwargs,
 	set_data_shape,
+	_use_ts_metric_with_sklearn
 )
+from ..dist import time_series_metric_with_sklearn
 from ..exceptions import ShapeError
 
 

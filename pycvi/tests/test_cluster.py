@@ -386,10 +386,12 @@ def test_generate_all_clusterings():
         assert (type(clusterings_t_k[0][0][0]) == list)
         assert (type(clusterings_t_k[0][0][0][0]) == int)
 
-def test_generate_all_clusterings_indpt_of_k():
+
+def test_generate_all_clusterings_indpt_of_k_and_ts_metric():
     """
     Test shape and type of output of generate_all_clusterings
-    When k is not the main parameter
+    When k is not the main parameter and when metric is
+    time_series_metric_with_sklearn (e.g. OPTICS, HDBSCAN)
 
     """
 
@@ -401,41 +403,41 @@ def test_generate_all_clusterings_indpt_of_k():
         # `prepare_data`), so pre-flattening it here would make it
         # misinterpret the flattened T*d features as d with T=1.
 
+
+        # Defining ts metric function to use with sklearn clustering
+        metric = time_series_metric_with_sklearn(d=d)
+
+        model_class = {
+            "01" : OPTICS,
+            "02" : OPTICS,
+            "03" : HDBSCAN,
+        }
+        model_kw = {
+            "01" : {"metric": metric,"xi": 0.01, "min_samples" : 2},
+            "02" : {"metric": metric, "min_samples" : 2},
+            "03" : {
+                "metric_params": {"method": "msm", "window": 0.5},
+                "metric": metric, "min_samples" : 2
+            },
+        }
+
+        fit_predict_kw = {
+            "01": {},
+            "02": {},
+            "03": {}
+        }
+
         l_w = [1, T//2, T]
 
         # Using ts_dist and window
         # data_clus is a list of T (N, w_t, d) arrays
         for w in l_w:
 
-            # Defining ts metric function to use with sklearn clustering
-            metric = time_series_metric_with_sklearn(d=d)
-
-            model_class = {
-                "01" : OPTICS,
-                "02" : OPTICS,
-                "03" : HDBSCAN,
-            }
-            model_kw = {
-                "01" : {"xi": 0.01, "min_samples" : 2},
-                "02" : {"metric": metric, "min_samples" : 2},
-                "03" : {
-                    "metric_params": {"method": "msm", "window": 0.5},
-                    "metric": metric, "min_samples" : 2
-                },
-            }
-
-            fit_predict_kw = {
-                "01": {},
-                "02": {},
-                "03": {}
-            }
-
-
 
             clusterings_t_k = generate_all_clusterings(
                 data, model_class,
                 n_clusters_range=None,
-                ts_dist=False, time_window=w, transformer=None,
+                ts_dist=True, time_window=w, transformer=None,
                 scaler=StandardScaler(),
                 model_kw=model_kw,
                 fit_predict_kw=fit_predict_kw,
@@ -454,8 +456,9 @@ def test_generate_all_clusterings_indpt_of_k():
 
         # Not using a sliding window
         metric = time_series_metric_with_sklearn(d=d)
-        model_kw["02"]["metric"] = metric
-        model_kw["03"]["metric"] = metric
+        model_kw["01"].pop("metric", None)
+        model_kw["02"].pop("metric", None)
+        model_kw["03"].pop("metric", None)
         clusterings_t_k = generate_all_clusterings(
             data, model_class,
             n_clusters_range=None,

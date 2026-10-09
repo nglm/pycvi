@@ -352,7 +352,7 @@ def time_series_metric_with_sklearn(
 
     """
 
-    def _aux_pdist(X, Y=None, **kwargs):
+    def _ts_metric_with_sklearn(X, Y=None, **kwargs):
 
         # Update dist_kwargs with additional kwargs (some clustering method add
         # kwargs inside the clustering method)
@@ -393,6 +393,6 @@ def time_series_metric_with_sklearn(
             # sklearn expects a square matrix, but f_pdist returns a condensed matrix, so we need to convert it back to square form
             return squareform(squared_dist)
 
-    return _aux_pdist
+    return _ts_metric_with_sklearn
 
 
