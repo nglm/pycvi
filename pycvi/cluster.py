@@ -648,9 +648,9 @@ def generate_all_clusterings(
         - `(N, T, d)` -> `(N, T, d)`
 
     model_class : Union[Callable, Dict[str, Callable]]
-        A sklearn-like clustering class (or a dictionary of
-        classes if the main clustering parameter is not the number of
-        clusters. In that case, keys must match keys in ``model_kw`` and
+        A sklearn-like clustering class (or a dictionary of classes if
+        the main clustering parameter is not the number of clusters. In
+        that case, keys must match keys in ``model_kw`` and
         ``fit_predict_kw``).
     n_clusters_range : Sequence, optional
         Assumptions on the number of clusters to try out, by default
@@ -658,6 +658,19 @@ def generate_all_clusterings(
     ts_dist : bool, optional
         Determines if a proper time series distance should be used
         (concerns only time series data), by default ``True``.
+
+        Note: In the case of time-series data, it is at the moment not
+        possible to use in the same call of ``generate_all_clusterings``
+        static clustering sklearn-like methods using euclidean distance
+        *and* static clustering sklearn-like methods using
+        :func:`pycvi.dist.time_series_metric_with_sklearn` because of
+        incompatibility issues in data shape requirements. You can
+        however run the function twice, once for each type case, specify
+        once `ts_dist = True` and once ``ts_dist = False`` and then
+        merge the results. It is however possible to use static
+        sklearn-like methods that accept a metric argument with
+        time-series clustering methods in one call of
+        ``generate_all_clusterings``.
     time_window : int, optional
         Length of the sliding window (concerns only time-series data),
         by default None. If None, no sliding window is used, and the
@@ -684,8 +697,7 @@ def generate_all_clusterings(
         `model_class` clustering model, by default {}. Alternatively, it
         can a dictionary of of kwargs dictionaries if the main
         clustering parameter is not the number of clusters. In that
-        case, keys must match keys in ``model_class`` and
-        ``model_kw``)
+        case, keys must match keys in ``model_class`` and ``model_kw``)
     model_class_kw : dict, optional
         Dictionary that contains the argument names of the number of
         clusters and the data to give to the clustering model, by
