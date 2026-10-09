@@ -5,6 +5,8 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from numpy.random import RandomState, Generator
 from typing import List, Sequence, Union, Any, Dict, Tuple, Optional
+from copy import deepcopy
+
 from .exceptions import ShapeError
 
 def set_data_shape(X: np.ndarray) -> np.ndarray:
@@ -160,13 +162,13 @@ def _get_model_parameters(
             'n_init' : model_kw.pop('n_init', 20),
             'tol' : model_kw.pop('tol', 1e-3),
         }
-        ft_kw.update(fit_predict_kw)
+        ft_kw.update(deepcopy(fit_predict_kw))
     elif model_class == GaussianMixture:
         mc_kw['k_arg_name'] = "n_components"
-        mc_kw.update(model_class_kw)
-    m_kw.update(model_kw)
-    ft_kw.update(fit_predict_kw)
-    mc_kw.update(model_class_kw)
+        mc_kw.update(deepcopy(model_class_kw))
+    m_kw.update(deepcopy(model_kw))
+    ft_kw.update(deepcopy(fit_predict_kw))
+    mc_kw.update(deepcopy(model_class_kw))
     return m_kw, ft_kw, mc_kw
 
 def default_ts_average_kwargs(
