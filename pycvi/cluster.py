@@ -655,8 +655,10 @@ def generate_all_clusterings(
         Assumptions on the number of clusters to try out, by default
         None. If None, `n_clusters_range=range(N+1)`.
     ts_dist : bool, optional
-        Determines if a proper time series distance should be used
-        (concerns only time series data), by default ``True``.
+        Determines if the data should be shaped for time-series
+        clustering methods and distances. This parameter is only used if
+        the original data has a time dimension, i.e. is a 3D array. By
+        default ``True``.
 
         Note: In the case of time-series data, it is at the moment not
         possible to use in the same call of ``generate_all_clusterings``

@@ -429,7 +429,7 @@ def test_generate_all_clusterings_indpt_of_k_and_ts_metric():
 
         l_w = [1, T//2, T]
 
-        # Using ts_dist and window
+        # -------------- Using ts_dist and window ---------------------
         # data_clus is a list of T (N, w_t, d) arrays
         for w in l_w:
 
@@ -454,11 +454,13 @@ def test_generate_all_clusterings_indpt_of_k_and_ts_metric():
             assert (type(clusterings_t_k[0]["01"][0]) == list)
             assert (type(clusterings_t_k[0]["01"][0][0]) == int)
 
-        # Not using a sliding window
+        # ------------- Not using a sliding window -------------------
+        # ---------------- Nor time-series metric --------------------
         metric = time_series_metric_with_sklearn(d=d)
         model_kw["01"].pop("metric", None)
         model_kw["02"].pop("metric", None)
         model_kw["03"].pop("metric", None)
+        model_kw["03"].pop("metric_params", None)
         clusterings_t_k = generate_all_clusterings(
             data, model_class,
             n_clusters_range=None,
